@@ -92,18 +92,28 @@ const ER=[
 ];
 
 const ILC=[
-  {code:"200",l:"Déposée",en:"Submitted",m:true,actor:"Supplier PA",d:"Entry point for ALL e-invoices. PPF and buyer PA notified.",c:"#3B82F6",next:["201","211"],fix:null,cdarCodes:null},
-  {code:"201",l:"Reçue",en:"Received by buyer PA",m:false,actor:"Buyer PA",d:"Invoice reached buyer PA and passed initial technical checks.",c:"#06B6D4",next:["202","203","211"],fix:null,cdarCodes:null},
-  {code:"202",l:"Mise à disposition",en:"Made available",m:false,actor:"Buyer PA",d:"Invoice available in buyer portal.",c:"#6366F1",next:["203","210"],fix:null,cdarCodes:null},
-  {code:"203",l:"Prise en charge",en:"Acknowledged",m:false,actor:"Buyer",d:"Buyer confirms receipt and starts review process.",c:"#8B5CF6",next:["204","206","210"],fix:null,cdarCodes:null},
-  {code:"204",l:"Approuvée",en:"Approved",m:false,actor:"Buyer",d:"Buyer formally approved the invoice. Queued for payment.",c:"#22C55E",next:["205","212"],fix:null,cdarCodes:null},
-  {code:"205",l:"Mise en paiement",en:"Payment initiated",m:false,actor:"Buyer",d:"Payment instruction created.",c:"#84CC16",next:["212"],fix:null,cdarCodes:null},
-  {code:"206",l:"En litige",en:"In dispute",m:false,actor:"Both",d:"Dispute opened. On hold until resolved.",c:"#F97316",next:["204","210"],fix:null,cdarCodes:null},
-  {code:"207",l:"Suspendue",en:"Suspended",m:false,actor:"Buyer PA",d:"Processing suspended pending additional info.",c:"#FB923C",next:["203","210","211"],fix:null,cdarCodes:null},
-  {code:"208",l:"Abandonnée",en:"Abandoned",m:false,actor:"Supplier",d:"Supplier abandons before full processing. New BT-1 required.",c:"#6B7280",next:[],fix:null,cdarCodes:null},
-  {code:"209",l:"Annulée",en:"Cancelled",m:false,actor:"Supplier",d:"Cancelled by mutual agreement. Credit note required.",c:"#DC2626",next:[],fix:null,cdarCodes:null},
-  {code:"210",l:"Refusée",en:"Refused (business)",m:true,actor:"Buyer",d:"MANDATORY: Invoice refused at business level. DGFiP notified.",c:"#EF4444",next:[],fix:"Émettre un avoir (BT-3=381) + nouvelle facture avec NOUVEAU BT-1.",cdarCodes:null},
-  {code:"211",l:"Rejetée",en:"Rejected (technical)",m:true,actor:"PA or PPF",d:"MANDATORY: Technical rejection. Seller must resubmit with a NEW BT-1.",c:"#DC2626",next:[],fix:null,
+  {code:"200",famille:"technique",l:"Déposée",en:"Submitted",m:true,actor:"Supplier PA",d:"Entry point for ALL e-invoices. PPF and buyer PA notified.",c:"#3B82F6",next:["201","211"],fix:null,cdarCodes:null},
+  {code:"201",famille:"technique",l:"Reçue",en:"Received by buyer PA",m:false,actor:"Buyer PA",d:"Invoice reached buyer PA and passed initial technical checks.",c:"#06B6D4",next:["202","203","211"],fix:null,cdarCodes:null},
+  {code:"202",famille:"technique",l:"Mise à disposition",en:"Made available",m:false,actor:"Buyer PA",d:"Invoice available in buyer portal.",c:"#6366F1",next:["203","210"],fix:null,cdarCodes:null},
+  {code:"203",famille:"business",l:"Prise en charge",en:"Acknowledged",m:false,actor:"Buyer",d:"Buyer confirms receipt and starts review process.",c:"#8B5CF6",next:["204","206","210"],fix:null,cdarCodes:null},
+  {code:"204",famille:"business",l:"Approuvée",en:"Approved",m:false,actor:"Buyer",d:"Buyer formally approved the invoice. Queued for payment.",c:"#22C55E",next:["205","212"],fix:null,cdarCodes:null},
+  {code:"205",famille:"business",l:"Mise en paiement",en:"Payment initiated",m:false,actor:"Buyer",d:"Payment instruction created.",c:"#84CC16",next:["212"],fix:null,cdarCodes:null},
+  {code:"206",famille:"business",l:"En litige",en:"In dispute",m:false,actor:"Both",d:"Dispute opened. On hold until resolved.",c:"#F97316",next:["204","210"],fix:null,cdarCodes:null},
+  {code:"207",famille:"technique",l:"Suspendue",en:"Suspended",m:false,actor:"Buyer PA",d:"Processing suspended pending additional info.",c:"#FB923C",next:["203","210","211"],fix:null,cdarCodes:null},
+  {code:"208",famille:"business",l:"Abandonnée",en:"Abandoned",m:false,actor:"Supplier",d:"Supplier abandons before full processing. New BT-1 required.",c:"#6B7280",next:[],fix:null,cdarCodes:null},
+  {code:"209",famille:"business",l:"Annulée",en:"Cancelled",m:false,actor:"Supplier",d:"Cancelled by mutual agreement. Credit note required.",c:"#DC2626",next:[],fix:null,cdarCodes:null},
+  {code:"210",famille:"business",l:"Refusée",en:"Refused (business)",m:true,actor:"Buyer",d:"MANDATORY: Invoice refused at business level. DGFiP notified.",c:"#EF4444",next:[],fix:"Émettre un avoir (BT-3=381) + nouvelle facture avec NOUVEAU BT-1.",
+   cdarCodes:[
+     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrige selon bon de commande."},
+     {code:"REF-02",l:"Quantite incorrecte",fix:"Avoir + nouvelle facture avec quantite exacte selon bon de livraison."},
+     {code:"REF-03",l:"Facture en double",fix:"Verifier si deja payee. Si oui: aucune action. Sinon: annuler le doublon."},
+     {code:"REF-04",l:"Bon de commande inconnu",fix:"Verifier reference commande en BT-13. Corriger et remettre avec bon numero."},
+     {code:"REF-05",l:"Destinataire incorrect",fix:"Verifier BT-44 (nom acheteur) et BT-47 (SIRET). Corriger entite juridique."},
+     {code:"REF-06",l:"Prestation non realisee",fix:"Verifier avec equipe operationnelle. Si contestation ouvrir litige 206."},
+     {code:"REF-07",l:"Mentions legales manquantes",fix:"Verifier BT-33 et mentions obligatoires art. L441-9 C.com."},
+     {code:"ZZZ",l:"Autre motif texte libre",fix:"Lire texte libre dans CDAR. Contacter acheteur pour detail du motif."},
+   ]},
+  {code:"211",famille:"technique",l:"Rejetée",en:"Rejected (technical)",m:true,actor:"PA or PPF",d:"MANDATORY: Technical rejection. Seller must resubmit with a NEW BT-1.",c:"#DC2626",next:[],fix:null,
     cdarCodes:[
       {code:"AB",l:"Destinataire introuvable dans l'Annuaire",fix:"Client doit s'enregistrer via sa PA dans l'Annuaire PPF. Vérifier BT-49. Resoumettre avec NOUVEAU BT-1."},
       {code:"RE",l:"Format XML invalide / erreur syntaxe",fix:"Corriger schéma XSD, encodage UTF-8, namespaces. NOUVEAU BT-1 obligatoire."},
@@ -115,8 +125,8 @@ const ILC=[
       {code:"ZZZ",l:"Autre motif technique (texte libre)",fix:"Lire le texte libre dans le CDAR. Contacter PA et/ou support DGFiP."},
     ]
   },
-  {code:"212",l:"Encaissée",en:"Payment received",m:true,actor:"Seller",d:"MANDATORY only for TVA sur les encaissements. Triggers VAT exigibility reporting to DGFiP.",c:"#16A34A",next:[],fix:null,cdarCodes:null},
-  {code:"213",l:"Rejetée à réception",en:"Rejected on receipt",m:false,actor:"Buyer PA",d:"Immediate rejection. Typically buyer not in Annuaire.",c:"#B91C1C",next:[],fix:null,cdarCodes:null},
+  {code:"212",famille:"paiement",l:"Encaissée",en:"Payment received",m:true,actor:"Seller",d:"MANDATORY only for TVA sur les encaissements. Triggers VAT exigibility reporting to DGFiP.",c:"#16A34A",next:[],fix:null,cdarCodes:null},
+  {code:"213",famille:"technique",l:"Rejetée à réception",en:"Rejected on receipt",m:false,actor:"Buyer PA",d:"Immediate rejection. Typically buyer not in Annuaire.",c:"#B91C1C",next:[],fix:null,cdarCodes:null},
 ];
 
 const UC=[
@@ -157,7 +167,7 @@ const SUGG=["Pourquoi ma facture est rejetée statut 211 ?","Mon client n'est pa
 
 const GC={header:"#3B82F6",notes:"#8B5CF6",seller:"#10B981",buyer:"#F59E0B",amounts:"#EF4444",vat:"#EC4899",payment:"#06B6D4",lines:"#84CC16"};
 const GL={header:"Header",notes:"Notes",seller:"Seller",buyer:"Buyer",amounts:"Amounts",vat:"VAT",payment:"Payment",lines:"Lines"};
-const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -234,6 +244,7 @@ function App(){
   const [selBT,setSelBT]=useState(BT[0]);
   const [selER,setSelER]=useState(ER[0]);
   const [selILC,setSelILC]=useState(null);
+  const [ilcFam,setIlcFam]=useState('all');
   const [selUC,setSelUC]=useState(null);
   const [ucCat,setUcCat]=useState("all");
   const [xml,setXml]=useState(SXML);
@@ -249,7 +260,11 @@ function App(){
 
   const filtBT=useMemo(()=>BT.filter(f=>{
     if(grp!=="all"&&f.g!==grp)return false;
-    if(sc!=="all"&&!f.s.includes(sc))return false;
+    if(sc==="eionly"&&(f.s.includes("er")||!f.s.includes("ei")))return false;
+    if(sc==="both"&&!(f.s.includes("ei")&&f.s.includes("er")))return false;
+    if(sc==="ei"&&!f.s.includes("ei"))return false;
+    if(sc==="er"&&!f.s.includes("er"))return false;
+    if(sc!=="all"&&sc!=="eionly"&&sc!=="both"&&!f.s.includes(sc))return false;
     if(mf==="m"&&!f.m)return false;
     if(mf==="o"&&f.m)return false;
     if(q){const s=q.toLowerCase();return f.id.toLowerCase().includes(s)||f.l.toLowerCase().includes(s)||f.fr.toLowerCase().includes(s)||f.d.toLowerCase().includes(s);}
@@ -268,6 +283,7 @@ function App(){
   }),[filtBT,sortBy,sortDir]);
 
   const filtUC=useMemo(()=>UC.filter(u=>ucCat==="all"||u.cat===ucCat),[ucCat]);
+  const filtILC=useMemo(()=>ILC.filter(s=>ilcFam==="all"||s.famille===ilcFam),[ilcFam]);
 
   const doVal=useCallback(()=>{setValidating(true);setTimeout(()=>{setRes(validateXML(xml));setValidating(false);},300);},[xml]);
 
@@ -314,7 +330,7 @@ function App(){
             <div style={{padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
               <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher un champ BT..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:7,padding:"7px 10px",color:"#fff",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
               <div style={{display:"flex",gap:3,marginTop:7,flexWrap:"wrap"}}>
-                {["all","ei","er"].map(v=><P key={v} label={v==="all"?"Tous":v==="ei"?"E-Invoice":"E-Report"} active={sc===v} onClick={()=>setSc(v)}/>)}
+                {[["all","Tous","#6366F1"],["eionly","🔵 EI seulement","#3B82F6"],["both","🟠 EI+ER","#F59E0B"],["er","🟢 ER seulement","#10B981"]].map(([v,l,c])=><P key={v} label={l} active={sc===v} onClick={()=>setSc(v)} color={c}/>)}
                 {["all","m","o"].map(v=><P key={v} label={v==="all"?"Tous":v==="m"?"Requis":"Optionnel"} active={mf===v} onClick={()=>setMf(v)} color="#EF4444"/>)}
               </div>
               <div style={{display:"flex",gap:3,marginTop:6,overflowX:"auto",paddingBottom:2}}>
@@ -347,6 +363,8 @@ function App(){
                   <div style={{fontSize:12,color:"rgba(255,255,255,0.78)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
                   <div style={{display:"flex",gap:2,justifyContent:"flex-end"}}>
                     {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
+                  {f.s.includes("ei")&&f.s.includes("er")&&<span style={{fontSize:8,background:"rgba(245,158,11,0.15)",color:"#F59E0B",borderRadius:3,padding:"1px 3px"}}>EI+ER</span>}
+                  {f.s.includes("ei")&&!f.s.includes("er")&&<span style={{fontSize:8,background:"rgba(59,130,246,0.15)",color:"#60A5FA",borderRadius:3,padding:"1px 3px"}}>EI</span>}
                   </div>
                 </button>
               ))}
@@ -377,6 +395,10 @@ function App(){
                     </div>
                   ))}
                 </div>
+                {selBT.diff&&(<div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:9,padding:12,marginBottom:12}}>
+                  <div style={{fontSize:9,color:"#F59E0B",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>Difference EI vs ER</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6}}>{selBT.diff}</div>
+                </div>)}
                 {selBT.ex&&<div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"12px 16px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,flexShrink:0}}>Exemple</span><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:14,color:"#22C55E",fontWeight:600}}>{selBT.ex}</code></div>}
               </div>
             ):(
@@ -433,7 +455,15 @@ function App(){
       {tab==="ilc"&&(
         <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
           <div style={{maxWidth:1080,margin:"0 auto"}}>
-            <div style={{marginBottom:18}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Statuts ILC <span style={{color:"#6366F1"}}>CDAR</span></h2><p style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:5}}>14 statuts — 4 obligatoires (★) — Cliquez pour détails + codes motif rejet</p></div>
+            <div style={{marginBottom:14}}>
+              <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Statuts ILC <span style={{color:"#6366F1"}}>CDAR</span></h2>
+              <p style={{color:"rgba(255,255,255,0.4)",fontSize:11,marginTop:4}}>14 statuts — 4 obligatoires (★) — 3 familles — Cliquez pour codes motif et IDs</p>
+            </div>
+            <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+              {[["all","Tous","rgba(255,255,255,0.5)"],["technique","🔵 Technique (PA/PPF auto)","#3B82F6"],["business","🟣 Business (equipe finance)","#8B5CF6"],["paiement","🟢 Paiement (vendeur)","#16A34A"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setIlcFam(v)} style={{fontSize:11,padding:"4px 12px",borderRadius:20,cursor:"pointer",border:"1px solid "+(ilcFam===v?c:"rgba(255,255,255,0.1)"),background:ilcFam===v?c+"20":"transparent",color:ilcFam===v?c:"rgba(255,255,255,0.4)",fontWeight:ilcFam===v?700:400}}>{l}</button>
+              ))}
+            </div>
             <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:14,marginBottom:18}}>
               <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Flux nominal</div>
               <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
@@ -447,7 +477,7 @@ function App(){
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:10}}>
-              {ILC.map(st=>(
+              {filtILC.map(st=>(
                 <div key={st.code} onClick={()=>setSelILC(selILC?.code===st.code?null:st)} style={{background:selILC?.code===st.code?st.c+"12":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selILC?.code===st.code?st.c:"rgba(255,255,255,0.07)"),borderRadius:11,padding:14,cursor:"pointer",transition:"all 0.14s"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                     <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:22,fontWeight:900,color:st.c}}>{st.code}</div>
@@ -456,9 +486,16 @@ function App(){
                   <div style={{fontWeight:700,fontSize:13,marginBottom:2}}>{st.l}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:6}}>{st.en}</div>
                   <span style={{fontSize:9,background:st.c+"20",color:st.c,borderRadius:4,padding:"1px 7px"}}>{st.actor}</span>
+                  <span style={{fontSize:8,background:{"technique":"#3B82F6","business":"#8B5CF6","paiement":"#16A34A"}[st.famille]+"15",color:{"technique":"#3B82F6","business":"#8B5CF6","paiement":"#16A34A"}[st.famille],borderRadius:4,padding:"1px 6px",marginLeft:4}}>
+                    {{"technique":"🔵 Tech","business":"🟣 Business","paiement":"🟢 Paiement"}[st.famille]}
+                  </span>
                   {selILC?.code===st.code&&(
                     <div style={{marginTop:10,background:"rgba(0,0,0,0.3)",borderRadius:8,padding:12}}>
-                      <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6,marginBottom:st.cdarCodes?10:0}}>{st.d}</div>
+                      <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6,marginBottom:8}}>{st.d}</div>
+                      <div style={{background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:7,padding:"7px 10px",marginBottom:8}}>
+                        <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontWeight:700}}>Identifiants CDAR</div>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.5}}>{st.code==="200"?"BT-1 + ID PPF attribue par PPF + CDAR ID confirmation":st.code==="210"?"CDAR refus: BT-1 + code motif REF-xx + texte explicatif":st.code==="211"?"CDAR rejet: BT-1 original + code motif (AB/RE/CA...) + texte":st.code==="212"?"CDAR: BT-1 + montant encaisse + date + ID PPF original":"CDAR reponse referencant BT-1 + ID PPF de la facture originale"}</div>
+                      </div>
                       {st.fix&&<div style={{fontSize:11,color:"rgba(99,255,150,0.8)",lineHeight:1.5,marginTop:6}}><span style={{color:"#4ADE80",fontWeight:600}}>Action: </span>{st.fix}</div>}
                       {st.cdarCodes&&(
                         <div style={{marginTop:10,borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:10}}>
@@ -601,6 +638,74 @@ function App(){
                 ))}
               </div>;
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ── FLUX DE DONNEES ── */}
+      {tab==="flux"&&(
+        <div style={{overflow:"auto",padding:"18px 22px",flex:1}}>
+          <div style={{maxWidth:980,margin:"0 auto"}}>
+            <div style={{marginBottom:20}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Flux <span style={{color:"#06B6D4"}}>Architecture Y-Model</span></h2><p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4}}>Qui envoie quoi a qui — E-Invoicing vs E-Reporting — Acteurs — Identifiants CDAR</p></div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:22}}>
+              {[
+                {title:"🔵 E-INVOICING (Flux 2)",color:"#3B82F6",desc:"Format: UBL 2.1 / CII / Factur-X (norme EN16931)\nDestinataire: L'acheteur via PA/PPF\nContenu: Facture complete avec toutes les lignes\nFrequence: A chaque facture emise\nRetour: Statuts ILC CDAR 200 -> 212",
+                 steps:[{f:"Vendeur",t:"PA Vendeur",m:"Facture XML BT-1..BT-153"},{f:"PA Vendeur",t:"PPF",m:"Routage via Annuaire BT-49"},{f:"PPF",t:"PA Acheteur",m:"Livraison + CDAR 200"},{f:"Acheteur",t:"PA",m:"CDAR 203/204/210/212"}]},
+                {title:"🟠 E-REPORTING (Flux 7)",color:"#F59E0B",desc:"Format: XML proprietaire DGFiP (pas EN16931)\nDestinataire: DGFiP uniquement (pas l'acheteur)\nContenu: Montants agreges par taux TVA\nFrequence: Tous les 10 jours\nRetour: Accuse reception DGFiP",
+                 steps:[{f:"Vendeur",t:"PA Vendeur",m:"Donnees agreges ER-01..ER-22"},{f:"PA Vendeur",t:"PPF",m:"XML e-reporting DGFiP"},{f:"PPF",t:"DGFiP",m:"Donnees TVA declaration"},{f:"DGFiP",t:"PPF",m:"Accuse de reception"}]}
+              ].map(({title,color,desc,steps})=>(
+                <div key={title} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+color+"30",borderRadius:12,padding:16}}>
+                  <div style={{fontSize:13,fontWeight:800,color,marginBottom:10}}>{title}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.8,whiteSpace:"pre-line",background:"rgba(0,0,0,0.2)",borderRadius:7,padding:10,marginBottom:12}}>{desc}</div>
+                  {steps.map((s,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:5,background:"rgba(0,0,0,0.25)",borderRadius:5,padding:"4px 8px",marginBottom:3}}>
+                      <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color,minWidth:80,flexShrink:0}}>{s.f}</span>
+                      <span style={{color:"rgba(255,255,255,0.2)"}}>-></span>
+                      <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#A5B4FC",minWidth:80,flexShrink:0}}>{s.t}</span>
+                      <span style={{fontSize:10,color:"rgba(255,255,255,0.55)"}}>{s.m}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:12,padding:16,marginBottom:18}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#A5B4FC",marginBottom:12}}>Les 3 identifiants d'une facture dans le reseau</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+                {[
+                  {id:"BT-1",name:"Numero facture vendeur",color:"#10B981",desc:"Attribue par le vendeur. Unique par vendeur et exercice. Ne peut jamais etre reutilise meme apres rejet. Reference dans tous les CDAR ILC.",ex:"FA-2026-00123"},
+                  {id:"ID PPF",name:"Identifiant technique PPF",color:"#3B82F6",desc:"Attribue automatiquement par le PPF a la reception. Cle de routage PA <-> PPF <-> PA. Traçabilite bout-en-bout.",ex:"PPF-2026-09-XXXXX"},
+                  {id:"CDAR ID",name:"ID message de reponse",color:"#8B5CF6",desc:"Identifiant du CDAR (Confirmation Document Application Response). Reference BT-1 + ID PPF. Permet de savoir a quelle facture correspond chaque reponse.",ex:"CDAR-20260901-XXX"},
+                ].map(item=>(
+                  <div key={item.id} style={{background:"rgba(0,0,0,0.25)",borderRadius:9,padding:12,border:"1px solid "+item.color+"25"}}>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,fontWeight:800,color:item.color,marginBottom:3}}>{item.id}</div>
+                    <div style={{fontSize:11,fontWeight:600,color:"#fff",marginBottom:5}}>{item.name}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.55)",lineHeight:1.5,marginBottom:7}}>{item.desc}</div>
+                    <div style={{fontSize:10,color:item.color,fontFamily:"JetBrains Mono,monospace"}}>{item.ex}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{fontSize:13,fontWeight:700,marginBottom:10,color:"rgba(255,255,255,0.7)"}}>Acteurs de l'ecosysteme</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:10}}>
+                {[
+                  {n:"PA (Plateforme Agreee)",c:"#6366F1",d:"Anciennement PDP. Plateforme privee certifiee DGFiP. Gere emission, reception, statuts ILC et e-reporting pour les entreprises."},
+                  {n:"PPF (Portail Public)",c:"#3B82F6",d:"Annuaire central des destinataires + concentrateur donnees DGFiP. Reçoit tous les flux et route vers les bonnes PA."},
+                  {n:"Annuaire PPF",c:"#06B6D4",d:"Repertoire SIRET -> PA referente. Vendeur consulte l'Annuaire pour trouver PA acheteur via BT-49."},
+                  {n:"SC (Solution Compatible)",c:"#8B5CF6",d:"Solution non certifiee connectee a une PA via API XP Z12-013. Suffisant pour les PME."},
+                  {n:"Chorus Pro",c:"#10B981",d:"Portail B2G historique. Coexiste avec les PA depuis 2026. Obligatoire pour certains marches publics."},
+                  {n:"DGFiP",c:"#F59E0B",d:"Recoit les donnees e-reporting et statuts ILC via PPF pour le controle TVA."},
+                ].map(a=>(
+                  <div key={a.n} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+a.c+"25",borderRadius:9,padding:12}}>
+                    <div style={{fontSize:11,fontWeight:700,color:a.c,marginBottom:5}}>{a.n}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.55)",lineHeight:1.5}}>{a.d}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
