@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AFNOR XP Z12 Suite — France 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080B14;color:#E2E8F0;font-family:'DM Sans','Segoe UI',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:3px}
+textarea,input{font-family:'DM Sans','Segoe UI',sans-serif}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useMemo,useCallback} = React;
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const BT=[
+  {id:"BT-1",g:"header",l:"Invoice number",fr:"Numéro de facture",m:true,s:["ei","er"],t:"Identifier",d:"Unique identifier assigned by the seller. Must be unique per seller per fiscal year. Cannot be reused.",r:"BR-2",ex:"FA-2026-00123"},
+  {id:"BT-2",g:"header",l:"Invoice issue date",fr:"Date d'émission",m:true,s:["ei","er"],t:"Date",d:"Date when invoice was issued, YYYY-MM-DD. Determines VAT period for DGFiP.",r:"BR-3",ex:"2026-09-01"},
+  {id:"BT-3",g:"header",l:"Invoice type code",fr:"Code type de facture",m:true,s:["ei","er"],t:"Code",d:"UNTDID 1001: 380=Invoice, 381=Credit note, 384=Corrected, 389=Self-billing, 394=Lease.",r:"BR-4",ex:"380"},
+  {id:"BT-5",g:"header",l:"Invoice currency code",fr:"Devise de facturation",m:true,s:["ei","er"],t:"Code",d:"ISO 4217 alpha-3. VAT must also be provided in EUR when currency differs.",r:"BR-5",ex:"EUR"},
+  {id:"BT-6",g:"header",l:"VAT accounting currency",fr:"Devise comptable TVA",m:false,s:["ei"],t:"Code",d:"Required only when BT-5 ≠ EUR. French VAT always declared in EUR to DGFiP.",r:"BR-53",ex:"EUR"},
+  {id:"BT-7",g:"header",l:"VAT point date",fr:"Date du fait générateur TVA",m:false,s:["ei"],t:"Date",d:"Date VAT becomes chargeable. Critical: TVA sur les débits (invoice date) vs TVA sur les encaissements (payment date).",r:"BR-AFNOR-01",ex:"2026-09-01"},
+  {id:"BT-8",g:"header",l:"VAT point date code",fr:"Code date fait générateur",m:false,s:["ei"],t:"Code",d:"UNTDID 2005: 3=Invoice date (débits), 35=Delivery date, 432=Payment date (encaissements).",r:"BR-AFNOR-02",ex:"3"},
+  {id:"BT-9",g:"header",l:"Payment due date",fr:"Date d'échéance",m:false,s:["ei"],t:"Date",d:"Final date for payment. Late payment penalties apply per art. L441-10 C.com.",r:"",ex:"2026-10-01"},
+  {id:"BT-10",g:"header",l:"Buyer reference",fr:"Référence acheteur",m:false,s:["ei"],t:"Text",d:"Purchase order reference or routing code required by the buyer.",r:"",ex:"PO-2026-0055"},
+  {id:"BT-20",g:"header",l:"Payment terms",fr:"Conditions de paiement",m:false,s:["ei"],t:"Text",d:"Free text payment terms. French law requires this on B2B invoices (art. L441-9 C.com).",r:"",ex:"30 jours nets"},
+  {id:"BT-21",g:"notes",l:"Invoice note subject code",fr:"Code sujet de la note",m:false,s:["ei"],t:"Code",d:"AFNOR-specific: AAK=fiscal regime, BAR=e-invoicing scope indicator (BR-FR-20), TXD=tax regime, ZZZ=free text.",r:"BR-FR-05",ex:"BAR"},
+  {id:"BT-22",g:"notes",l:"Invoice note",fr:"Note de facture",m:false,s:["ei"],t:"Text",d:"When BT-21=BAR, confirms invoice is in e-invoicing scope. When BT-21=AAK, indicates fiscal regime (ex: FRANCHISE).",r:"BR-FR-06",ex:"CHORUS_PRO"},
+  {id:"BT-24",g:"header",l:"Specification identifier",fr:"Identifiant de spécification",m:true,s:["ei"],t:"Identifier",d:"Profile URI per EN 16931. Required value: urn:cen.eu:en16931:2017.",r:"BR-1",ex:"urn:cen.eu:en16931:2017"},
+  {id:"BT-27",g:"seller",l:"Seller name",fr:"Dénomination sociale vendeur",m:true,s:["ei","er"],t:"Text",d:"Full legal name of seller (raison sociale). Must match official business registration.",r:"BR-6",ex:"Acme France SAS"},
+  {id:"BT-29",g:"seller",l:"Seller identifier",fr:"Identifiant vendeur",m:false,s:["ei"],t:"Identifier",d:"Scheme 0009=SIRET (14 digits) or 0002=SIREN (9 digits). Critical for PPF directory lookup.",r:"BR-FR-01",ex:"0009:12345678900010"},
+  {id:"BT-30",g:"seller",l:"Seller SIREN/SIRET",fr:"SIREN/SIRET vendeur",m:true,s:["ei","er"],t:"Identifier",d:"AFNOR MANDATORY: SIREN (9 digits, scheme 0002) or SIRET (14 digits, scheme 0009). Required for routing.",r:"BR-FR-02",ex:"0009:12345678900010"},
+  {id:"BT-31",g:"seller",l:"Seller VAT number",fr:"Numéro TVA vendeur",m:false,s:["ei","er"],t:"Identifier",d:"Format: FR + 2-char key + 9-digit SIREN. Required when seller is VAT-registered.",r:"BR-CO-9",ex:"FR12345678900"},
+  {id:"BT-33",g:"seller",l:"Seller legal info",fr:"Mentions légales vendeur",m:false,s:["ei"],t:"Text",d:"Required French legal mentions: capital, RCS number, APE/NAF code (art. R123-237 C.com).",r:"",ex:"SAS capital 100 000€ - RCS Paris 123456789"},
+  {id:"BT-34",g:"seller",l:"Seller electronic address",fr:"Adresse électronique vendeur (Annuaire)",m:false,s:["ei"],t:"Identifier",d:"Seller endpoint in PPF Annuaire. SIRET-based: scheme 0009 + SIRET. Used for routing.",r:"",ex:"0009:12345678900010"},
+  {id:"BT-40b",g:"seller",l:"Seller country code",fr:"Pays vendeur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR for mainland France.",r:"BR-9",ex:"FR"},
+  {id:"BT-44",g:"buyer",l:"Buyer name",fr:"Dénomination sociale acheteur",m:true,s:["ei","er"],t:"Text",d:"Full legal name of the buyer. For B2C e-reporting, individual name not required (privacy).",r:"BR-7",ex:"Client Corp SARL"},
+  {id:"BT-47",g:"buyer",l:"Buyer SIREN/SIRET",fr:"SIREN/SIRET acheteur",m:false,s:["ei","er"],t:"Identifier",d:"AFNOR: SIREN/SIRET of buyer. Required when buyer is a French VAT entity.",r:"BR-FR-03",ex:"0009:98765432100024"},
+  {id:"BT-48",g:"buyer",l:"Buyer VAT number",fr:"Numéro TVA acheteur",m:false,s:["ei","er"],t:"Identifier",d:"Required for intra-EU transactions and reverse charge.",r:"BR-CO-9",ex:"FR98765432100"},
+  {id:"BT-49",g:"buyer",l:"Buyer electronic address (Annuaire)",fr:"Adresse électronique acheteur",m:false,s:["ei"],t:"Identifier",d:"CRITICAL: Buyer endpoint in PPF Annuaire. Without this → CDAR 211 rejection code AB. Buyer must register via their PA first.",r:"ANNUAIRE",ex:"0009:98765432100024"},
+  {id:"BT-57b",g:"buyer",l:"Buyer country code",fr:"Pays acheteur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR=domestic B2B, other=international (requires e-reporting).",r:"BR-11",ex:"FR"},
+  {id:"BT-106",g:"amounts",l:"Sum of invoice lines (net)",fr:"Total HT des lignes",m:true,s:["ei","er"],t:"Amount",d:"Sum of all BT-131 line net amounts.",r:"BR-13",ex:"1000.00"},
+  {id:"BT-109",g:"amounts",l:"Invoice total excl. VAT",fr:"Total HT net",m:true,s:["ei","er"],t:"Amount",d:"BT-106 − allowances + charges. Taxable base for VAT calculations.",r:"BR-14",ex:"950.00"},
+  {id:"BT-110",g:"amounts",l:"Total VAT amount",fr:"Montant TVA total",m:true,s:["ei","er"],t:"Amount",d:"Sum of all BT-117. Key figure for DGFiP.",r:"BR-CO-14",ex:"190.00"},
+  {id:"BT-112",g:"amounts",l:"Invoice total incl. VAT",fr:"Total TTC",m:true,s:["ei","er"],t:"Amount",d:"BT-109 + BT-110. Grand total the buyer must pay.",r:"BR-CO-15",ex:"1140.00"},
+  {id:"BT-115",g:"amounts",l:"Amount due for payment",fr:"Montant net à payer",m:true,s:["ei","er"],t:"Amount",d:"BT-112 − prepaid + rounding. Actual amount owed.",r:"BR-CO-16",ex:"1140.00"},
+  {id:"BT-116",g:"vat",l:"VAT category taxable amount",fr:"Base imposable par taux",m:true,s:["ei","er"],t:"Amount",d:"Taxable base per VAT category. Repeated for each VAT rate used.",r:"BR-45",ex:"950.00"},
+  {id:"BT-117",g:"vat",l:"VAT category tax amount",fr:"Montant TVA par catégorie",m:true,s:["ei","er"],t:"Amount",d:"VAT amount = BT-116 × BT-119/100.",r:"BR-CO-17",ex:"190.00"},
+  {id:"BT-118",g:"vat",l:"VAT category code",fr:"Code catégorie TVA",m:true,s:["ei","er"],t:"Code",d:"UNTDID 5305: S=Standard, Z=Zero-rated, E=Exempt, AE=Reverse charge, K=Intra-EU, G=Export, O=Outside scope, EX=Franchise en base.",r:"BR-47",ex:"S"},
+  {id:"BT-119",g:"vat",l:"VAT rate",fr:"Taux TVA",m:false,s:["ei","er"],t:"Percentage",d:"French rates: 20% standard, 10% intermediate, 5.5% reduced, 2.1% super-reduced.",r:"BR-48",ex:"20"},
+  {id:"BT-120",g:"vat",l:"VAT exemption reason",fr:"Motif d'exonération TVA",m:false,s:["ei"],t:"Text",d:"Required when BT-118 ≠ S. E.g. 'Art. 293 B CGI' (franchise), 'Autoliquidation TVA art. 283 CGI'.",r:"BR-AFNOR-10",ex:"TVA non applicable - art. 293 B du CGI"},
+  {id:"BT-81",g:"payment",l:"Payment means type code",fr:"Code mode de règlement",m:false,s:["ei"],t:"Code",d:"UNTDID 4461: 30=Credit transfer, 48=Card, 49=Direct debit, 58=SEPA credit transfer, 59=SEPA direct debit.",r:"",ex:"58"},
+  {id:"BT-84",g:"payment",l:"Payment account IBAN",fr:"IBAN",m:false,s:["ei"],t:"Identifier",d:"Seller IBAN for SEPA credit transfer. FR IBAN: FR76 + 23 chars.",r:"",ex:"FR7612345987650123456789014"},
+  {id:"BT-126",g:"lines",l:"Invoice line identifier",fr:"Identifiant ligne",m:true,s:["ei"],t:"Identifier",d:"Unique ID per line. Sequential integers recommended.",r:"BR-21",ex:"1"},
+  {id:"BT-129",g:"lines",l:"Invoiced quantity",fr:"Quantité facturée",m:true,s:["ei"],t:"Quantity",d:"Number of units. Negative allowed for credit lines. Must have BT-130 unit code.",r:"BR-22",ex:"10"},
+  {id:"BT-130",g:"lines",l:"Unit of measure code",fr:"Unité de mesure",m:true,s:["ei"],t:"Code",d:"UN/ECE Rec 20: C62=unit, HUR=hour, DAY=day, KGM=kg, MTR=metre, LTR=litre.",r:"BR-23",ex:"HUR"},
+  {id:"BT-131",g:"lines",l:"Invoice line net amount",fr:"Montant net ligne",m:true,s:["ei"],t:"Amount",d:"Net amount = (BT-148 − BT-147) × BT-129.",r:"BR-24",ex:"500.00"},
+  {id:"BT-146",g:"lines",l:"Item net price",fr:"Prix net unitaire",m:true,s:["ei"],t:"Amount",d:"Net unit price after item discounts.",r:"BR-26",ex:"50.00"},
+  {id:"BT-151",g:"lines",l:"Line VAT category code",fr:"Code TVA ligne",m:true,s:["ei"],t:"Code",d:"VAT category for this line. Must match document-level BT-118.",r:"BR-CO-4",ex:"S"},
+  {id:"BT-153",g:"lines",l:"Item name/description",fr:"Désignation article/prestation",m:true,s:["ei"],t:"Text",d:"Name of goods/services. French law requires sufficient detail. Cannot be generic.",r:"BR-25",ex:"Prestation de conseil informatique"},
+];
+
+const ER=[
+  {id:"ER-01",l:"Transmission identifier",fr:"Identifiant de transmission",m:true,s:"B2C/B2B-INT",t:"Identifier",d:"Unique ID of the e-reporting transmission generated by the PA.",ex:"TRANS-2026-09-001"},
+  {id:"ER-02",l:"Transmission date",fr:"Date de transmission",m:true,s:"B2C/B2B-INT",t:"Date",d:"Date sent to DGFiP via PPF. Every 10 days or monthly for SMEs.",ex:"2026-09-10"},
+  {id:"ER-03",l:"Reporting period start",fr:"Début de période",m:true,s:"B2C/B2B-INT",t:"Date",d:"Start date of the 10-day reporting period.",ex:"2026-09-01"},
+  {id:"ER-04",l:"Reporting period end",fr:"Fin de période",m:true,s:"B2C/B2B-INT",t:"Date",d:"End date of the reporting period. Max 10 days after ER-03.",ex:"2026-09-10"},
+  {id:"ER-05",l:"Transmitter SIRET",fr:"SIRET déclarant",m:true,s:"B2C/B2B-INT",t:"Identifier",d:"SIRET (14 digits) of the reporting company.",ex:"12345678900010"},
+  {id:"ER-06",l:"Transmitter VAT number",fr:"Numéro TVA déclarant",m:true,s:"B2C/B2B-INT",t:"Identifier",d:"French VAT number: FR + 2-char key + 9-digit SIREN.",ex:"FR12345678900"},
+  {id:"ER-07",l:"Transaction type code",fr:"Nature de l'opération",m:true,s:"B2C/B2B-INT",t:"Code",d:"B2C=sale to consumer, B2B-INT=international B2B sale, PAIEMENT=payment data.",ex:"B2C"},
+  {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",t:"Date",d:"Date of original invoice/transaction.",ex:"2026-09-05"},
+  {id:"ER-09",l:"Taxable amount excl. VAT",fr:"Montant HT",m:true,s:"B2C/B2B-INT",t:"Amount",d:"Net taxable amount in EUR. For B2C: aggregated daily total per VAT rate.",ex:"5000.00"},
+  {id:"ER-10",l:"VAT amount",fr:"Montant TVA",m:true,s:"B2C/B2B-INT",t:"Amount",d:"VAT amount in EUR = ER-09 × ER-12/100.",ex:"1000.00"},
+  {id:"ER-11",l:"Total incl. VAT",fr:"Montant TTC",m:true,s:"B2C/B2B-INT",t:"Amount",d:"Gross = ER-09 + ER-10.",ex:"6000.00"},
+  {id:"ER-12",l:"VAT rate",fr:"Taux de TVA",m:true,s:"B2C/B2B-INT",t:"Percentage",d:"20, 10, 5.5, or 2.1. For zero-rated/exempt: 0.",ex:"20"},
+  {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",t:"Code",d:"Same UNTDID 5305 codes: S, Z, E, AE, K, G, O.",ex:"S"},
+  {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",t:"Code",d:"ISO 3166-1 alpha-2 of buyer. Required for international B2B.",ex:"DE"},
+  {id:"ER-15",l:"Buyer VAT number",fr:"Numéro TVA acheteur",m:false,s:"B2B-INT",t:"Identifier",d:"Required for intra-EU reverse charge.",ex:"DE123456789"},
+  {id:"ER-17",l:"Payment date",fr:"Date d'encaissement",m:false,s:"PAIEMENT",t:"Date",d:"Only for PAIEMENT type. Triggers VAT exigibility.",ex:"2026-09-15"},
+  {id:"ER-19",l:"Original invoice reference",fr:"Référence facture d'origine",m:false,s:"PAIEMENT",t:"Identifier",d:"BT-1 of the original invoice.",ex:"FA-2026-00123"},
+  {id:"ER-21",l:"B2C transaction count",fr:"Nombre de transactions B2C",m:false,s:"B2C",t:"Number",d:"SIMPLIFIED Aug 2025: No longer mandatory.",ex:"—"},
+];
+
+const ILC=[
+  {code:"200",l:"Déposée",en:"Submitted",m:true,actor:"Supplier PA",d:"Entry point for ALL e-invoices. PPF and buyer PA notified.",c:"#3B82F6",next:["201","211"],fix:null,cdarCodes:null},
+  {code:"201",l:"Reçue",en:"Received by buyer PA",m:false,actor:"Buyer PA",d:"Invoice reached buyer PA and passed initial technical checks.",c:"#06B6D4",next:["202","203","211"],fix:null,cdarCodes:null},
+  {code:"202",l:"Mise à disposition",en:"Made available",m:false,actor:"Buyer PA",d:"Invoice available in buyer portal.",c:"#6366F1",next:["203","210"],fix:null,cdarCodes:null},
+  {code:"203",l:"Prise en charge",en:"Acknowledged",m:false,actor:"Buyer",d:"Buyer confirms receipt and starts review process.",c:"#8B5CF6",next:["204","206","210"],fix:null,cdarCodes:null},
+  {code:"204",l:"Approuvée",en:"Approved",m:false,actor:"Buyer",d:"Buyer formally approved the invoice. Queued for payment.",c:"#22C55E",next:["205","212"],fix:null,cdarCodes:null},
+  {code:"205",l:"Mise en paiement",en:"Payment initiated",m:false,actor:"Buyer",d:"Payment instruction created.",c:"#84CC16",next:["212"],fix:null,cdarCodes:null},
+  {code:"206",l:"En litige",en:"In dispute",m:false,actor:"Both",d:"Dispute opened. On hold until resolved.",c:"#F97316",next:["204","210"],fix:null,cdarCodes:null},
+  {code:"207",l:"Suspendue",en:"Suspended",m:false,actor:"Buyer PA",d:"Processing suspended pending additional info.",c:"#FB923C",next:["203","210","211"],fix:null,cdarCodes:null},
+  {code:"208",l:"Abandonnée",en:"Abandoned",m:false,actor:"Supplier",d:"Supplier abandons before full processing. New BT-1 required.",c:"#6B7280",next:[],fix:null,cdarCodes:null},
+  {code:"209",l:"Annulée",en:"Cancelled",m:false,actor:"Supplier",d:"Cancelled by mutual agreement. Credit note required.",c:"#DC2626",next:[],fix:null,cdarCodes:null},
+  {code:"210",l:"Refusée",en:"Refused (business)",m:true,actor:"Buyer",d:"MANDATORY: Invoice refused at business level. DGFiP notified.",c:"#EF4444",next:[],fix:"Émettre un avoir (BT-3=381) + nouvelle facture avec NOUVEAU BT-1.",cdarCodes:null},
+  {code:"211",l:"Rejetée",en:"Rejected (technical)",m:true,actor:"PA or PPF",d:"MANDATORY: Technical rejection. Seller must resubmit with a NEW BT-1.",c:"#DC2626",next:[],fix:null,
+    cdarCodes:[
+      {code:"AB",l:"Destinataire introuvable dans l'Annuaire",fix:"Client doit s'enregistrer via sa PA dans l'Annuaire PPF. Vérifier BT-49. Resoumettre avec NOUVEAU BT-1."},
+      {code:"RE",l:"Format XML invalide / erreur syntaxe",fix:"Corriger schéma XSD, encodage UTF-8, namespaces. NOUVEAU BT-1 obligatoire."},
+      {code:"CA",l:"Règle métier non respectée (BR-xx)",fix:"Identifier la règle violée. Corriger le champ. NOUVEAU BT-1."},
+      {code:"AP",l:"Facture en double (BT-1 déjà utilisé)",fix:"Nouveau numéro unique obligatoire. Le dupliqué ne peut jamais être réutilisé."},
+      {code:"BV",l:"Signature ou certificat invalide",fix:"Renouveler le certificat de la PA. Re-signer et resoumettre."},
+      {code:"UQ",l:"Date de facture hors plage valide",fix:"Vérifier BT-2, ne peut pas être dans le futur. Corriger et NOUVEAU BT-1."},
+      {code:"PD",l:"PA émettrice non agréée",fix:"Vérifier statut agrément DGFiP. Changer de PA si nécessaire."},
+      {code:"ZZZ",l:"Autre motif technique (texte libre)",fix:"Lire le texte libre dans le CDAR. Contacter PA et/ou support DGFiP."},
+    ]
+  },
+  {code:"212",l:"Encaissée",en:"Payment received",m:true,actor:"Seller",d:"MANDATORY only for TVA sur les encaissements. Triggers VAT exigibility reporting to DGFiP.",c:"#16A34A",next:[],fix:null,cdarCodes:null},
+  {code:"213",l:"Rejetée à réception",en:"Rejected on receipt",m:false,actor:"Buyer PA",d:"Immediate rejection. Typically buyer not in Annuaire.",c:"#B91C1C",next:[],fix:null,cdarCodes:null},
+];
+
+const UC=[
+  {id:"UC-00",cat:"nominal",t:"Cas nominal — flux standard",d:"Standard B2B: Seller→PA→PPF→Buyer PA→Buyer. Statuts: 200→201→203→204→212.",flow:[{f:"Vendeur",to:"PA Vendeur",m:"Facture UBL/CII/Factur-X"},{f:"PA Vendeur",to:"PPF",m:"Flux 2 routage Annuaire"},{f:"PPF",to:"PA Acheteur",m:"Livraison"},{f:"Acheteur",to:"PA",m:"Statuts 203→204→212"}],st:["200","201","203","204","212"],cx:"basic"},
+  {id:"UC-01",cat:"nominal",t:"Facture refusée (statut 210)",d:"Buyer refuses invoice. Seller must issue credit note (BT-3=381) + new corrected invoice.",flow:[{f:"Acheteur",to:"PA",m:"Statut 210 Refusée"},{f:"Vendeur",to:"PA",m:"Avoir 381 + nouvelle facture"}],st:["200","210"],cx:"basic"},
+  {id:"UC-02",cat:"nominal",t:"Facture rejetée (statut 211)",d:"Technical rejection by PA. Seller must correct and submit NEW invoice with DIFFERENT BT-1.",flow:[{f:"PA/PPF",to:"Vendeur",m:"CDAR Statut 211"},{f:"Vendeur",to:"PA",m:"NOUVELLE facture (NOUVEAU BT-1)"}],st:["200","211"],cx:"basic"},
+  {id:"UC-03",cat:"correction",t:"Note de crédit (avoir)",d:"Credit note (BT-3=381) reverses a prior invoice. Must reference original in BT-25.",flow:[{f:"Vendeur",to:"PA",m:"Avoir BT-3=381, ref original BT-1"}],st:["200","201","204"],cx:"basic"},
+  {id:"UC-04",cat:"correction",t:"Facture rectificative",d:"Corrected invoice (BT-3=384) replaces incorrect one. Must reference original.",flow:[{f:"Vendeur",to:"PA",m:"Facture BT-3=384, ref original"}],st:["200","201","204"],cx:"basic"},
+  {id:"UC-05",cat:"special",t:"Autofacturation (self-billing 389)",d:"BUYER creates invoice on behalf of seller (BT-3=389). Requires prior agreement.",flow:[{f:"Acheteur",to:"PA Acheteur",m:"Autofacture BT-3=389"},{f:"PPF",to:"PA Vendeur",m:"Livraison au vendeur"}],st:["200","201","203","212"],cx:"medium"},
+  {id:"UC-06",cat:"special",t:"Acompte et solde",d:"Two invoices: (1) Advance/deposit, (2) Balance referencing deposit (BT-113).",flow:[{f:"Vendeur",to:"PA",m:"Facture acompte"},{f:"Vendeur",to:"PA",m:"Facture solde BT-113=acompte"}],st:["200","201","204","212"],cx:"medium"},
+  {id:"UC-07",cat:"special",t:"Facture en devise étrangère",d:"Invoice in foreign currency (BT-5≠EUR). VAT must still appear in EUR (BT-111).",flow:[{f:"Vendeur",to:"PA",m:"Facture BT-5=USD, BT-6=EUR, BT-111=TVA EUR"}],st:["200","201","212"],cx:"medium"},
+  {id:"UC-08",cat:"reporting",t:"E-reporting B2C (France)",d:"B2C sales to French consumers. Aggregated per day per VAT rate. Every 10 days.",flow:[{f:"Vendeur",to:"PA",m:"Données B2C quotidiennes par taux TVA"},{f:"PA",to:"PPF",m:"XML e-reporting agrégé"},{f:"PPF",to:"DGFiP",m:"Données TVA"}],st:[],cx:"basic"},
+  {id:"UC-09",cat:"reporting",t:"E-reporting B2B international",d:"French seller invoices foreign buyer. Per-transaction reporting. No line items required (2025).",flow:[{f:"Vendeur",to:"PA",m:"Données facture internationale"},{f:"PA",to:"PPF",m:"XML e-reporting individuel"}],st:[],cx:"medium"},
+  {id:"UC-10",cat:"reporting",t:"E-reporting de paiement",d:"For TVA sur les encaissements. Must report each payment received. Correlates to original invoice.",flow:[{f:"Vendeur",to:"PA",m:"Données paiement"},{f:"PA",to:"PPF",m:"E-reporting paiement + Statut 212"}],st:["212"],cx:"medium"},
+  {id:"UC-11",cat:"b2g",t:"B2G via Chorus Pro",d:"From Sept 2026: B2G invoices may go via Chorus Pro OR via a PA. Both coexist.",flow:[{f:"Fournisseur",to:"PA ou Chorus Pro",m:"Facture UBL/CII/Factur-X"},{f:"PPF",to:"Entité publique",m:"Livraison"}],st:["200","201","203","204","212"],cx:"medium"},
+  {id:"UC-17",cat:"annuaire",t:"Rejet 211 — Acheteur absent de l'Annuaire",d:"Invoice submitted but buyer not found in PPF Annuaire (BT-49 absent). CDAR 211 code AB returned. Buyer must register via their PA, then seller resubmits with NEW BT-1.",flow:[{f:"Vendeur",to:"PA",m:"Facture (BT-49 absent)"},{f:"PPF",to:"PA",m:"CDAR 211 code AB: Destinataire introuvable"},{f:"Vendeur",to:"Acheteur",m:"Demander enregistrement Annuaire"},{f:"Acheteur",to:"PA Acheteur",m:"Enregistrement SIRET + BT-49"},{f:"Vendeur",to:"PA",m:"NOUVELLE facture (NOUVEAU BT-1)"}],st:["200","211"],cx:"medium"},
+];
+
+const RULES=[
+  {id:"BR-FR-02",lvl:"error",std:"AFNOR",fields:["BT-30"],t:"Seller SIREN/SIRET mandatory",d:"BT-30 is MANDATORY. Must contain valid SIREN (9 digits) or SIRET (14 digits)."},
+  {id:"BR-FR-20",lvl:"error",std:"AFNOR",fields:["BT-21","BT-22"],t:"BAR note required for e-invoicing",d:"Invoices in e-invoicing scope MUST contain a Note with subjectCode='BAR'."},
+  {id:"BR-FR-01",lvl:"error",std:"AFNOR",fields:["BT-29"],t:"Seller ID scheme: SIREN or SIRET only",d:"BT-29 must use scheme 0009 (SIRET) or 0002 (SIREN). Other schemes rejected by PPF."},
+  {id:"BR-FR-03",lvl:"warning",std:"AFNOR",fields:["BT-47"],t:"Buyer SIREN/SIRET recommended",d:"BT-47 should contain SIREN/SIRET when buyer is a French VAT entity."},
+  {id:"ANNUAIRE-BT49",lvl:"warning",std:"AFNOR",fields:["BT-49"],t:"BT-49 absent = Rejet 211 automatique",d:"Without BT-49, PPF cannot route the invoice → automatic CDAR 211 rejection code AB."},
+  {id:"BR-1",lvl:"error",std:"EN16931",fields:["BT-24"],t:"Specification ID required",d:"CustomizationID (BT-24) must be present. Required: urn:cen.eu:en16931:2017."},
+  {id:"BR-2",lvl:"error",std:"EN16931",fields:["BT-1"],t:"Invoice number required",d:"BT-1 must be present, unique per seller per fiscal year."},
+  {id:"BR-3",lvl:"error",std:"EN16931",fields:["BT-2"],t:"Issue date required",d:"BT-2 must be present in YYYY-MM-DD format."},
+  {id:"BR-4",lvl:"error",std:"EN16931",fields:["BT-3"],t:"Invoice type code required",d:"BT-3 must be present. Valid: 380, 381, 384, 389, 394."},
+  {id:"BR-CO-15",lvl:"error",std:"EN16931",fields:["BT-112","BT-109","BT-110"],t:"TTC = HT + VAT",d:"BT-112 = BT-109 + BT-110. Tolerance ±0.02 EUR."},
+  {id:"BR-CO-16",lvl:"error",std:"EN16931",fields:["BT-115","BT-112"],t:"Amount due calculation",d:"BT-115 = BT-112 − prepaid + rounding."},
+  {id:"PENALTY-1",lvl:"info",std:"LF2026",fields:[],t:"Pénalité: 50€/facture",d:"Loi de Finances 2026: 50€ per e-invoice not transmitted. Annual cap. 30-day grace period."},
+  {id:"PENALTY-2",lvl:"info",std:"LF2026",fields:[],t:"Pénalité: 500€/e-reporting",d:"500€ per e-reporting transmission not sent. Annual cap. 30-day grace period."},
+];
+
+const SYS=`Tu es un expert de haut niveau en facturation électronique française (Réforme Facture Électronique 2026), spécialisé dans les normes AFNOR XP Z12-012, XP Z12-013, XP Z12-014, EN 16931, et le système DGFiP. Tu réponds en FRANÇAIS (sauf si question en anglais). Tu es précis, technique, et tu cites toujours les règles (BR-FR-xx, BT-xxx, statuts ILC, articles de loi). Réponds toujours de façon opérationnelle : que doit faire concrètement le comptable/développeur ?`;
+
+const SUGG=["Pourquoi ma facture est rejetée statut 211 ?","Mon client n'est pas dans l'Annuaire, que faire ?","Différence TVA sur débits vs encaissements ?","Comment faire un avoir en e-invoicing ?","Quand le statut 212 est-il obligatoire ?","Qu'est-ce que la note BAR (BR-FR-20) ?","Comment fonctionne l'autofacturation 389 ?","Fréquence de l'e-reporting B2C ?","Différence PA, PPF, SC et Chorus Pro ?","Pénalités en cas de non-conformité ?","SIREN vs SIRET : quand utiliser lequel ?","Facture en devise étrangère : règles ?"];
+
+const GC={header:"#3B82F6",notes:"#8B5CF6",seller:"#10B981",buyer:"#F59E0B",amounts:"#EF4444",vat:"#EC4899",payment:"#06B6D4",lines:"#84CC16"};
+const GL={header:"Header",notes:"Notes",seller:"Seller",buyer:"Buyer",amounts:"Amounts",vat:"VAT",payment:"Payment",lines:"Lines"};
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"ai",i:"🤖",l:"Expert IA"}];
+
+// ── VALIDATOR ─────────────────────────────────────────────────────────────────
+const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
+
+function validateXML(xml){
+  const errs=[],warns=[],infos=[];
+  let doc,fmt="UNKNOWN";
+  try{doc=new DOMParser().parseFromString(xml,"application/xml");const pe=doc.querySelector("parseerror");if(pe)return{valid:false,errs:[{r:"PARSE",f:"",m:"XML parse error: "+pe.textContent.substring(0,150)}],warns:[],infos:[],fmt:"INVALID"};}catch(e){return{valid:false,errs:[{r:"PARSE",f:"",m:e.message}],warns:[],infos:[],fmt:"INVALID"};}
+  infos.push({r:"PARSE",f:"",m:"XML is well-formed"});
+  if(xml.includes("CrossIndustryInvoice")||xml.includes("rsm:"))fmt="CII";
+  else if(xml.includes("Invoice-2")||xml.includes("urn:oasis"))fmt="UBL";
+  else if(xml.includes("Transmission")&&xml.includes("Entete"))fmt="EREPORTING";
+  infos.push({r:"FORMAT",f:"",m:"Format: "+fmt});
+  const ns={"cbc":"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2","cac":"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2","rsm":"urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100","ram":"urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100","udt":"urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"};
+  const xg=(xp)=>{try{const r=doc.evaluate(xp,doc,p=>ns[p]||null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);return r.singleNodeValue?.textContent?.trim()||null;}catch{return null;}};
+  const xa=(xp)=>{try{const it=doc.evaluate(xp,doc,p=>ns[p]||null,XPathResult.ORDERED_NODE_ITERATOR_TYPE,null);const r=[];let n;while((n=it.iterateNext()))r.push(n.textContent.trim());return r;}catch{return[];}};
+  if(fmt==="UBL"){
+    const spec=xg("//cbc:CustomizationID");if(!spec)errs.push({r:"BR-1",f:"BT-24",m:"Missing CustomizationID (BT-24). Required: urn:cen.eu:en16931:2017"});else infos.push({r:"BR-1",f:"BT-24",m:"BT-24: "+spec});
+    const id=xg("//cbc:ID[1]");if(!id)errs.push({r:"BR-2",f:"BT-1",m:"Missing Invoice ID (BT-1)"});else infos.push({r:"BR-2",f:"BT-1",m:"BT-1: "+id});
+    const dt=xg("//cbc:IssueDate");if(!dt)errs.push({r:"BR-3",f:"BT-2",m:"Missing IssueDate (BT-2)"});else if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))errs.push({r:"BR-3",f:"BT-2",m:"BT-2 format invalid: "+dt});else infos.push({r:"BR-3",f:"BT-2",m:"BT-2: "+dt});
+    const tc=xg("//cbc:InvoiceTypeCode");if(!tc)errs.push({r:"BR-4",f:"BT-3",m:"Missing InvoiceTypeCode (BT-3)"});else if(!["380","381","384","389","394"].includes(tc))warns.push({r:"BR-4",f:"BT-3",m:"BT-3 type code may be invalid: "+tc});else infos.push({r:"BR-4",f:"BT-3",m:"BT-3: "+tc});
+    const cur=xg("//cbc:DocumentCurrencyCode");if(!cur)errs.push({r:"BR-5",f:"BT-5",m:"Missing DocumentCurrencyCode (BT-5)"});else infos.push({r:"BR-5",f:"BT-5",m:"BT-5: "+cur});
+    const sn=xg("//cac:AccountingSupplierParty//cbc:RegistrationName");if(!sn)errs.push({r:"BR-6",f:"BT-27",m:"Missing Seller RegistrationName (BT-27)"});else infos.push({r:"BR-6",f:"BT-27",m:"Seller: "+sn});
+    const ssiret=xg("//cac:AccountingSupplierParty//cac:PartyLegalEntity/cbc:CompanyID");if(!ssiret)errs.push({r:"BR-FR-02",f:"BT-30",m:"AFNOR MANDATORY: Missing Seller SIREN/SIRET (BT-30)"});else{const d=ssiret.replace(/[^0-9]/g,"");if(d.length!==9&&d.length!==14)errs.push({r:"BR-FR-02",f:"BT-30",m:"BT-30 invalid length: "+ssiret});else infos.push({r:"BR-FR-02",f:"BT-30",m:"BT-30: "+ssiret+" ("+(d.length===14?"SIRET":"SIREN")+")"});}
+    const svat=xg("//cac:AccountingSupplierParty//cac:PartyTaxScheme/cbc:CompanyID");if(svat)infos.push({r:"BR-CO-9",f:"BT-31",m:"BT-31 Seller VAT: "+svat});
+    const bn=xg("//cac:AccountingCustomerParty//cbc:RegistrationName");if(!bn)errs.push({r:"BR-7",f:"BT-44",m:"Missing Buyer RegistrationName (BT-44)"});else infos.push({r:"BR-7",f:"BT-44",m:"Buyer: "+bn});
+    const bsiret=xg("//cac:AccountingCustomerParty//cac:PartyLegalEntity/cbc:CompanyID");if(bsiret)infos.push({r:"BR-FR-03",f:"BT-47",m:"BT-47 Buyer SIREN/SIRET: "+bsiret});else warns.push({r:"BR-FR-03",f:"BT-47",m:"BT-47 Buyer SIREN/SIRET missing. Recommended for PPF Annuaire"});
+    const bt49=xg("//cac:AccountingCustomerParty//cac:Party/cbc:EndpointID")||xg("//cac:AccountingCustomerParty//cac:PartyIdentification/cbc:ID");
+    if(!bt49)warns.push({r:"ANNUAIRE-BT49",f:"BT-49",m:"ANNUAIRE: BT-49 absent. Sans cette adresse le PPF ne peut PAS router la facture → rejet CDAR 211 code AB. Demander à l'acheteur de s'enregistrer dans l'Annuaire PPF via sa PA."});else infos.push({r:"ANNUAIRE-BT49",f:"BT-49",m:"BT-49 Annuaire: "+bt49});
+    let barFound=false;try{barFound=!!doc.evaluate("//cbc:Note[@subjectCode='BAR']",doc,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;}catch{}
+    if(!barFound)warns.push({r:"BR-FR-20",f:"BT-21/22",m:"AFNOR: No BAR note. Add <cbc:Note subjectCode='BAR'> for e-invoicing scope"});else infos.push({r:"BR-FR-20",f:"BT-21/22",m:"BAR note present"});
+    const texcl=xg("//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount"),tincl=xg("//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount"),pay=xg("//cac:LegalMonetaryTotal/cbc:PayableAmount"),ttax=xg("//cac:TaxTotal/cbc:TaxAmount");
+    if(!texcl)errs.push({r:"BR-14",f:"BT-109",m:"Missing TaxExclusiveAmount (BT-109)"});else infos.push({r:"",f:"BT-109",m:"BT-109 HT: "+texcl});
+    if(!tincl)errs.push({r:"BR-CO-15",f:"BT-112",m:"Missing TaxInclusiveAmount (BT-112)"});else infos.push({r:"",f:"BT-112",m:"BT-112 TTC: "+tincl});
+    if(!pay)errs.push({r:"BR-CO-16",f:"BT-115",m:"Missing PayableAmount (BT-115)"});else infos.push({r:"",f:"BT-115",m:"BT-115 Due: "+pay});
+    if(!ttax)errs.push({r:"BR-CO-14",f:"BT-110",m:"Missing TaxTotal/TaxAmount (BT-110)"});else infos.push({r:"",f:"BT-110",m:"BT-110 VAT: "+ttax});
+    if(texcl&&tincl&&ttax){const e=parseFloat(texcl),i=parseFloat(tincl),t=parseFloat(ttax);if(Math.abs((e+t)-i)>0.02)errs.push({r:"BR-CO-15",f:"BT-112",m:"BR-CO-15 FAIL: HT("+e+")+VAT("+t+")="+(e+t).toFixed(2)+" ≠ TTC("+i+")"});else infos.push({r:"BR-CO-15",f:"",m:"Amounts OK: "+e+"+"+t+"="+i});}
+    const lines=xa("//cac:InvoiceLine/cbc:ID");if(lines.length===0)errs.push({r:"BR-16",f:"BT-126",m:"No InvoiceLine found"});else{infos.push({r:"",f:"",m:lines.length+" line(s)"});const nm=xa("//cac:InvoiceLine//cbc:Name");if(nm.length<lines.length)errs.push({r:"BR-25",f:"BT-153",m:(lines.length-nm.length)+" line(s) missing Item Name"});}
+    const txc=xa("//cac:TaxSubtotal/cac:TaxCategory/cbc:ID");if(txc.length===0)errs.push({r:"BR-CO-18",f:"BT-118",m:"No TaxSubtotal found"});else infos.push({r:"",f:"",m:txc.length+" VAT category(ies): "+txc.join(", ")});
+  }else if(fmt==="CII"){
+    const spec=xg("//ram:GuidelineSpecifiedDocumentContextParameter/ram:ID");if(!spec)errs.push({r:"BR-1",f:"BT-24",m:"Missing GuidelineSpecifiedDocumentContextParameter/ID"});else infos.push({r:"BR-1",f:"BT-24",m:"BT-24: "+spec});
+    const id=xg("//rsm:ExchangedDocument/ram:ID");if(!id)errs.push({r:"BR-2",f:"BT-1",m:"Missing ExchangedDocument/ID (BT-1)"});else infos.push({r:"BR-2",f:"BT-1",m:"BT-1: "+id});
+    const sn=xg("//ram:SellerTradeParty/ram:Name");if(!sn)errs.push({r:"BR-6",f:"BT-27",m:"Missing SellerTradeParty/Name"});else infos.push({r:"BR-6",f:"BT-27",m:"Seller: "+sn});
+    const ss=xg("//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID");if(!ss)errs.push({r:"BR-FR-02",f:"BT-30",m:"AFNOR: Missing Seller SIREN/SIRET in SpecifiedLegalOrganization/ID"});else infos.push({r:"BR-FR-02",f:"BT-30",m:"BT-30: "+ss});
+    const bn=xg("//ram:BuyerTradeParty/ram:Name");if(!bn)errs.push({r:"BR-7",f:"BT-44",m:"Missing BuyerTradeParty/Name"});else infos.push({r:"BR-7",f:"BT-44",m:"Buyer: "+bn});
+    const total=xg("//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:GrandTotalAmount");if(!total)errs.push({r:"BR-CO-15",f:"BT-112",m:"Missing GrandTotalAmount"});else infos.push({r:"",f:"BT-112",m:"TTC: "+total});
+  }else if(fmt==="EREPORTING"){
+    const tid=xml.match(/<IdentifiantTransmission>(.*?)<\/IdentifiantTransmission>/)?.[1];if(!tid)errs.push({r:"ER-01",f:"ER-01",m:"Missing IdentifiantTransmission"});else infos.push({r:"ER-01",f:"ER-01",m:"ID: "+tid});
+    const siret=xml.match(/<SiretDeclarant>(.*?)<\/SiretDeclarant>/)?.[1];if(!siret)errs.push({r:"ER-05",f:"ER-05",m:"Missing SiretDeclarant"});else if(siret.replace(/[^0-9]/g,"").length!==14)errs.push({r:"ER-05",f:"ER-05",m:"SIRET invalid: "+siret});else infos.push({r:"ER-05",f:"ER-05",m:"SIRET: "+siret});
+    const pd=xml.match(/<PeriodeDebut>(.*?)<\/PeriodeDebut>/)?.[1],pf=xml.match(/<PeriodeFin>(.*?)<\/PeriodeFin>/)?.[1];
+    if(!pd||!pf)errs.push({r:"ER-03",f:"ER-03/04",m:"Missing period dates"});else if(pd>pf)errs.push({r:"ER-03",f:"ER-03/04",m:"Period invalid: start "+pd+" after end "+pf});else infos.push({r:"ER-03",f:"ER-03/04",m:"Period: "+pd+" to "+pf});
+    const b2c=(xml.match(/<OperationB2C>/g)||[]).length,intl=(xml.match(/<OperationB2BInternational>/g)||[]).length;
+    infos.push({r:"",f:"",m:b2c+" B2C block(s), "+intl+" B2B-INT block(s)"});
+  }else{warns.push({r:"FORMAT",f:"",m:"Unknown format. Supported: UBL 2.1, CII/Factur-X, DGFiP e-Reporting XML"});}
+  return{valid:errs.length===0,errs,warns,infos,fmt,stats:{e:errs.length,w:warns.length,p:infos.length}};
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const P=({label,active,onClick,color="#6366F1"})=>(
+  <button onClick={onClick} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(active?color:"rgba(255,255,255,0.1)"),background:active?color+"20":"transparent",color:active?color:"rgba(255,255,255,0.4)"}}>
+    {label}
+  </button>
+);
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+  const [tab,setTab]=useState("bt");
+  const [grp,setGrp]=useState("all");
+  const [q,setQ]=useState("");
+  const [sc,setSc]=useState("all");
+  const [mf,setMf]=useState("all");
+  const [sortBy,setSortBy]=useState("id");
+  const [sortDir,setSortDir]=useState("asc");
+  const [selBT,setSelBT]=useState(BT[0]);
+  const [selER,setSelER]=useState(ER[0]);
+  const [selILC,setSelILC]=useState(null);
+  const [selUC,setSelUC]=useState(null);
+  const [ucCat,setUcCat]=useState("all");
+  const [xml,setXml]=useState(SXML);
+  const [res,setRes]=useState(null);
+  const [validating,setValidating]=useState(false);
+  const [msgs,setMsgs]=useState([]);
+  const [aiIn,setAiIn]=useState("");
+  const [aiLoading,setAiLoading]=useState(false);
+  const [aiErr,setAiErr]=useState(null);
+  const fileRef=useRef();
+  const bottomRef=useRef();
+  const inputRef=useRef();
+
+  const filtBT=useMemo(()=>BT.filter(f=>{
+    if(grp!=="all"&&f.g!==grp)return false;
+    if(sc!=="all"&&!f.s.includes(sc))return false;
+    if(mf==="m"&&!f.m)return false;
+    if(mf==="o"&&f.m)return false;
+    if(q){const s=q.toLowerCase();return f.id.toLowerCase().includes(s)||f.l.toLowerCase().includes(s)||f.fr.toLowerCase().includes(s)||f.d.toLowerCase().includes(s);}
+    return true;
+  }),[grp,sc,mf,q]);
+
+  const sortedBT=useMemo(()=>[...filtBT].sort((a,b)=>{
+    let va,vb;
+    if(sortBy==="id"){va=parseInt(a.id.replace(/[^0-9]/g,""))||0;vb=parseInt(b.id.replace(/[^0-9]/g,""))||0;}
+    else if(sortBy==="l"){va=a.l.toLowerCase();vb=b.l.toLowerCase();}
+    else if(sortBy==="m"){va=a.m?0:1;vb=b.m?0:1;}
+    else{va=a[sortBy];vb=b[sortBy];}
+    if(va<vb)return sortDir==="asc"?-1:1;
+    if(va>vb)return sortDir==="asc"?1:-1;
+    return 0;
+  }),[filtBT,sortBy,sortDir]);
+
+  const filtUC=useMemo(()=>UC.filter(u=>ucCat==="all"||u.cat===ucCat),[ucCat]);
+
+  const doVal=useCallback(()=>{setValidating(true);setTimeout(()=>{setRes(validateXML(xml));setValidating(false);},300);},[xml]);
+
+  const sendMsg=useCallback(async(text)=>{
+    const t=(text||aiIn).trim();if(!t||aiLoading)return;
+    setAiIn("");setAiErr(null);
+    const nm=[...msgs,{role:"user",content:t}];
+    setMsgs(nm);setAiLoading(true);
+    setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+    try{
+      const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:SYS,messages:nm})});
+      if(!r.ok){const e=await r.json();throw new Error(e?.error?.message||"HTTP "+r.status);}
+      const d=await r.json();
+      const reply=d.content?.map(b=>b.type==="text"?b.text:"").join("")||"";
+      setMsgs(p=>[...p,{role:"assistant",content:reply}]);
+    }catch(e){setAiErr(e.message);}
+    finally{setAiLoading(false);setTimeout(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});inputRef.current?.focus();},80);}
+  },[aiIn,aiLoading,msgs]);
+
+  const ts=(id)=>({padding:"8px 14px",borderRadius:7,cursor:"pointer",fontWeight:600,fontSize:12,background:tab===id?"rgba(99,102,241,0.2)":"transparent",color:tab===id?"#A5B4FC":"rgba(255,255,255,0.4)",border:tab===id?"1px solid rgba(99,102,241,0.4)":"1px solid transparent",transition:"all 0.15s"});
+  const sort=(key)=>{if(sortBy===key)setSortDir(d=>d==="asc"?"desc":"asc");else{setSortBy(key);setSortDir("asc");}};
+
+  return (
+    <div style={{minHeight:"100vh",background:"#080B14",color:"#E2E8F0",fontFamily:"'DM Sans','Segoe UI',sans-serif",display:"flex",flexDirection:"column"}}>
+
+      {/* HEADER */}
+      <div style={{background:"rgba(255,255,255,0.025)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"12px 20px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,#6366F1,#06B6D4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🧾</div>
+          <div>
+            <div style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:15}}>AFNOR <span style={{color:"#6366F1"}}>XP Z12</span> Suite</div>
+            <div style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>E-Invoicing · E-Reporting · PA Simulator · France 2026</div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:2,background:"rgba(0,0,0,0.3)",borderRadius:8,padding:3,marginLeft:"auto",flexWrap:"wrap"}}>
+          {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={ts(t.id)}>{t.i} {t.l}</button>)}
+        </div>
+      </div>
+
+      {/* ── BT FIELDS ── */}
+      {tab==="bt"&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+          <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+            <div style={{padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+              <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher un champ BT..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:7,padding:"7px 10px",color:"#fff",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+              <div style={{display:"flex",gap:3,marginTop:7,flexWrap:"wrap"}}>
+                {["all","ei","er"].map(v=><P key={v} label={v==="all"?"Tous":v==="ei"?"E-Invoice":"E-Report"} active={sc===v} onClick={()=>setSc(v)}/>)}
+                {["all","m","o"].map(v=><P key={v} label={v==="all"?"Tous":v==="m"?"Requis":"Optionnel"} active={mf===v} onClick={()=>setMf(v)} color="#EF4444"/>)}
+              </div>
+              <div style={{display:"flex",gap:3,marginTop:6,overflowX:"auto",paddingBottom:2}}>
+                <button onClick={()=>setGrp("all")} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",background:grp==="all"?"rgba(255,255,255,0.1)":"transparent",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.5)",whiteSpace:"nowrap"}}>Tous</button>
+                {Object.entries(GL).map(([k,v])=>(
+                  <button key={k} onClick={()=>setGrp(k)} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",background:grp===k?GC[k]+"20":"transparent",border:"1px solid "+(grp===k?GC[k]:"rgba(255,255,255,0.08)"),color:grp===k?GC[k]:"rgba(255,255,255,0.4)",whiteSpace:"nowrap"}}>{v}</button>
+                ))}
+              </div>
+            </div>
+            {/* Sort headers */}
+            <div style={{display:"grid",gridTemplateColumns:"110px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(0,0,0,0.25)",gap:6,flexShrink:0}}>
+              {[["id","Champ BT"],["l","Désignation"],["m","Statut"]].map(([key,label])=>(
+                <button key={key} onClick={()=>sort(key)} style={{background:"none",border:"none",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:3,padding:0}}>
+                  <span style={{fontSize:10,fontWeight:700,color:sortBy===key?"#A5B4FC":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>{label}</span>
+                  <span style={{fontSize:9,color:sortBy===key?"#A5B4FC":"rgba(255,255,255,0.2)"}}>{sortBy===key?(sortDir==="asc"?"▲":"▼"):"⇅"}</span>
+                </button>
+              ))}
+            </div>
+            <div style={{flex:1,overflow:"auto",padding:"3px 6px"}}>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",padding:"4px 6px"}}>{sortedBT.length} champs</div>
+              {sortedBT.map(f=>(
+                <button key={f.id} onClick={()=>setSelBT(f)}
+                  style={{background:selBT?.id===f.id?GC[f.g]+"18":"transparent",border:"1px solid "+(selBT?.id===f.id?GC[f.g]+"60":"transparent"),borderRadius:6,padding:"7px 6px",textAlign:"left",cursor:"pointer",width:"100%",marginBottom:1,display:"grid",gridTemplateColumns:"110px 1fr 72px",gap:6,alignItems:"center",transition:"background 0.1s"}}
+                  onMouseEnter={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.04)";}}
+                  onMouseLeave={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="transparent";}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5,overflow:"hidden"}}>
+                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:GC[f.g],fontWeight:700,flexShrink:0}}>{f.id}</span>
+                    <span style={{fontSize:11,color:"rgba(255,255,255,0.32)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontStyle:"italic"}}>{f.fr}</span>
+                  </div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.78)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
+                  <div style={{display:"flex",gap:2,justifyContent:"flex-end"}}>
+                    {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{overflow:"auto",padding:24,background:"rgba(0,0,0,0.12)"}}>
+            {selBT?(
+              <div>
+                <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:20,paddingBottom:18,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+                  <div style={{background:GC[selBT.g]+"18",border:"1px solid "+GC[selBT.g]+"40",borderRadius:10,padding:"10px 16px",flexShrink:0,textAlign:"center"}}>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:20,color:GC[selBT.g],fontWeight:900}}>{selBT.id}</div>
+                    <div style={{fontSize:9,color:GC[selBT.g]+"99",marginTop:4,textTransform:"uppercase",letterSpacing:0.8}}>{GL[selBT.g]}</div>
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
+                      <span style={{fontSize:16,fontWeight:700,color:"#fff"}}>{selBT.l}</span>
+                      {selBT.m?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.35)",borderRadius:5,padding:"2px 9px",fontWeight:700}}>OBLIGATOIRE</span>:<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",borderRadius:5,padding:"2px 9px"}}>Optionnel</span>}
+                    </div>
+                    <div style={{fontSize:14,color:"rgba(255,255,255,0.5)",fontStyle:"italic"}}>{selBT.fr}</div>
+                  </div>
+                </div>
+                <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:16,marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.7,border:"1px solid rgba(255,255,255,0.04)"}}>{selBT.d}</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
+                  {[["Type",selBT.t,GC[selBT.g]],["Règle",selBT.r||"—","#F59E0B"],["Scope",selBT.s.map(s=>s==="ei"?"E-Invoice":"E-Report").join(" + "),GC[selBT.g]]].map(([k,v,c])=>(
+                    <div key={k} style={{background:"rgba(0,0,0,0.25)",borderRadius:8,padding:12,border:"1px solid rgba(255,255,255,0.04)"}}>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:5}}>{k}</div>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:c,fontWeight:700}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                {selBT.ex&&<div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"12px 16px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,flexShrink:0}}>Exemple</span><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:14,color:"#22C55E",fontWeight:600}}>{selBT.ex}</code></div>}
+              </div>
+            ):(
+              <div style={{height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,color:"rgba(255,255,255,0.15)"}}>
+                <div style={{fontSize:48}}>👈</div>
+                <div style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.3)"}}>Sélectionnez un champ BT</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── E-REPORTING ── */}
+      {tab==="er"&&(
+        <div style={{display:"grid",gridTemplateColumns:"280px 1fr",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+          <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",overflow:"auto",padding:"8px"}}>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",padding:"6px 4px 10px",lineHeight:1.5}}>Format XML propriétaire DGFiP. B2C · B2B-International · Paiements.</div>
+            {ER.map(f=>(
+              <button key={f.id} onClick={()=>setSelER(f)} style={{background:selER?.id===f.id?"rgba(245,158,11,0.12)":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selER?.id===f.id?"#F59E0B":"rgba(255,255,255,0.07)"),borderRadius:8,padding:"8px 10px",textAlign:"left",cursor:"pointer",width:"100%",marginBottom:4}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:"#F59E0B",fontWeight:700}}>{f.id}</span>
+                  <div style={{display:"flex",gap:2}}>{f.m&&<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>}<span style={{fontSize:9,background:"rgba(245,158,11,0.15)",color:"#F59E0B",borderRadius:4,padding:"1px 5px"}}>{f.s}</span></div>
+                </div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",marginTop:2}}>{f.l}</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:1,fontStyle:"italic"}}>{f.fr}</div>
+              </button>
+            ))}
+          </div>
+          <div style={{overflow:"auto",padding:24}}>
+            {selER&&(
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:12,padding:20}}>
+                <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
+                  <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:22,color:"#F59E0B",fontWeight:900,background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:8,padding:"8px 14px"}}>{selER.id}</div>
+                  <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700,marginBottom:4}}>{selER.l}</div><div style={{fontSize:14,color:"rgba(255,255,255,0.5)",fontStyle:"italic"}}>{selER.fr}</div></div>
+                  {selER.m?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.35)",borderRadius:5,padding:"2px 9px",fontWeight:700}}>OBLIGATOIRE</span>:<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",borderRadius:5,padding:"2px 9px"}}>Optionnel</span>}
+                </div>
+                <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:16,marginBottom:12,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.7}}>{selER.d}</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+                  {[["Type",selER.t,"#F59E0B"],["Scope",selER.s,"#06B6D4"]].map(([k,v,c])=>(
+                    <div key={k} style={{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:10}}>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{k}</div>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:c,fontWeight:700}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                {selER.ex&&selER.ex!=="—"&&<div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"10px 14px",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase"}}>Exemple</span><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#22C55E"}}>{selER.ex}</code></div>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── ILC ── */}
+      {tab==="ilc"&&(
+        <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
+          <div style={{maxWidth:1080,margin:"0 auto"}}>
+            <div style={{marginBottom:18}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Statuts ILC <span style={{color:"#6366F1"}}>CDAR</span></h2><p style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:5}}>14 statuts — 4 obligatoires (★) — Cliquez pour détails + codes motif rejet</p></div>
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:14,marginBottom:18}}>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Flux nominal</div>
+              <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                {[{c:"200",col:"#3B82F6",l:"Déposée"},{c:"→"},{c:"201",col:"#06B6D4",l:"Reçue"},{c:"→"},{c:"203",col:"#8B5CF6",l:"Prise en charge"},{c:"→"},{c:"204",col:"#22C55E",l:"Approuvée"},{c:"→"},{c:"212",col:"#16A34A",l:"Encaissée ★"}].map((it,i)=>
+                  it.c==="→"?<span key={i} style={{color:"rgba(255,255,255,0.2)"}}>→</span>
+                  :<div key={i} onClick={()=>setSelILC(ILC.find(s=>s.code===it.c))} style={{background:it.col+"18",border:"1px solid "+it.col+"40",borderRadius:7,padding:"6px 10px",textAlign:"center",cursor:"pointer"}}>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:12,color:it.col}}>{it.c}</div>
+                    <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",marginTop:1}}>{it.l}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:10}}>
+              {ILC.map(st=>(
+                <div key={st.code} onClick={()=>setSelILC(selILC?.code===st.code?null:st)} style={{background:selILC?.code===st.code?st.c+"12":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selILC?.code===st.code?st.c:"rgba(255,255,255,0.07)"),borderRadius:11,padding:14,cursor:"pointer",transition:"all 0.14s"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:22,fontWeight:900,color:st.c}}>{st.code}</div>
+                    {st.m&&<span style={{fontSize:9,background:"rgba(239,68,68,0.2)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.3)",borderRadius:4,padding:"2px 6px",fontWeight:700}}>★ MANDATORY</span>}
+                  </div>
+                  <div style={{fontWeight:700,fontSize:13,marginBottom:2}}>{st.l}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:6}}>{st.en}</div>
+                  <span style={{fontSize:9,background:st.c+"20",color:st.c,borderRadius:4,padding:"1px 7px"}}>{st.actor}</span>
+                  {selILC?.code===st.code&&(
+                    <div style={{marginTop:10,background:"rgba(0,0,0,0.3)",borderRadius:8,padding:12}}>
+                      <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6,marginBottom:st.cdarCodes?10:0}}>{st.d}</div>
+                      {st.fix&&<div style={{fontSize:11,color:"rgba(99,255,150,0.8)",lineHeight:1.5,marginTop:6}}><span style={{color:"#4ADE80",fontWeight:600}}>Action: </span>{st.fix}</div>}
+                      {st.cdarCodes&&(
+                        <div style={{marginTop:10,borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:10}}>
+                          <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>Codes motif CDAR</div>
+                          {st.cdarCodes.map(c=>(
+                            <div key={c.code} style={{background:"rgba(220,38,38,0.06)",border:"1px solid rgba(220,38,38,0.2)",borderRadius:6,padding:"8px 10px",marginBottom:5}}>
+                              <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
+                                <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:800,color:"#DC2626",background:"rgba(220,38,38,0.15)",borderRadius:4,padding:"1px 7px"}}>{c.code}</span>
+                                <span style={{fontSize:11,fontWeight:600,color:"#fff"}}>{c.l}</span>
+                              </div>
+                              <div style={{fontSize:11,color:"rgba(99,255,150,0.8)",lineHeight:1.5}}><span style={{color:"#4ADE80",fontWeight:600}}>Action: </span>{c.fix}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:12,fontSize:10,color:"rgba(255,255,255,0.25)"}}>* 212 obligatoire uniquement pour TVA sur les encaissements</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── USE CASES ── */}
+      {tab==="uc"&&(
+        <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
+          <div style={{maxWidth:1080,margin:"0 auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
+              <div><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Cas d'usage <span style={{color:"#10B981"}}>XP Z12-014</span></h2><p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:4}}>Cliquez un cas pour voir le flux de messages.</p></div>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                {[["all","Tous"],["nominal","Nominal"],["correction","Corrections"],["special","Spéciaux"],["reporting","E-Reporting"],["b2g","B2G"],["annuaire","Annuaire"]].map(([v,l])=><P key={v} label={l} active={ucCat===v} onClick={()=>setUcCat(v)} color="#10B981"/>)}
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(310px,1fr))",gap:12}}>
+              {filtUC.map(uc=>{
+                const cc={nominal:"#3B82F6",correction:"#F59E0B",special:"#8B5CF6",reporting:"#10B981",b2g:"#06B6D4",annuaire:"#EF4444"}[uc.cat]||"#888";
+                return(
+                  <div key={uc.id} onClick={()=>setSelUC(selUC?.id===uc.id?null:uc)} style={{background:selUC?.id===uc.id?cc+"12":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selUC?.id===uc.id?cc:"rgba(255,255,255,0.07)"),borderRadius:11,padding:16,cursor:"pointer",transition:"all 0.14s"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                      <span style={{fontSize:9,background:cc+"20",color:cc,border:"1px solid "+cc+"40",borderRadius:4,padding:"2px 7px"}}>{uc.cat.toUpperCase()}</span>
+                      <div style={{display:"flex",gap:4}}>
+                        <span style={{fontSize:9,background:uc.cx==="basic"?"rgba(34,197,94,0.15)":uc.cx==="medium"?"rgba(245,158,11,0.15)":"rgba(239,68,68,0.15)",color:uc.cx==="basic"?"#22C55E":uc.cx==="medium"?"#F59E0B":"#EF4444",borderRadius:4,padding:"1px 6px"}}>{uc.cx}</span>
+                        <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"rgba(255,255,255,0.3)"}}>{uc.id}</span>
+                      </div>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:13,marginBottom:4,color:"#fff"}}>{uc.t}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.5}}>{uc.d.substring(0,110)}{uc.d.length>110?"…":""}</div>
+                    {uc.st.length>0&&<div style={{display:"flex",gap:4,marginTop:8,flexWrap:"wrap"}}>{uc.st.map(s=><span key={s} style={{fontSize:9,background:(ILC.find(x=>x.code===s)?.c||"#888")+"20",color:ILC.find(x=>x.code===s)?.c||"#888",borderRadius:4,padding:"1px 5px"}}>{s}</span>)}</div>}
+                    {selUC?.id===uc.id&&(
+                      <div style={{marginTop:12,borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:12}}>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6,marginBottom:10}}>{uc.d}</div>
+                        <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>Flux de messages</div>
+                        {uc.flow.map((fl,i)=>(
+                          <div key={i} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(0,0,0,0.3)",borderRadius:5,padding:"5px 9px",marginBottom:4}}>
+                            <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:cc,minWidth:90,flexShrink:0}}>{fl.f}</span>
+                            <span style={{color:"rgba(255,255,255,0.2)",flexShrink:0}}>→</span>
+                            <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#A5B4FC",minWidth:85,flexShrink:0}}>{fl.to}</span>
+                            <span style={{fontSize:10,color:"rgba(255,255,255,0.5)"}}>{fl.m}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── VALIDATOR ── */}
+      {tab==="val"&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 400px",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+          <div style={{display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",flexShrink:0}}>
+              <span style={{fontSize:12,fontWeight:700}}>PA Simulator — XML Validator</span>
+              <div style={{display:"flex",gap:3,marginLeft:"auto"}}>
+                <button onClick={()=>{setXml(SXML);setRes(null);}} style={{fontSize:11,padding:"4px 10px",borderRadius:5,cursor:"pointer",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",color:"#A5B4FC"}}>Sample UBL</button>
+              </div>
+              <button onClick={()=>fileRef.current.click()} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:5,padding:"4px 10px",color:"rgba(255,255,255,0.5)",cursor:"pointer",fontSize:11}}>📂 Load</button>
+              <input ref={fileRef} type="file" accept=".xml" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{setXml(ev.target.result);setRes(null);};r.readAsText(f);}}} style={{display:"none"}}/>
+              <button onClick={doVal} disabled={validating||!xml.trim()} style={{background:validating?"rgba(99,102,241,0.1)":"linear-gradient(135deg,#6366F1,#3B82F6)",border:"none",borderRadius:6,padding:"5px 16px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>
+                {validating?"⏳":"▶ Valider"}
+              </button>
+            </div>
+            <textarea value={xml} onChange={e=>{setXml(e.target.value);setRes(null);}} style={{flex:1,background:"#050810",color:"#A5B4FC",fontFamily:"JetBrains Mono,monospace",fontSize:11,border:"none",outline:"none",padding:14,resize:"none",lineHeight:1.7}}/>
+          </div>
+          <div style={{overflow:"auto",padding:14,display:"flex",flexDirection:"column",gap:10}}>
+            {!res&&<div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,0.2)",gap:8}}><span style={{fontSize:40}}>🔬</span><div style={{fontSize:13,fontWeight:600}}>PA Simulator</div><div style={{fontSize:11,textAlign:"center"}}>UBL 2.1 · CII/Factur-X · E-Reporting XML</div></div>}
+            {res&&<>
+              <div style={{background:res.valid?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",border:"1.5px solid "+(res.valid?"#22C55E":"#EF4444"),borderRadius:9,padding:12,display:"flex",gap:10,alignItems:"center"}}>
+                <span style={{fontSize:24}}>{res.valid?"✅":"❌"}</span>
+                <div><div style={{fontWeight:800,fontSize:14,color:res.valid?"#22C55E":"#EF4444"}}>{res.valid?"CONFORME":"NON CONFORME"}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:2}}>{res.fmt} · {res.stats.e} erreur(s) · {res.stats.w} warning(s) · {res.stats.p} OK</div></div>
+              </div>
+              {[["error","🔴 Erreurs",res.errs],["warning","🟡 Warnings",res.warns],["info","🟢 OK",res.infos]].map(([lvl,title,items])=>
+                items.length>0&&(
+                  <div key={lvl}>
+                    <div style={{fontSize:11,color:lvl==="error"?"#EF4444":lvl==="warning"?"#F59E0B":"#22C55E",fontWeight:700,marginBottom:5,textTransform:"uppercase",letterSpacing:0.8}}>{title} ({items.length})</div>
+                    {items.map((it,i)=>(
+                      <div key={i} style={{background:lvl==="error"?"rgba(239,68,68,0.06)":lvl==="warning"?"rgba(245,158,11,0.06)":"rgba(34,197,94,0.04)",border:"1px solid "+(lvl==="error"?"rgba(239,68,68,0.2)":lvl==="warning"?"rgba(245,158,11,0.2)":"rgba(34,197,94,0.15)"),borderRadius:6,padding:"7px 10px",marginBottom:4}}>
+                        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:it.m?3:0}}>
+                          {it.r&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:lvl==="error"?"rgba(239,68,68,0.2)":lvl==="warning"?"rgba(245,158,11,0.2)":"rgba(34,197,94,0.2)",color:lvl==="error"?"#EF4444":lvl==="warning"?"#F59E0B":"#22C55E",borderRadius:4,padding:"1px 5px"}}>{it.r}</span>}
+                          {it.f&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:4,padding:"1px 5px"}}>{it.f}</span>}
+                        </div>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",lineHeight:1.5}}>{it.m}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </>}
+          </div>
+        </div>
+      )}
+
+      {/* ── RULES ── */}
+      {tab==="rules"&&(
+        <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
+          <div style={{maxWidth:860,margin:"0 auto"}}>
+            <div style={{marginBottom:16}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Règles <span style={{color:"#6366F1"}}>BR-FR · EN16931 · LF2026</span></h2></div>
+            {[["error","🔴 Erreurs — facture rejetée"],["warning","🟡 Warnings — risque non-conformité"],["info","ℹ️ Info — contexte"]].map(([lvl,title])=>{
+              const items=RULES.filter(r=>r.lvl===lvl);if(!items.length)return null;
+              const lc={error:"#EF4444",warning:"#F59E0B",info:"#3B82F6"}[lvl];
+              return<div key={lvl} style={{marginBottom:22}}>
+                <div style={{fontSize:11,color:lc,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>{title}</div>
+                {items.map(r=>(
+                  <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+lc+"20",borderRadius:10,padding:14,marginBottom:7,display:"flex",gap:12,alignItems:"flex-start"}}>
+                    <div style={{minWidth:100,flexShrink:0}}>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:11,color:lc}}>{r.id}</div>
+                      <span style={{fontSize:9,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:4,padding:"1px 5px"}}>{r.std}</span>
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:4}}>{r.t}</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.55,marginBottom:r.fields.length?7:0}}>{r.d}</div>
+                      {r.fields.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.fields.map(f=><span key={f} onClick={()=>{const field=BT.find(b=>b.id===f);if(field){setSelBT(field);setTab("bt");}}} style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",border:"1px solid rgba(99,102,241,0.3)",borderRadius:4,padding:"1px 7px",cursor:"pointer"}}>{f}</span>)}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>;
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── EXPERT IA ── */}
+      {tab==="ai"&&(
+        <div style={{display:"flex",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+          <div style={{width:230,borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden",flexShrink:0}}>
+            <div style={{padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,0.07)",fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:1}}>Questions suggérées</div>
+            <div style={{flex:1,overflow:"auto",padding:"8px"}}>
+              {SUGG.map((s,i)=>(
+                <button key={i} onClick={()=>sendMsg(s)} disabled={aiLoading} style={{width:"100%",textAlign:"left",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:7,padding:"8px 10px",marginBottom:4,cursor:"pointer",color:"rgba(255,255,255,0.6)",fontSize:11,lineHeight:1.4}}
+                  onMouseEnter={e=>{e.currentTarget.style.background="rgba(99,102,241,0.12)";e.currentTarget.style.color="#C7D2FE";}}
+                  onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.02)";e.currentTarget.style.color="rgba(255,255,255,0.6)";}}>
+                  {s}
+                </button>
+              ))}
+            </div>
+            <div style={{padding:"8px",borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+              <button onClick={()=>setMsgs([])} style={{width:"100%",background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:6,padding:"6px",color:"rgba(239,68,68,0.7)",fontSize:10,cursor:"pointer",fontWeight:600}}>🗑 Effacer</button>
+            </div>
+          </div>
+          <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+            <div style={{padding:"12px 18px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+              <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#6366F1,#10B981)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🤖</div>
+              <div><div style={{fontWeight:700,fontSize:13}}>Expert AFNOR XP Z12 — France 2026</div><div style={{fontSize:10,color:"rgba(255,255,255,0.35)"}}>E-invoicing · E-reporting · ILC · EN 16931 · BR-FR</div></div>
+              <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:5}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:aiLoading?"#F59E0B":"#22C55E"}}/>
+                <span style={{fontSize:10,color:"rgba(255,255,255,0.4)"}}>{aiLoading?"En cours...":"Disponible"}</span>
+              </div>
+            </div>
+            <div style={{flex:1,overflow:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:14}}>
+              {msgs.length===0&&(
+                <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,padding:"30px 20px"}}>
+                  <div style={{width:56,height:56,borderRadius:"50%",background:"linear-gradient(135deg,#6366F1,#10B981)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🤖</div>
+                  <div style={{textAlign:"center"}}>
+                    <div style={{fontSize:16,fontWeight:700,marginBottom:6}}>Expert AFNOR XP Z12-012</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.6,maxWidth:400}}>Posez vos questions sur la Réforme Facture Electronique 2026 — champs BT, statuts ILC, e-reporting, règles BR-FR, Annuaire PPF, cas XP Z12-014...</div>
+                  </div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",maxWidth:480}}>
+                    {SUGG.slice(0,3).map((s,i)=><button key={i} onClick={()=>sendMsg(s)} style={{background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:20,padding:"6px 12px",color:"#A5B4FC",fontSize:11,cursor:"pointer"}}>{s}</button>)}
+                  </div>
+                </div>
+              )}
+              {msgs.map((msg,i)=>{
+                const isU=msg.role==="user";
+                return(
+                  <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",flexDirection:isU?"row-reverse":"row"}}>
+                    <div style={{width:30,height:30,borderRadius:"50%",background:isU?"linear-gradient(135deg,#3B82F6,#6366F1)":"linear-gradient(135deg,#6366F1,#10B981)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{isU?"👤":"🤖"}</div>
+                    <div style={{maxWidth:"74%",background:isU?"rgba(99,102,241,0.15)":"rgba(255,255,255,0.04)",border:"1px solid "+(isU?"rgba(99,102,241,0.3)":"rgba(255,255,255,0.08)"),borderRadius:isU?"12px 3px 12px 12px":"3px 12px 12px 12px",padding:"10px 14px"}}>
+                      {isU?<div style={{fontSize:12,color:"#E0E7FF",lineHeight:1.6}}>{msg.content}</div>
+                      :<div style={{fontSize:12,color:"rgba(255,255,255,0.85)",lineHeight:1.7,whiteSpace:"pre-wrap"}}>
+                        {msg.content.split(/(\*\*[^*]+\*\*)/g).map((part,j)=>{
+                          if(part.startsWith("**")&&part.endsWith("**"))return<strong key={j} style={{color:"#fff"}}>{part.slice(2,-2)}</strong>;
+                          return<span key={j}>{part}</span>;
+                        })}
+                      </div>}
+                    </div>
+                  </div>
+                );
+              })}
+              {aiLoading&&(
+                <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <div style={{width:30,height:30,borderRadius:"50%",background:"linear-gradient(135deg,#6366F1,#10B981)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🤖</div>
+                  <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"3px 12px 12px 12px",padding:"12px 16px",display:"flex",gap:4,alignItems:"center"}}>
+                    {[0,1,2].map(d=><div key={d} style={{width:6,height:6,borderRadius:"50%",background:"#6366F1",animation:"b 1.2s infinite",animationDelay:d*0.2+"s"}}/>)}
+                  </div>
+                </div>
+              )}
+              {aiErr&&<div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,color:"#FCA5A5"}}>Erreur: {aiErr}</div>}
+              <div ref={bottomRef}/>
+            </div>
+            <div style={{padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,0.07)",background:"rgba(0,0,0,0.2)",flexShrink:0}}>
+              <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+                <textarea ref={inputRef} value={aiIn} onChange={e=>setAiIn(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}}} placeholder="Posez votre question... (Entrée pour envoyer)" rows={2} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"9px 12px",color:"#E2E8F0",fontSize:12,outline:"none",resize:"none",lineHeight:1.5,fontFamily:"'DM Sans','Segoe UI',sans-serif"}}/>
+                <button onClick={()=>sendMsg()} disabled={aiLoading||!aiIn.trim()} style={{background:aiLoading||!aiIn.trim()?"rgba(99,102,241,0.15)":"linear-gradient(135deg,#6366F1,#3B82F6)",border:"none",borderRadius:8,padding:"10px 16px",color:"#fff",cursor:aiLoading||!aiIn.trim()?"not-allowed":"pointer",fontWeight:700,fontSize:16,height:46,opacity:aiLoading||!aiIn.trim()?0.4:1}}>➤</button>
+              </div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,0.2)",marginTop:4,textAlign:"right"}}>Entrée pour envoyer · Shift+Entrée = nouvelle ligne · Claude Sonnet</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{__html:"@keyframes b{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}"}}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
