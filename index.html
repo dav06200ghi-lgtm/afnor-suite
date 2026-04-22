@@ -24,67 +24,176 @@ const {useState,useRef,useMemo,useCallback} = React;
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 const BT=[
-  {id:"BT-1",g:"header",l:"Invoice number",fr:"Numéro de facture",m:true,s:["ei","er"],t:"Identifier",d:"Identifiant unique attribué par le vendeur. Unique par vendeur et par exercice fiscal. Ne peut jamais être réutilisé même après rejet (211) ou refus (210). Référencé dans tous les CDAR ILC.",diff:"EI: identifie la facture dans le réseau PA/PPF, référencé dans tous les CDAR ILC. ER: identifie la transaction déclarée au DGFiP (non routée vers l'acheteur).",r:"BR-2",ex:"FA-2026-00123"},
-  {id:"BT-2",g:"header",l:"Invoice issue date",fr:"Date d'émission",m:true,s:["ei","er"],t:"Date",d:"Date d'émission au format YYYY-MM-DD. Détermine la période TVA pour le DGFiP. Ne peut pas être une date future. Délai max de soumission : 30 jours après émission.",diff:"EI: date de la facture transmise à l'acheteur. ER: date de l'opération déclarée au fisc.",r:"BR-3",ex:"2026-09-01"},
-  {id:"BT-3",g:"header",l:"Invoice type code",fr:"Code type de facture",m:true,s:["ei"],t:"Code",d:"UNTDID 1001. Valeurs possibles : 380=Facture standard, 381=Avoir/Note de crédit (annulation), 384=Facture rectificative (remplacement partiel), 389=Autofacturation (buyer creates), 394=Location/leasing.",r:"BR-4",ex:"380"},
-  {id:"BT-5",g:"header",l:"Invoice currency code",fr:"Devise de facturation",m:true,s:["ei"],t:"Code",d:"ISO 4217 alpha-3. La TVA doit aussi être exprimée en EUR quand la devise diffère (via BT-6 et BT-111). Taux de change BCE à la date BT-2.",r:"BR-5",ex:"EUR"},
-  {id:"BT-6",g:"header",l:"VAT accounting currency",fr:"Devise comptable TVA",m:false,s:["ei"],t:"Code",d:"Requis uniquement quand BT-5 ≠ EUR. La TVA française doit toujours être déclarée en EUR au DGFiP. Valeur fixe EUR pour toute facture française avec devise étrangère.",r:"BR-53",ex:"EUR"},
-  {id:"BT-7",g:"header",l:"VAT point date",fr:"Date du fait générateur TVA",m:false,s:["ei"],t:"Date",d:"Date d'exigibilité TVA au format YYYY-MM-DD. Critique : TVA sur les débits = date facture (BT-2), TVA sur les encaissements = date paiement. Détermine la période de déclaration TVA.",r:"BR-AFNOR-01",ex:"2026-09-01"},
-  {id:"BT-8",g:"header",l:"VAT point date code",fr:"Code date fait générateur",m:false,s:["ei"],t:"Code",d:"UNTDID 2005. Valeurs possibles : 3=Date facture/invoice date (TVA sur débits, le plus courant — débiter la TVA à la date d'émission), 35=Date livraison/delivery date (transfert de propriété — ex: vente de marchandises), 432=Date paiement/payment date (TVA sur encaissements — prestataires de services, encaissent la TVA à la réception du paiement). Ce champ détermine BT-7.",r:"BR-AFNOR-02",ex:"3=débits | 35=livraison | 432=encaissements"},
-  {id:"BT-9",g:"header",l:"Payment due date",fr:"Date d'échéance",m:false,s:["ei"],t:"Date",d:"Date limite de paiement. Pénalités de retard applicables à partir du lendemain (art. L441-10 C.com). Taux légal ou contractuel. Obligatoire si les conditions de paiement prévoient une échéance.",r:"",ex:"2026-10-01"},
-  {id:"BT-10",g:"header",l:"Buyer reference",fr:"Référence acheteur",m:false,s:["ei"],t:"Text",d:"Référence bon de commande ou code de routage requis par l'acheteur. Permet le rapprochement avec la commande interne. Souvent obligatoire dans les contrats B2B et chez les grandes enseignes.",r:"",ex:"PO-2026-0055"},
-  {id:"BT-20",g:"header",l:"Payment terms",fr:"Conditions de paiement",m:false,s:["ei"],t:"Text",d:"Conditions de paiement en texte libre. Obligatoire sur les factures B2B françaises (art. L441-9 C.com) : délai, mode, escompte éventuel, taux de pénalités de retard.",r:"",ex:"30 jours nets fin de mois"},
-  {id:"BT-23",g:"header",l:"Business process type",fr:"Type de processus métier",m:false,s:["ei"],t:"Identifier",d:"Identifiant du processus métier ou workflow. Utilisé dans les profils PEPPOL pour distinguer les cas d'usage. En France, valeur PEPPOL BIS 3.0 : urn:fdc:peppol.eu:2017:poacc:billing:01:1.0",r:"",ex:"urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"},
-  {id:"BT-24",g:"header",l:"Specification identifier",fr:"Identifiant de spécification",m:true,s:["ei"],t:"Identifier",d:"URI de profil conformément à EN 16931. Valeur obligatoire : urn:cen.eu:en16931:2017. Sans ce champ, la facture sera rejetée par le PPF (règle BR-1).",r:"BR-1",ex:"urn:cen.eu:en16931:2017"},
-  {id:"BT-21",g:"notes",l:"Invoice note subject code",fr:"Code sujet de la note",m:false,s:["ei"],t:"Code",d:"Spécifique AFNOR XP Z12-012. Valeurs : AAK=régime fiscal (franchise, TVA agricole...), BAR=indicateur périmètre e-invoicing (OBLIGATOIRE — BR-FR-20), TXD=régime TVA, ZZZ=texte libre.",r:"BR-FR-05",ex:"BAR"},
-  {id:"BT-22",g:"notes",l:"Invoice note",fr:"Note de facture",m:false,s:["ei"],t:"Text",d:"Contenu de la note associée à BT-21. Quand BT-21=BAR → confirme périmètre e-invoicing. Quand BT-21=AAK → indique le régime fiscal (FRANCHISE_TVA pour micro-entreprises art. 293B CGI).",r:"BR-FR-06",ex:"CHORUS_PRO"},
-  {id:"BT-27",g:"seller",l:"Seller name",fr:"Dénomination sociale vendeur",m:true,s:["ei","er"],t:"Text",d:"Raison sociale complète du vendeur telle qu'enregistrée au RCS/RCSM. Doit correspondre exactement à l'enregistrement officiel. Pour auto-entrepreneurs : nom complet de la personne physique.",diff:"EI: apparaît dans la facture transmise à l'acheteur. ER: identifie le déclarant auprès du DGFiP.",r:"BR-6",ex:"Acme France SAS"},
-  {id:"BT-29",g:"seller",l:"Seller identifier",fr:"Identifiant vendeur",m:false,s:["ei"],t:"Identifier",d:"Identifiant supplémentaire du vendeur. Schéma : 0009=SIRET (14 chiffres), 0002=SIREN (9 chiffres). Critique pour la recherche dans l'Annuaire PPF et le routage. Format : schemeID:valeur.",r:"BR-FR-01",ex:"0009:12345678900010"},
-  {id:"BT-30",g:"seller",l:"Seller SIREN/SIRET",fr:"SIREN/SIRET vendeur",m:true,s:["ei","er"],t:"Identifier",d:"OBLIGATOIRE AFNOR XP Z12-012. SIREN (9 chiffres, schème 0002) ou SIRET (14 chiffres, schème 0009). Requis pour le routage PPF et l'identification DGFiP. Rejet BR-FR-02 si absent.",diff:"EI: permet le routage via l'Annuaire PPF. ER: identifie l'assujetti TVA auprès du DGFiP.",r:"BR-FR-02",ex:"0009:12345678900010"},
-  {id:"BT-31",g:"seller",l:"Seller VAT number",fr:"Numéro TVA vendeur",m:false,s:["ei","er"],t:"Identifier",d:"Numéro TVA intracommunautaire. Format FR : FR + 2 car. clé + 9 chiffres SIREN. Obligatoire si assujetti TVA. Non requis pour franchise en base (BT-21=AAK, BT-22=FRANCHISE_TVA).",r:"BR-CO-9",ex:"FR12345678900"},
-  {id:"BT-33",g:"seller",l:"Seller legal info",fr:"Mentions légales vendeur",m:false,s:["ei"],t:"Text",d:"Mentions légales obligatoires art. R123-237 C.com : capital social, numéro RCS + ville, code APE/NAF. Pour SAS/SARL : capital + greffe. Pour auto-entrepreneurs : numéro SIREN suffit.",r:"",ex:"SAS capital 100 000€ - RCS Paris 123456789"},
-  {id:"BT-34",g:"seller",l:"Seller electronic address (Annuaire)",fr:"Adresse électronique vendeur",m:false,s:["ei"],t:"Identifier",d:"Endpoint du vendeur dans l'Annuaire PPF. Schème 0009 + SIRET. Utilisé pour router les factures entrantes vers la PA du vendeur. À enregistrer lors de l'inscription PA.",r:"",ex:"0009:12345678900010"},
-  {id:"BT-40b",g:"seller",l:"Seller country code",fr:"Pays vendeur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR pour la France métropolitaine. DOM-TOM : GP=Guadeloupe, MQ=Martinique, RE=La Réunion, GF=Guyane, YT=Mayotte, PM=Saint-Pierre-et-Miquelon, NC=Nouvelle-Calédonie, PF=Polynésie.",r:"BR-9",ex:"FR"},
-  {id:"BT-44",g:"buyer",l:"Buyer name",fr:"Dénomination sociale acheteur",m:true,s:["ei","er"],t:"Text",d:"Raison sociale complète de l'acheteur.",diff:"EI: destinataire de la facture. ER B2B-INT: identifie l'acheteur étranger. ER B2C: non requis (protection données personnelles RGPD).",r:"BR-7",ex:"Client Corp SARL"},
-  {id:"BT-46",g:"buyer",l:"Buyer identifier",fr:"Identifiant acheteur",m:false,s:["ei"],t:"Identifier",d:"Identifiant de l'acheteur dans le système du vendeur. Schème libre ou normalisé. Utilisé pour le rapprochement interne. Différent de BT-47 (SIREN/SIRET officiel).",r:"",ex:"CUST-00456"},
-  {id:"BT-47",g:"buyer",l:"Buyer legal identifier (ICD)",fr:"Identifiant légal acheteur (ICD)",m:false,s:["ei","er"],t:"Identifier",d:"Identifiant légal de l'acheteur selon son pays. Règles de sélection du schème ICD (ISO 6523) : • FR (LAND1=FR) → ICD 0002 + SIREN (9 chiffres, positions 3-11 du numéro TVA) • UE hors FR (pays ≠ FR, TVA UE connue) → ICD 0223 + numéro TVA complet (ex: DE123456789) • Hors UE ou pas de TVA UE → ICD 0227 + code pays + nom ≤ 16 car. (ex: US-ACME_INC_USA) • Nouvelle-Calédonie (NC) → ICD 0228 + RIDET • Polynésie française (PF) → ICD 0229 + identifiant local • Sinon (hors UE sans TVA identifiable) → champ absent",diff:"EI: crucial pour le routage via l'Annuaire PPF. ER: identifie l'acheteur dans la déclaration DGFiP.",r:"BR-FR-03",ex:"0002:123456789 (FR) | 0223:DE123456789 (UE) | 0227:US-ACMEINC"},
-  {id:"BT-48",g:"buyer",l:"Buyer VAT number",fr:"Numéro TVA acheteur",m:false,s:["ei","er"],t:"Identifier",d:"Numéro TVA intracommunautaire de l'acheteur. Requis pour transactions intra-UE et autoliquidation (BT-118=AE ou K). Pour acheteurs hors UE : leur numéro fiscal local. Format UE : code pays + chiffres.",r:"BR-CO-9",ex:"FR98765432100"},
-  {id:"BT-49",g:"buyer",l:"Buyer electronic address (Annuaire)",fr:"Adresse électronique acheteur",m:false,s:["ei"],t:"Identifier",d:"CRITIQUE : Endpoint acheteur dans l'Annuaire PPF. Sans cette adresse → rejet automatique CDAR 211 code AB (Destinataire introuvable). L'acheteur DOIT s'enregistrer via sa PA AVANT la première facture. Schème recommandé : 0009 + SIRET.",r:"ANNUAIRE",ex:"0009:98765432100024"},
-  {id:"BT-57b",g:"buyer",l:"Buyer country code",fr:"Pays acheteur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR=B2B domestique (e-invoicing). Autre=international → e-reporting B2B-INT obligatoire. Codes spéciaux : NC=Nouvelle-Calédonie (ICD 0228), PF=Polynésie (ICD 0229).",r:"BR-11",ex:"FR"},
-  {id:"BT-102",g:"amounts",l:"Sum of allowances at document level",fr:"Total remises niveau document",m:false,s:["ei"],t:"Amount",d:"Somme de toutes les remises (ristournes, rabais, escomptes) au niveau de l'en-tête de facture. Soustrait du BT-106 pour obtenir BT-109. Chaque remise est détaillée dans un groupe BG-20.",r:"BR-CO-11",ex:"50.00"},
-  {id:"BT-103",g:"amounts",l:"Sum of charges at document level",fr:"Total majorations niveau document",m:false,s:["ei"],t:"Amount",d:"Somme de toutes les majorations (frais de transport, frais de dossier...) au niveau de l'en-tête. Ajouté au BT-106 pour obtenir BT-109. Chaque majoration est détaillée dans un groupe BG-21.",r:"BR-CO-12",ex:"25.00"},
-  {id:"BT-106",g:"amounts",l:"Sum of invoice lines (net)",fr:"Total HT des lignes",m:true,s:["ei"],t:"Amount",d:"Somme de tous les montants nets des lignes (BT-131). E-Invoicing uniquement : l'e-reporting utilise des montants agrégés. Doit être égal à la somme mathématique exacte de chaque ligne.",r:"BR-13",ex:"1000.00"},
-  {id:"BT-109",g:"amounts",l:"Invoice total excl. VAT",fr:"Total HT net",m:true,s:["ei","er"],t:"Amount",d:"BT-106 − BT-102 (remises document) + BT-103 (majorations document). Base imposable pour le calcul TVA.",diff:"EI: total HT avec détail par ligne. ER: montant HT agrégé par taux TVA sur la période (pas par facture).",r:"BR-14",ex:"950.00"},
-  {id:"BT-110",g:"amounts",l:"Total VAT amount",fr:"Montant TVA total",m:true,s:["ei","er"],t:"Amount",d:"Somme de tous les BT-117 (TVA par catégorie). Tolérance d'arrondi : ±0.02 EUR. Chiffre clé pour le DGFiP.",diff:"EI: TVA totale de la facture. ER: TVA agrégée quotidienne par taux déclarée au DGFiP.",r:"BR-CO-14",ex:"190.00"},
-  {id:"BT-112",g:"amounts",l:"Invoice total incl. VAT",fr:"Total TTC",m:true,s:["ei","er"],t:"Amount",d:"BT-109 + BT-110. Montant total avant déduction d'éventuels acomptes. Tolérance ±0.02 EUR.",diff:"EI: montant dû par l'acheteur. ER: total TTC agrégé déclaré au fisc.",r:"BR-CO-15",ex:"1140.00"},
-  {id:"BT-113",g:"amounts",l:"Paid amount",fr:"Montant déjà réglé (acompte)",m:false,s:["ei"],t:"Amount",d:"Montant déjà versé par l'acheteur (acompte, avance). Déduit de BT-112 pour obtenir BT-115. Utilisé dans les factures de solde pour référencer l'acompte versé.",r:"",ex:"200.00"},
-  {id:"BT-115",g:"amounts",l:"Amount due for payment",fr:"Montant net à payer",m:true,s:["ei"],t:"Amount",d:"BT-112 − BT-113 (acompte) + BT-114 (arrondi). Montant réel à encaisser. Référencé dans le CDAR 212 (Encaissée). Pour TVA encaissements : déclenche l'exigibilité TVA lors du statut 212.",r:"BR-CO-16",ex:"940.00"},
-  {id:"BT-116",g:"vat",l:"VAT category taxable amount",fr:"Base imposable par catégorie",m:true,s:["ei","er"],t:"Amount",d:"Base imposable par catégorie TVA. Répété pour chaque taux utilisé (un bloc BG-23 par taux).",diff:"EI: base imposable par catégorie dans la facture EN16931. ER: base imposable agrégée par taux sur la période.",r:"BR-45",ex:"950.00"},
-  {id:"BT-117",g:"vat",l:"VAT category tax amount",fr:"Montant TVA par catégorie",m:true,s:["ei","er"],t:"Amount",d:"Montant TVA = BT-116 × BT-119/100. Tolérance d'arrondi max 0.02 EUR par catégorie. La somme de tous les BT-117 doit égaler BT-110.",r:"BR-CO-17",ex:"190.00"},
-  {id:"BT-118",g:"vat",l:"VAT category code",fr:"Code catégorie TVA",m:true,s:["ei","er"],t:"Code",d:"UNTDID 5305. Valeurs : S=Standard (taux normal), Z=Taux zéro (exports exonérés), E=Exonéré (art.261 CGI), AE=Autoliquidation (reverse charge art.283 CGI), K=Intra-UE (art.262ter CGI), G=Export hors UE (art.262 CGI), O=Hors champ TVA, EX=Franchise en base (art.293B CGI).",diff:"EI: code catégorie TVA dans la facture EN16931. ER: même codification dans le flux XML DGFiP propriétaire.",r:"BR-47",ex:"S"},
-  {id:"BT-119",g:"vat",l:"VAT rate",fr:"Taux TVA",m:false,s:["ei","er"],t:"Percentage",d:"Taux français : 20%=Standard (biens et services courants), 10%=Intermédiaire (restauration, travaux, transport), 5.5%=Réduit (alimentation, énergie, livres, logement social), 2.1%=Super-réduit (médicaments remboursables, presse). 0 pour exonéré/franchise.",r:"BR-48",ex:"20"},
-  {id:"BT-120",g:"vat",l:"VAT exemption reason text",fr:"Motif exonération TVA",m:false,s:["ei"],t:"Text",d:"Requis quand BT-118 ≠ S. Exemples : 'TVA non applicable - art. 293 B du CGI' (franchise), 'Autoliquidation - art. 283 CGI' (reverse charge), 'Exonération art. 262 ter CGI' (intra-UE), 'Exonération art. 262 CGI' (export).",r:"BR-AFNOR-10",ex:"TVA non applicable - art. 293 B du CGI"},
-  {id:"BT-121",g:"vat",l:"VAT exemption reason code",fr:"Code motif exonération TVA",m:false,s:["ei"],t:"Code",d:"Code UNCL5305 du motif. Principaux codes : VATEX-EU-132=Exonéré art.132, VATEX-EU-138=Livraison intra-UE, VATEX-EU-146=Export, VATEX-FR-FRANCHISE=Franchise en base France.",r:"",ex:"VATEX-EU-138"},
-  {id:"BT-81",g:"payment",l:"Payment means type code",fr:"Code mode de règlement",m:false,s:["ei"],t:"Code",d:"UNTDID 4461. Valeurs : 10=Espèces, 20=Chèque, 30=Virement générique, 48=Carte bancaire, 49=Prélèvement automatique, 57=Virement interne, 58=Virement SEPA (recommandé), 59=Prélèvement SEPA, 97=Compensation.",r:"",ex:"58"},
-  {id:"BT-84",g:"payment",l:"Payment account IBAN",fr:"IBAN",m:false,s:["ei"],t:"Identifier",d:"IBAN du vendeur pour le virement SEPA. Format IBAN France : FR76 + 2 banque + 5 guichet + 11 compte + 2 clé = 27 caractères. Requis quand BT-81 = 58 ou 59.",r:"",ex:"FR7612345987650123456789014"},
-  {id:"BT-86",g:"payment",l:"Payment means name",fr:"Libellé mode de paiement",m:false,s:["ei"],t:"Text",d:"Libellé libre du mode de paiement. Complète BT-81. Exemples : 'Virement SEPA', 'Prélèvement SEPA CORE', 'Carte Visa'.",r:"",ex:"Virement SEPA"},
-  {id:"BT-126",g:"lines",l:"Invoice line identifier",fr:"Identifiant ligne",m:true,s:["ei"],t:"Identifier",d:"Identifiant unique par ligne. Entiers séquentiels recommandés (1, 2, 3...). Référencé dans les avoirs pour corrections ligne par ligne. Doit être unique au sein d'une même facture.",r:"BR-21",ex:"1"},
-  {id:"BT-127",g:"lines",l:"Invoice line note",fr:"Note de ligne",m:false,s:["ei"],t:"Text",d:"Commentaire libre au niveau de la ligne. Précisions sur la prestation : période d'exécution, référence interne, conditions particulières.",r:"",ex:"Période sept. 2026 - Projet AFNOR"},
-  {id:"BT-129",g:"lines",l:"Invoiced quantity",fr:"Quantité facturée",m:true,s:["ei"],t:"Quantity",d:"Nombre d'unités facturées. Négatif autorisé pour les avoirs. Doit avoir le code unité BT-130. Précision décimale : jusqu'à 4 décimales.",r:"BR-22",ex:"10"},
-  {id:"BT-130",g:"lines",l:"Unit of measure code",fr:"Unité de mesure",m:true,s:["ei"],t:"Code",d:"UN/ECE Rec 20. Codes courants : C62=Unité/pièce, HUR=Heure, DAY=Jour, MON=Mois, ANN=Année, KGM=Kilogramme, GRM=Gramme, MTR=Mètre, MTK=m², LTR=Litre, KWH=kWh, MTQ=m³.",r:"BR-23",ex:"HUR"},
-  {id:"BT-131",g:"lines",l:"Invoice line net amount",fr:"Montant net ligne",m:true,s:["ei"],t:"Amount",d:"Montant net = (BT-148 prix brut − BT-147 remise ligne) × BT-129 quantité. E-Reporting ne nécessite PAS le détail des lignes. Somme de tous les BT-131 = BT-106.",r:"BR-24",ex:"500.00"},
-  {id:"BT-132",g:"lines",l:"Referenced order line reference",fr:"Référence ligne commande",m:false,s:["ei"],t:"Identifier",d:"Numéro de la ligne du bon de commande correspondant. Permet le rapprochement précis commande-facture (3-way match). Combine avec BT-10 (numéro commande document).",r:"",ex:"10"},
-  {id:"BT-133",g:"lines",l:"Buyer accounting reference",fr:"Référence comptable acheteur",m:false,s:["ei"],t:"Text",d:"Code comptable ou centre de coût de l'acheteur pour l'imputation. Permet l'imputation automatique dans l'ERP acheteur sans intervention manuelle.",r:"",ex:"CC-MKTG-2026"},
-  {id:"BT-146",g:"lines",l:"Item net price",fr:"Prix net unitaire",m:true,s:["ei"],t:"Amount",d:"Prix unitaire net après remises article (BT-147). BT-131 = BT-146 × BT-129. Précision jusqu'à 4 décimales pour les produits à prix très faible.",r:"BR-26",ex:"50.00"},
-  {id:"BT-147",g:"lines",l:"Item price discount",fr:"Remise prix unitaire",m:false,s:["ei"],t:"Amount",d:"Montant de remise sur le prix unitaire brut. BT-146 net = BT-148 brut − BT-147 remise. Optionnel : si absent, BT-146 = BT-148.",r:"",ex:"5.00"},
-  {id:"BT-148",g:"lines",l:"Item gross price",fr:"Prix brut unitaire",m:false,s:["ei"],t:"Amount",d:"Prix unitaire avant remise article. Requis si BT-147 présent. Permet de documenter la remise accordée par rapport au tarif catalogue.",r:"",ex:"55.00"},
-  {id:"BT-151",g:"lines",l:"Line VAT category code",fr:"Code TVA ligne",m:true,s:["ei"],t:"Code",d:"Catégorie TVA de la ligne. Doit correspondre à une catégorie déclarée dans BT-118 au niveau document. Valeurs identiques à BT-118 : S, Z, E, AE, K, G, O, EX.",r:"BR-CO-4",ex:"S"},
-  {id:"BT-153",g:"lines",l:"Item name",fr:"Désignation article/prestation",m:true,s:["ei"],t:"Text",d:"Désignation des biens/services. La loi française exige un niveau de détail suffisant (art. L441-9 C.com). Ne peut pas être générique ('Divers', 'Prestation'). Doit permettre l'identification précise.",r:"BR-25",ex:"Prestation de conseil informatique - Projet ERP"},
-  {id:"BT-154",g:"lines",l:"Item description",fr:"Description détaillée article",m:false,s:["ei"],t:"Text",d:"Description longue complémentaire au BT-153. Utile pour les prestations complexes nécessitant une description détaillée (cahier des charges, spécifications techniques, conditions d'exécution).",r:"",ex:"Migration ERP SAP S/4HANA - Phase 2 : paramétrage module FI"},
-  {id:"BT-155",g:"lines",l:"Item seller identifier",fr:"Référence article vendeur",m:false,s:["ei"],t:"Identifier",d:"Code article interne du vendeur. Permet à l'acheteur d'identifier le produit dans le catalogue vendeur. Utilisé dans les systèmes EDI pour le rapprochement automatique.",r:"",ex:"ART-SAP-CONS-001"},
-  {id:"BT-156",g:"lines",l:"Item buyer identifier",fr:"Référence article acheteur",m:false,s:["ei"],t:"Identifier",d:"Code article référencé dans le système de l'acheteur. Facilite l'intégration automatique dans l'ERP acheteur. Souvent demandé par les grands donneurs d'ordres.",r:"",ex:"CUST-ART-7890"},
-  {id:"BT-157",g:"lines",l:"Item standard identifier (EAN/GTIN)",fr:"Code article standard",m:false,s:["ei"],t:"Identifier",d:"Identifiant standard du produit : EAN-13 (GTIN-13), code ISBN, code UNSPSC, code CPV (marchés publics). Schème précisé en attribut. Exemple schème 0160=GTIN.",r:"",ex:"3760055631823"},
-]
+  {id:"BT-1",g:"header",l:"Numéro de facture",fr:"Numéro de facture",m:true,s:["ei","er"],t:"Identifiant",d:"Identifiant unique de la facture, séquentiel, requis art.226(2) Directive 2006/112/CE. Basé sur une ou plusieurs séries alphanumériques. Ne peut jamais être réutilisé même après rejet (211) ou refus (210). Référencé dans tous les CDAR ILC.",r:"BR-2",ex:"FA-2026-00123"},
+  {id:"BT-2",g:"header",l:"Date d'émission facture",fr:"Date d'émission facture",m:true,s:["ei","er"],t:"Date",d:"Date à laquelle la facture a été émise. Format YYYY-MM-DD (UBL) ou YYYYMMDD (CII). Ne peut pas être une date future. Détermine la période TVA déclarée au DGFiP.",r:"BR-3",ex:"2026-09-01"},
+  {id:"BT-3",g:"header",l:"Code de type de facture",fr:"Code de type de facture",m:true,s:["ei"],t:"Code",d:"UNTDID 1001. Valeurs : 380=Facture standard (cas nominal), 381=Avoir/note de crédit (annulation totale ou partielle), 384=Facture rectificative (correction partielle), 389=Autofacturation (self-billing, accord préalable obligatoire), 394=Location/leasing. Toujours accompagner 381 et 384 d'une référence BT-25.",r:"BR-4",ex:"380"},
+  {id:"BT-5",g:"header",l:"Code de devise de facturation",fr:"Code de devise de facturation",m:true,s:["ei"],t:"Code",d:"ISO 4217 alpha-3. Une seule devise par facture sauf pour la TVA en devise de comptabilisation. Taux de change BCE à la date d'émission (BT-2). Si devise ≠ EUR, utiliser BT-6 et BT-111 pour exprimer la TVA en EUR.",r:"BR-5",ex:"EUR"},
+  {id:"BT-6",g:"header",l:"Code devise comptabilisation TVA",fr:"Code devise comptabilisation TVA",m:false,s:["ei"],t:"Code",d:"ISO 4217. Requis uniquement quand BT-5 ≠ EUR. La TVA française doit toujours être déclarée en EUR au DGFiP. Valeur fixe EUR pour toute facture française avec devise étrangère.",r:"BR-53",ex:"EUR"},
+  {id:"BT-7",g:"header",l:"Date d'exigibilité TVA",fr:"Date d'exigibilité TVA",m:false,s:["ei"],t:"Date",d:"Date à laquelle la TVA devient imputable. Correspond généralement à la date de livraison ou fin de prestation. Note AFNOR : non utilisée en France, c'est BT-8 qui indique le régime. BT-7 et BT-8 sont exclusifs l'un de l'autre.",r:"BR-CO-3",ex:"2026-09-01"},
+  {id:"BT-8",g:"header",l:"Code date exigibilité TVA",fr:"Code date exigibilité TVA",m:false,s:["ei"],t:"Code",d:"UNTDID 2005 (UBL) / UNTDID 2475 (CII). Valeurs : date de la facture (TVA sur débits), date de livraison (transfert propriété), date de paiement (TVA sur encaissements). Champ clé pour les prestataires de services. En CII, renseigné dans le bloc BG-23 — doit être identique si BG-23 répété. Exclusif de BT-7.",r:"BR-CO-3",ex:"Débits=invoice date | Encaissements=payment date"},
+  {id:"BT-9",g:"header",l:"Date d'échéance paiement",fr:"Date d'échéance paiement",m:false,s:["ei"],t:"Date",d:"Date à laquelle le paiement net est dû. Pour paiements partiels : première date d'échéance nette. Format YYYY-MM-DD. Pénalités de retard applicables à partir du lendemain (art. L441-10 C.com). Si absent, voir BT-20 pour les conditions textuelles.",r:"BR-CO-25",ex:"2026-10-01"},
+  {id:"BT-10",g:"header",l:"Référence de l'acheteur",fr:"Référence de l'acheteur",m:false,s:["ei"],t:"Texte",d:"Identifiant défini par l'Acheteur (contact, service, bureau, projet) mais indiqué par le Vendeur sur la facture. Permet le rapprochement automatique chez l'acheteur. Souvent obligatoire contractuellement chez les grands donneurs d'ordres.",r:"",ex:"PO-2026-0055 / SERV-COMPTA-FR"},
+  {id:"BT-11",g:"header",l:"Référence de projet",fr:"Référence de projet",m:false,s:["ei"],t:"Référence",d:"Identification du projet auquel la facture fait référence. Utilisé dans les secteurs projet (BTP, informatique, conseil). Permet le rapprochement avec le suivi budgétaire projet côté acheteur.",r:"",ex:"PROJ-ERP-2026-001"},
+  {id:"BT-12",g:"header",l:"Référence du contrat",fr:"Référence du contrat",m:false,s:["ei"],t:"Référence",d:"Identifiant du contrat cadre ou contrat spécifique. Doit être unique pour une relation commerciale et une période définie. Obligatoire si la facture fait suite à un contrat (Règle BR-FR-CO-03).",r:"",ex:"CTR-2026-ACME-001"},
+  {id:"BT-13",g:"header",l:"Référence du bon de commande",fr:"Référence du bon de commande",m:false,s:["ei"],t:"Référence",d:"Numéro du bon de commande généré par l'Acheteur. Permet le rapprochement 3-way match (commande-livraison-facture). Souvent requis contractuellement. Si multi-commandes sur une facture, utiliser BG-16 pour chaque référence.",r:"",ex:"BC-2026-00456"},
+  {id:"BT-14",g:"header",l:"Numéro d'ordre de vente",fr:"Numéro d'ordre de vente",m:false,s:["ei"],t:"Référence",d:"Identifiant du bon de commande généré par le Vendeur (ordre de vente interne). Permet le rapprochement dans le système ERP vendeur.",r:"",ex:"SO-2026-7890"},
+  {id:"BT-15",g:"header",l:"Référence avis de réception",fr:"Référence avis de réception",m:false,s:["ei"],t:"Référence",d:"Identifiant de l'avis de réception marchandises (GRN - Goods Receipt Note). Utilisé dans le rapprochement 3-way match pour confirmer la livraison physique avant paiement.",r:"",ex:"GRN-2026-00123"},
+  {id:"BT-16",g:"header",l:"Référence avis d'expédition",fr:"Référence avis d'expédition",m:false,s:["ei"],t:"Référence",d:"Identifiant de l'avis d'expédition (ASN - Advance Shipping Notice). Permet de relier la facture au mouvement logistique correspondant.",r:"",ex:"ASN-2026-00789"},
+  {id:"BT-17",g:"header",l:"Référence appel d'offres ou lot",fr:"Référence appel d'offres ou lot",m:false,s:["ei"],t:"Référence",d:"Dans certains pays (notamment marchés publics), référence à l'appel d'offres ayant abouti au contrat. En France : numéro de consultation ou de lot pour les marchés publics (complète BT-12 pour Chorus Pro).",r:"",ex:"AO-2026-LOT2"},
+  {id:"BT-18",g:"header",l:"Identifiant d'objet facturé",fr:"Identifiant d'objet facturé",m:false,s:["ei"],t:"Identifiant",d:"Identifiant de l'objet sur lequel est basée la facturation (contrat de service, ligne tarifaire, etc.). En EXTENDED-CTC-FR : peut référencer un objet métier spécifique. Schème d'identification requis en BT-18-1. Règles BR-FR-29/30.",r:"",ex:"SVC-MAINTENANCE-2026"},
+  {id:"BT-19",g:"header",l:"Référence comptable acheteur",fr:"Référence comptable acheteur",m:false,s:["ei"],t:"Texte",d:"Code comptable ou centre de coût de l'acheteur pour l'imputation globale de la facture. Permet l'imputation automatique dans l'ERP acheteur sans intervention manuelle. Complète BT-133 qui est au niveau ligne.",r:"",ex:"CC-DSI-2026 / 627100"},
+  {id:"BT-20",g:"header",l:"Conditions de paiement",fr:"Conditions de paiement",m:false,s:["ei"],t:"Texte",d:"Description textuelle des conditions de paiement. Obligatoire sur factures B2B françaises (art. L441-9 C.com) : délai, mode, taux pénalités de retard, escompte éventuel. Note AFNOR : permet aussi d'exprimer une règle de délai (ex: 30 JOURS NET).",r:"BR-CO-25",ex:"30 jours nets fin de mois. Pénalités : 3x taux légal. Escompte : 2% si paiement sous 10j"},
+  {id:"BT-21",g:"notes",l:"Code sujet note de facture",fr:"Code sujet note de facture",m:false,s:["ei"],t:"Code",d:"UNTDID 4451. Codes AFNOR XP Z12-012 : BAR=Indicateur périmètre e-invoicing (obligatoire BR-FR-20), AAK=Régime fiscal (franchise TVA, TVA agricole...), ACC=Affacturage, DCL=Mandat de facturation (facture établie par A pour B), TXD=Régime TVA, ZZZ=Texte libre. En UBL : code entre ## en début de note.",r:"",ex:"BAR (périmètre EI) | AAK (franchise) | ACC (affacturage)"},
+  {id:"BT-22",g:"notes",l:"Note de facture",fr:"Note de facture",m:false,s:["ei"],t:"Texte",d:"Commentaire non structuré sur la facture. Quand BT-21=BAR → valeur confirme périmètre (ex: CHORUS_PRO). Quand BT-21=AAK → FRANCHISE_TVA (micro-entrepreneurs art.293B CGI) ou TVA_AGRI. Quand BT-21=DCL → mention mandat ex: 'Facture établie par [Agent] au nom et pour le compte de [Vendeur]'.",r:"",ex:"CHORUS_PRO | FRANCHISE_TVA | Facture établie par Agence X pour Vendeur Y"},
+  {id:"BT-23",g:"header",l:"Type de processus métier",fr:"Type de processus métier",m:false,s:["ei"],t:"Texte",d:"Identifie le contexte de processus métier de l'opération. Permet à l'acheteur de traiter la facture de manière appropriée. En AFNOR XP Z12-012 : valeurs définies par BR-FR-08. PEPPOL BIS 3.0 : urn:fdc:peppol.eu:2017:poacc:billing:01:1.0",r:"",ex:"urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"},
+  {id:"BT-24",g:"header",l:"Identifiant de spécification (profil)",fr:"Identifiant de spécification (profil)",m:true,s:["ei"],t:"Identifiant",d:"URI de la spécification normative. Valeur obligatoire : urn:cen.eu:en16931:2017. Pour EXTENDED-CTC-FR : urn:cen.eu:en16931:2017#conformant#urn:fnfe-mpe.org:fr:extended-ctc:1.0. Sans ce champ, rejet BR-1.",r:"BR-1",ex:"urn:cen.eu:en16931:2017"},
+  {id:"BT-25",g:"header",l:"Référence facture antérieure",fr:"Référence facture antérieure",m:true,s:["ei"],t:"Référence",d:"Numéro de la facture précédemment émise à laquelle cet avoir (BT-3=381) ou cette rectificative (BT-3=384) fait référence. OBLIGATOIRE pour les avoirs et rectificatives. Identique au BT-1 de la facture originale.",r:"BR-55",ex:"FA-2026-00100 (numéro de la facture originale)"},
+  {id:"BT-26",g:"header",l:"Date facture antérieure",fr:"Date facture antérieure",m:false,s:["ei"],t:"Date",d:"Date d'émission de la facture originale. Requis si BT-25 n'est pas unique (plusieurs factures du même vendeur avec le même numéro dans des séries différentes). Format YYYY-MM-DD.",r:"",ex:"2026-08-15"},
+  {id:"BT-27",g:"seller",l:"Raison sociale du vendeur",fr:"Raison sociale du vendeur",m:true,s:["ei","er"],t:"Texte",d:"Dénomination officielle complète sous laquelle le Vendeur est inscrit au RCS/RCSM ou exerce ses activités. Doit correspondre exactement à l'enregistrement officiel. Pour auto-entrepreneurs : nom complet de la personne physique.",r:"BR-6",ex:"Acme France SAS | Jean DUPONT (auto-entrepreneur)"},
+  {id:"BT-28",g:"seller",l:"Appellation commerciale du vendeur",fr:"Appellation commerciale du vendeur",m:false,s:["ei"],t:"Texte",d:"Nom commercial du vendeur, différent de la raison sociale (également appelé dénomination commerciale). Utilisé quand le vendeur est mieux connu sous un nom de marque différent de sa raison sociale légale.",r:"",ex:"Acme (si raison sociale = Acme France SAS)"},
+  {id:"BT-29",g:"seller",l:"Identifiant privé du vendeur",fr:"Identifiant privé du vendeur",m:false,s:["ei"],t:"Identifiant",d:"Identifiant du vendeur selon un schème d'identification défini en BT-29-1 (liste ISO 6523). Plusieurs identifiants possibles. Note AFNOR : permet des schèmes privés préalablement échangés. Voir aussi BT-29b (SIRET), BT-29c (routage), BT-29d (assujetti unique).",r:"",ex:"0009:12345678900010 (SIRET)"},
+  {id:"BT-29b",g:"seller",l:"Identifiant vendeur (SIRET)",fr:"Identifiant vendeur (SIRET)",m:false,s:["ei"],t:"Identifiant",d:"EXTENDED-CTC-FR : identifiant SIRET du vendeur (14 chiffres). Schème 0009. Complète BT-30 (SIREN). Utilisé pour l'identification précise de l'établissement émetteur quand le vendeur a plusieurs établissements.",r:"",ex:"0009:12345678900010"},
+  {id:"BT-29c",g:"seller",l:"Identifiant vendeur (routage)",fr:"Identifiant vendeur (routage)",m:false,s:["ei"],t:"Identifiant",d:"EXTENDED-CTC-FR : code de routage du vendeur dans l'Annuaire PPF. Schème 0225. Permet le routage des factures entrantes vers le bon service/système du vendeur.",r:"",ex:"0225:MONCODE_ROUTAGE"},
+  {id:"BT-29d",g:"seller",l:"Identifiant vendeur (assujetti unique)",fr:"Identifiant vendeur (assujetti unique)",m:false,s:["ei"],t:"Identifiant",d:"EXTENDED-CTC-FR : identifiant pour les groupes TVA (assujetti unique art.256C CGI). Permet d'identifier l'entité du groupe émettrice au sein de l'assujetti unique.",r:"",ex:"0009:12345678900028"},
+  {id:"BT-30",g:"seller",l:"Numéro de SIREN vendeur",fr:"Numéro de SIREN vendeur",m:false,s:["ei","er"],t:"Identifiant",d:"SIREN (9 chiffres, schème 0002) ou SIRET (14 chiffres, schème 0009) du vendeur. Requis pour l'identification DGFiP. En AFNOR XP Z12-012 : codelist = SIREN. Schème 0009 recommandé en EXTENDED-CTC-FR pour la précision établissement.",r:"BR-CO-26",ex:"0009:12345678900010 | 0002:123456789"},
+  {id:"BT-31",g:"seller",l:"Identifiant TVA vendeur",fr:"Identifiant TVA vendeur",m:false,s:["ei","er"],t:"Identifiant",d:"Numéro TVA intracommunautaire format FR : FR + 2 chiffres clé + 9 chiffres SIREN = 13 car. Obligatoire si assujetti TVA. Non requis pour franchise en base (BT-21=AAK, BT-22=FRANCHISE_TVA). Règle G1.47 : si BT-118=E (exonéré) → BT-31 obligatoire.",r:"BR-CO-9 BR-CO-26",ex:"FR12345678900"},
+  {id:"BT-32",g:"seller",l:"Identifiant fiscal vendeur",fr:"Identifiant fiscal vendeur",m:false,s:["ei"],t:"Identifiant",d:"Identifiant fiscal autre que TVA. Note AFNOR : non utilisé en général en France, sauf auto-entrepreneur sans numéro TVA qui renseigne son SIREN ici. Peut aussi être le numéro d'immatriculation étranger pour les vendeurs hors UE.",r:"",ex:"123456789 (SIREN auto-entrepreneur sans TVA)"},
+  {id:"BT-33",g:"seller",l:"Forme juridique et capital social",fr:"Forme juridique et capital social",m:false,s:["ei"],t:"Texte",d:"Mentions légales obligatoires (art. R123-237 C.com) : forme juridique, capital social, numéro RCS + ville, code APE/NAF. Pour SAS/SARL : capital + greffe. Pour EURL/SASU : même principe. Requis pour les mentions légales de facture.",r:"",ex:"SAS capital 100 000€ - RCS Paris 123456789 - APE 6201Z"},
+  {id:"BT-34",g:"seller",l:"Adresse électronique vendeur (Annuaire)",fr:"Adresse électronique vendeur (Annuaire)",m:false,s:["ei"],t:"Identifiant",d:"Endpoint du vendeur dans l'Annuaire PPF. Schème 0009 + SIRET recommandé. Utilisé pour router les factures entrantes vers la PA du vendeur. Doit être enregistré lors de l'inscription PA. Règles BR-FR-13/22/23/25.",r:"BR-62",ex:"0009:12345678900010"},
+  {id:"BT-35",g:"seller_addr",l:"Adresse vendeur — Ligne 1",fr:"Adresse vendeur — Ligne 1",m:false,s:["ei"],t:"Texte",d:"Première ligne d'adresse postale du vendeur (numéro et voie). Obligatoire sur les factures françaises (art. L441-9 C.com) mais optionnel EN16931. Complète BT-36 (ligne 2) et BT-162 (ligne 3 EXTENDED).",r:"",ex:"15 rue de la Paix"},
+  {id:"BT-36",g:"seller_addr",l:"Adresse vendeur — Ligne 2",fr:"Adresse vendeur — Ligne 2",m:false,s:["ei"],t:"Texte",d:"Deuxième ligne d'adresse du vendeur (complément : bâtiment, étage, BP, etc.).",r:"",ex:"Bâtiment B - 3ème étage"},
+  {id:"BT-37",g:"seller_addr",l:"Localité vendeur",fr:"Localité vendeur",m:false,s:["ei"],t:"Texte",d:"Ville du vendeur. Obligatoire sur les factures françaises.",r:"",ex:"Paris"},
+  {id:"BT-38",g:"seller_addr",l:"Code postal vendeur",fr:"Code postal vendeur",m:false,s:["ei"],t:"Texte",d:"Code postal du vendeur. Format France : 5 chiffres.",r:"",ex:"75001"},
+  {id:"BT-39",g:"seller_addr",l:"Subdivision du pays vendeur",fr:"Subdivision du pays vendeur",m:false,s:["ei"],t:"Texte",d:"Code de subdivision du pays du vendeur (département, région). En France : code département INSEE (ex: 75 pour Paris). ISO 3166-2.",r:"",ex:"FR-75 (Paris) | FR-69 (Rhône)"},
+  {id:"BT-40",g:"seller_addr",l:"Code pays vendeur",fr:"Code pays vendeur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR pour France métropolitaine. DOM-TOM : GP=Guadeloupe, MQ=Martinique, RE=La Réunion, GF=Guyane, YT=Mayotte, PM=Saint-Pierre-et-Miquelon, NC=Nouvelle-Calédonie, PF=Polynésie.",r:"BR-9",ex:"FR"},
+  {id:"BT-41",g:"seller_contact",l:"Contact vendeur",fr:"Contact vendeur",m:false,s:["ei"],t:"Texte",d:"Nom du contact ou du service vendeur pour les questions sur la facture. Exemple : 'Service Facturation', 'Comptabilité Clients', 'M. Martin'. Permet à l'acheteur de contacter le bon interlocuteur.",r:"",ex:"Service Facturation | Mme DUPONT"},
+  {id:"BT-42",g:"seller_contact",l:"Téléphone contact vendeur",fr:"Téléphone contact vendeur",m:false,s:["ei"],t:"Texte",d:"Numéro de téléphone du contact vendeur. Format libre. Pour factures internationales : inclure l'indicatif pays.",r:"",ex:"+33 1 23 45 67 89"},
+  {id:"BT-43",g:"seller_contact",l:"Email contact vendeur",fr:"Email contact vendeur",m:false,s:["ei"],t:"Texte",d:"Adresse email du contact vendeur pour les questions relatives à la facture. Distinct de l'adresse électronique Annuaire (BT-34). Permet le contact direct sans passer par la PA.",r:"",ex:"facturation@acme.fr"},
+  {id:"BT-44",g:"buyer",l:"Raison sociale de l'acheteur",fr:"Raison sociale de l'acheteur",m:true,s:["ei","er"],t:"Texte",d:"Nom complet de l'Acheteur. Dénomination officielle complète telle qu'enregistrée. En ER B2B-INT : identifie l'acheteur étranger. En ER B2C : non requis (protection données RGPD).",r:"BR-7",ex:"Client Corp SARL"},
+  {id:"BT-45",g:"buyer",l:"Appellation commerciale acheteur",fr:"Appellation commerciale acheteur",m:false,s:["ei"],t:"Texte",d:"Nom commercial de l'acheteur, différent de la raison sociale. Utilisé quand l'acheteur est mieux connu sous un nom de marque.",r:"",ex:"ClientCorp (si raison sociale = Client Corp SARL)"},
+  {id:"BT-46",g:"buyer",l:"Identifiant complémentaire acheteur",fr:"Identifiant complémentaire acheteur",m:false,s:["ei"],t:"Identifiant",d:"Identifiant de l'acheteur selon un schème en BT-46-1 (ISO 6523). Plusieurs identifiants possibles. Peut être un code client interne. Voir aussi BT-46b (SIRET), BT-46c (routage).",r:"",ex:"CUST-00456"},
+  {id:"BT-46b",g:"buyer",l:"Identifiant acheteur (SIRET)",fr:"Identifiant acheteur (SIRET)",m:false,s:["ei"],t:"Identifiant",d:"EXTENDED-CTC-FR : SIRET de l'acheteur (14 chiffres, schème 0009). Complète BT-47 (SIREN). Identifie l'établissement précis de l'acheteur destinataire.",r:"",ex:"0009:98765432100024"},
+  {id:"BT-46c",g:"buyer",l:"Identifiant acheteur (routage)",fr:"Identifiant acheteur (routage)",m:false,s:["ei"],t:"Identifiant",d:"EXTENDED-CTC-FR : code de routage interne acheteur (schème 0225). Permet de router la facture vers le bon service ou système ERP de l'acheteur au sein de sa PA.",r:"",ex:"0225:SERVICE_COMPTA"},
+  {id:"BT-47",g:"buyer",l:"Numéro de SIREN acheteur",fr:"Numéro de SIREN acheteur",m:false,s:["ei","er"],t:"Identifiant",d:"Identifiant légal de l'acheteur. En AFNOR XP Z12-012 : libellé officiel = 'Numéro de SIREN'. Règle BR-FR-11 pour les schèmes. Sélection du schème ICD selon pays : 0002=SIREN France, 0009=SIRET France, 0223=TVA UE, 0227=identifiant international, 0228=RIDET (Nouvelle-Calédonie), 0229=Polynésie française.",r:"",ex:"0002:123456789 (FR) | 0223:DE123456789 (UE) | 0227:US-ACMEINC"},
+  {id:"BT-48",g:"buyer",l:"Identifiant TVA acheteur",fr:"Identifiant TVA acheteur",m:false,s:["ei","er"],t:"Identifiant",d:"Numéro TVA intracommunautaire de l'acheteur. Requis pour transactions intra-UE (BT-118=K) et autoliquidation (BT-118=AE). Format UE : code pays ISO + chiffres. Pour hors UE : numéro fiscal local.",r:"BR-CO-9",ex:"FR98765432100 | DE123456789"},
+  {id:"BT-49",g:"buyer",l:"Adresse électronique acheteur (Annuaire)",fr:"Adresse électronique acheteur (Annuaire)",m:false,s:["ei"],t:"Identifiant",d:"CRITIQUE : Endpoint acheteur dans l'Annuaire PPF. Sans cette adresse enregistrée → rejet automatique CDAR 211 code AB (destinataire introuvable). L'acheteur DOIT s'enregistrer via sa PA avant la première facture. Schème 0009+SIRET recommandé. Règles BR-FR-12/21/23/25.",r:"BR-63",ex:"0009:98765432100024"},
+  {id:"BT-50",g:"buyer_addr",l:"Adresse acheteur — Ligne 1",fr:"Adresse acheteur — Ligne 1",m:false,s:["ei"],t:"Texte",d:"Première ligne d'adresse postale de l'acheteur.",r:"",ex:"25 avenue des Champs-Élysées"},
+  {id:"BT-51",g:"buyer_addr",l:"Adresse acheteur — Ligne 2",fr:"Adresse acheteur — Ligne 2",m:false,s:["ei"],t:"Texte",d:"Deuxième ligne d'adresse de l'acheteur (complément, bâtiment, BP...).",r:"",ex:"Tour Défense 2000"},
+  {id:"BT-52",g:"buyer_addr",l:"Localité acheteur",fr:"Localité acheteur",m:false,s:["ei"],t:"Texte",d:"Ville de l'acheteur.",r:"",ex:"Paris"},
+  {id:"BT-53",g:"buyer_addr",l:"Code postal acheteur",fr:"Code postal acheteur",m:false,s:["ei"],t:"Texte",d:"Code postal de l'acheteur.",r:"",ex:"75008"},
+  {id:"BT-54",g:"buyer_addr",l:"Subdivision du pays acheteur",fr:"Subdivision du pays acheteur",m:false,s:["ei"],t:"Texte",d:"Subdivision du pays de l'acheteur. ISO 3166-2.",r:"",ex:"FR-75"},
+  {id:"BT-55",g:"buyer_addr",l:"Code pays acheteur",fr:"Code pays acheteur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR=B2B domestique (e-invoicing). Autre pays=B2B international → e-reporting B2B-INT obligatoire. Codes spéciaux DOM-TOM : NC, PF, GP, MQ, RE, GF, YT.",r:"BR-11",ex:"FR"},
+  {id:"BT-56",g:"buyer_contact",l:"Contact acheteur",fr:"Contact acheteur",m:false,s:["ei"],t:"Texte",d:"Nom du contact ou service chez l'acheteur (DAF, service achat, AP department). Permet au vendeur de contacter le bon interlocuteur en cas de litige.",r:"",ex:"Service Comptabilité Fournisseurs"},
+  {id:"BT-57",g:"buyer_contact",l:"Téléphone contact acheteur",fr:"Téléphone contact acheteur",m:false,s:["ei"],t:"Texte",d:"Numéro de téléphone du contact acheteur.",r:"",ex:"+33 1 40 00 00 00"},
+  {id:"BT-58",g:"buyer_contact",l:"Email contact acheteur",fr:"Email contact acheteur",m:false,s:["ei"],t:"Texte",d:"Adresse email du contact acheteur. Distinct de l'adresse électronique Annuaire (BT-49).",r:"",ex:"ap@clientcorp.fr"},
+  {id:"BT-59",g:"beneficiary",l:"Nom du bénéficiaire",fr:"Nom du bénéficiaire",m:true,s:["ei"],t:"Texte",d:"Nom du bénéficiaire quand différent du vendeur. Cas d'usage : affacturage (factor = bénéficiaire), cession de créance, mandataire. Le nom peut être identique au vendeur si pas de bénéficiaire distinct.",r:"BR-17",ex:"Factor SA (en cas d'affacturage)"},
+  {id:"BT-60",g:"beneficiary",l:"Identifiant complémentaire bénéficiaire",fr:"Identifiant complémentaire bénéficiaire",m:false,s:["ei"],t:"Identifiant",d:"Identifiant du bénéficiaire selon un schème en BT-60-1. Utilisé pour identifier précisément le factor ou cessionnaire dans les flux d'affacturage.",r:"",ex:"0009:33344455500016 (SIRET du factor)"},
+  {id:"BT-61",g:"beneficiary",l:"Identifiant légal bénéficiaire",fr:"Identifiant légal bénéficiaire",m:false,s:["ei"],t:"Identifiant",d:"Identifiant d'enregistrement légal du bénéficiaire (SIREN, SIRET ou équivalent). Schème en BT-61-1.",r:"",ex:"0002:333444555 (SIREN du factor)"},
+  {id:"BT-62",g:"fiscal_rep",l:"Nom représentant fiscal vendeur",fr:"Nom représentant fiscal vendeur",m:true,s:["ei"],t:"Texte",d:"Nom complet du représentant fiscal du vendeur en France. Requis quand le vendeur est établi hors UE et dispose d'un représentant fiscal agréé (art. 289A CGI). Le représentant est responsable de la TVA en France.",r:"BR-18",ex:"Cabinet Fiscal France SAS"},
+  {id:"BT-63",g:"fiscal_rep",l:"N° TVA représentant fiscal",fr:"N° TVA représentant fiscal",m:true,s:["ei"],t:"Identifiant",d:"Numéro TVA français du représentant fiscal (FR + clé + SIREN). Obligatoire si BT-62 présent. Différent du numéro TVA du vendeur (BT-31).",r:"BR-56 BR-CO-9",ex:"FR99123456789"},
+  {id:"BT-64",g:"fiscal_rep",l:"Adresse représentant fiscal — Ligne 1",fr:"Adresse représentant fiscal — Ligne 1",m:false,s:["ei"],t:"Texte",d:"Adresse du représentant fiscal en France.",r:"",ex:"10 rue du Commerce"},
+  {id:"BT-65",g:"fiscal_rep",l:"Adresse représentant fiscal — Ligne 2",fr:"Adresse représentant fiscal — Ligne 2",m:false,s:["ei"],t:"Texte",d:"Complément d'adresse du représentant fiscal.",r:"",ex:""},
+  {id:"BT-66",g:"fiscal_rep",l:"Localité représentant fiscal",fr:"Localité représentant fiscal",m:false,s:["ei"],t:"Texte",d:"Ville du représentant fiscal.",r:"",ex:"Lyon"},
+  {id:"BT-67",g:"fiscal_rep",l:"Code postal représentant fiscal",fr:"Code postal représentant fiscal",m:false,s:["ei"],t:"Texte",d:"Code postal du représentant fiscal.",r:"",ex:"69001"},
+  {id:"BT-68",g:"fiscal_rep",l:"Subdivision pays représentant fiscal",fr:"Subdivision pays représentant fiscal",m:false,s:["ei"],t:"Texte",d:"Subdivision du pays du représentant fiscal.",r:"",ex:"FR-69"},
+  {id:"BT-69",g:"fiscal_rep",l:"Code pays représentant fiscal",fr:"Code pays représentant fiscal",m:true,s:["ei"],t:"Code",d:"Code pays ISO 3166-1 alpha-2 du représentant fiscal. En général FR (France) car le représentant fiscal est établi en France.",r:"",ex:"FR"},
+  {id:"BT-70",g:"delivery",l:"Livré à (nom destinataire livraison)",fr:"Livré à (nom destinataire livraison)",m:false,s:["ei"],t:"Texte",d:"Nom du destinataire de la livraison si différent de l'acheteur. Cas : livraison directe chez le client final de l'acheteur, chantier, entrepôt tiers.",r:"",ex:"Entrepôt Logistique Nord | Chantier ACME Nantes"},
+  {id:"BT-71",g:"delivery",l:"Identifiant établissement livraison",fr:"Identifiant établissement livraison",m:false,s:["ei"],t:"Identifiant",d:"Identifiant du lieu ou point de livraison. Peut être un GLN (Global Location Number, schème 0088), un code entrepôt interne ou un numéro de chantier.",r:"",ex:"0088:4012345600085 (GLN) | ENTREPOT-NORD-001"},
+  {id:"BT-72",g:"delivery",l:"Date effective de livraison",fr:"Date effective de livraison",m:false,s:["ei"],t:"Date",d:"Date à laquelle la livraison a été effectuée ou la prestation achevée. Format YYYY-MM-DD. Détermine le fait générateur TVA pour les livraisons de biens (BT-8=date livraison). Si différente de BT-2 : préciser BT-8.",r:"",ex:"2026-08-30"},
+  {id:"BT-73",g:"period",l:"Date début période de facturation",fr:"Date début période de facturation",m:false,s:["ei"],t:"Date",d:"Premier jour de la période de facturation. Format YYYY-MM-DD. Utilisé pour les abonnements, locations, contrats à durée déterminée. BT-73 ≤ BT-74. Règle BR-CO-19.",r:"BR-CO-19",ex:"2026-09-01"},
+  {id:"BT-74",g:"period",l:"Date fin période de facturation",fr:"Date fin période de facturation",m:false,s:["ei"],t:"Date",d:"Dernier jour de la période de facturation. Format YYYY-MM-DD. BT-74 ≥ BT-73. Règles BR-29 et BR-CO-19.",r:"BR-29 BR-CO-19",ex:"2026-09-30"},
+  {id:"BT-75",g:"delivery",l:"Adresse livraison — Ligne 1",fr:"Adresse livraison — Ligne 1",m:false,s:["ei"],t:"Texte",d:"Première ligne d'adresse du lieu de livraison.",r:"",ex:"Zone Industrielle Nord, Rue des Ateliers"},
+  {id:"BT-76",g:"delivery",l:"Adresse livraison — Ligne 2",fr:"Adresse livraison — Ligne 2",m:false,s:["ei"],t:"Texte",d:"Deuxième ligne d'adresse de livraison.",r:"",ex:"Bâtiment A, Quai 5"},
+  {id:"BT-77",g:"delivery",l:"Localité livraison",fr:"Localité livraison",m:false,s:["ei"],t:"Texte",d:"Ville du lieu de livraison. Peut différer de la ville de l'acheteur (BT-52).",r:"",ex:"Lille"},
+  {id:"BT-78",g:"delivery",l:"Code postal livraison",fr:"Code postal livraison",m:false,s:["ei"],t:"Texte",d:"Code postal du lieu de livraison.",r:"",ex:"59000"},
+  {id:"BT-79",g:"delivery",l:"Subdivision pays livraison",fr:"Subdivision pays livraison",m:false,s:["ei"],t:"Texte",d:"Département/région du lieu de livraison. ISO 3166-2.",r:"",ex:"FR-59"},
+  {id:"BT-80",g:"delivery",l:"Code pays livraison",fr:"Code pays livraison",m:true,s:["ei"],t:"Code",d:"Pays de livraison ISO 3166-1 alpha-2. Important pour déterminer le régime TVA applicable : FR=domestic, autre=international. Peut déclencher des règles de TVA spécifiques (autoliquidation, exonération).",r:"BR-57",ex:"FR"},
+  {id:"BT-81",g:"payment",l:"Code type de moyen de paiement",fr:"Code type de moyen de paiement",m:true,s:["ei"],t:"Code",d:"UNTDID 4461. Valeurs courantes : 10=Espèces, 20=Chèque, 30=Virement générique, 48=Carte bancaire, 49=Prélèvement auto, 57=Virement interne, 58=Virement SEPA (recommandé B2B), 59=Prélèvement SEPA CORE/B2B, 97=Compensation/netting.",r:"BR-49",ex:"58 (virement SEPA) | 59 (prélèvement SEPA) | 48 (carte)"},
+  {id:"BT-82",g:"payment",l:"Libellé moyen de paiement",fr:"Libellé moyen de paiement",m:false,s:["ei"],t:"Texte",d:"Description textuelle du mode de paiement. Complète BT-81. Exemples : 'Virement SEPA', 'Prélèvement SEPA CORE', 'Carte Visa', 'Compensation'.",r:"",ex:"Virement SEPA | Prélèvement SEPA CORE"},
+  {id:"BT-83",g:"payment",l:"Avis de paiement (référence)",fr:"Avis de paiement (référence)",m:false,s:["ei"],t:"Texte",d:"Référence à indiquer sur le virement pour l'attribution automatique du paiement côté vendeur. Souvent : numéro de facture BT-1 ou référence commande. Le système destinataire doit reprendre cette référence lors du paiement.",r:"",ex:"FA-2026-00123 | REF-PAIEMENT-001"},
+  {id:"BT-84",g:"payment",l:"IBAN compte bénéficiaire",fr:"IBAN compte bénéficiaire",m:true,s:["ei"],t:"Identifiant",d:"IBAN du compte bancaire destinataire du paiement (vendeur ou factor/bénéficiaire). Format France : FR76 + 2 banque + 5 guichet + 11 compte + 2 clé = 27 caractères alphanumériques. Requis quand BT-81 = 58 ou 59.",r:"BR-50 BR-61",ex:"FR7612345987650123456789014"},
+  {id:"BT-85",g:"payment",l:"Nom titulaire compte bénéficiaire",fr:"Nom titulaire compte bénéficiaire",m:false,s:["ei"],t:"Texte",d:"Nom du titulaire du compte IBAN indiqué en BT-84. Utile pour la vérification SEPA.",r:"",ex:"Acme France SAS"},
+  {id:"BT-86",g:"payment",l:"BIC prestataire paiement",fr:"BIC prestataire paiement",m:false,s:["ei"],t:"Identifiant",d:"BIC (Bank Identifier Code, ex-SWIFT) de l'établissement financier. Format : 8 ou 11 caractères. Requis pour virements SEPA hors zone EEE. Optionnel pour virements intra-zone SEPA.",r:"",ex:"BNPAFRPPXXX | CRLYFRPP"},
+  {id:"BT-87",g:"payment",l:"Numéro carte (4 derniers chiffres)",fr:"Numéro carte (4 derniers chiffres)",m:true,s:["ei"],t:"Texte",d:"Pour paiement par carte (BT-81=48) : uniquement les 4 à 6 derniers chiffres du numéro de carte. JAMAIS le numéro complet (exigence PCI-DSS). Permet à l'acheteur d'identifier quelle carte a été utilisée.",r:"BR-51",ex:"XXXX XXXX XXXX 1234"},
+  {id:"BT-88",g:"payment",l:"Nom titulaire carte",fr:"Nom titulaire carte",m:false,s:["ei"],t:"Texte",d:"Nom du titulaire de la carte de paiement. Pour facturation par carte achat ou corporate card.",r:"",ex:"Jean DUPONT"},
+  {id:"BT-89",g:"payment",l:"Référence mandat prélèvement",fr:"Référence mandat prélèvement",m:false,s:["ei"],t:"Identifiant",d:"Identifiant unique du mandat de prélèvement automatique SEPA. Attribué par le bénéficiaire (vendeur). Obligatoire pour BT-81=59 (prélèvement SEPA) avec le BIC créancier en BT-90.",r:"",ex:"MND-ACME-20260901-001"},
+  {id:"BT-90",g:"payment",l:"Identifiant bancaire créancier (ICS)",fr:"Identifiant bancaire créancier (ICS)",m:false,s:["ei"],t:"Identifiant",d:"Identifiant créancier SEPA (ICS - Identifiant Créancier SEPA). Attribué par la banque. Format FR : FR + 2 chiffres + 3 car. NNA + 12 car. SIREN. Requis pour BT-81=59 avec BT-89.",r:"",ex:"FR72ZZZ123456"},
+  {id:"BT-91",g:"payment",l:"IBAN compte débité",fr:"IBAN compte débité",m:false,s:["ei"],t:"Identifiant",d:"IBAN du compte à débiter par prélèvement automatique. Requis pour BT-81=49 ou 59. Protégé par le RGPD : ne transmettre que si accord client.",r:"",ex:"FR7614508030003001280135003"},
+  {id:"BT-92",g:"allowcharges",l:"Montant remise document",fr:"Montant remise document",m:true,s:["ei"],t:"Montant",d:"Montant de la remise au niveau document (pied de facture), hors TVA. Règle BR-FR-DEC-01 : 2 décimales max. Soustrait du BT-106 pour obtenir BT-109. BT-93 (assiette) × BT-94 (%) = BT-92.",r:"BR-31",ex:"50.00"},
+  {id:"BT-93",g:"allowcharges",l:"Assiette remise document",fr:"Assiette remise document",m:false,s:["ei"],t:"Montant",d:"Base de calcul de la remise document. BT-92 = BT-93 × BT-94/100. Optionnel si montant direct en BT-92.",r:"",ex:"1000.00 (base pour remise de 5%)"},
+  {id:"BT-94",g:"allowcharges",l:"Pourcentage remise document",fr:"Pourcentage remise document",m:false,s:["ei"],t:"Pourcentage",d:"Taux de remise en pourcentage. BT-92 = BT-93 × BT-94/100. Optionnel si montant direct.",r:"",ex:"5.00 (5%)"},
+  {id:"BT-95",g:"allowcharges",l:"Code TVA remise document",fr:"Code TVA remise document",m:true,s:["ei"],t:"Code",d:"UNTDID 5305. Règle BR-FR-15 : codes autorisés S, E, AE, K, G, O, Z (L/M exclus France). Même liste que BT-102, BT-118, BT-151. Doit correspondre au taux TVA de l'opération remisée.",r:"BR-32",ex:"S (standard) | AE (autoliquidation) | E (exonéré)"},
+  {id:"BT-96",g:"allowcharges",l:"Taux TVA remise document",fr:"Taux TVA remise document",m:false,s:["ei"],t:"Pourcentage",d:"Taux TVA de la remise document. BR-FR-16 : taux autorisés 0, 2.1, 5.5, 7, 8.5, 10, 13, 20. Si BT-95=AE/E/G/K/O/Z → BT-96=0.",r:"",ex:"20.00 | 10.00 | 5.50 | 0"},
+  {id:"BT-97",g:"allowcharges",l:"Motif remise document",fr:"Motif remise document",m:false,s:["ei"],t:"Texte",d:"Motif textuel de la remise globale. Exemples : remise commerciale, ristourne annuelle, remise fidélité, rabais qualité. BR-CO-5 et BR-CO-21 : BT-97 et BT-98 doivent indiquer le même motif.",r:"BR-33 BR-CO-5",ex:"Remise commerciale | Ristourne annuelle | Remise fidélité"},
+  {id:"BT-98",g:"allowcharges",l:"Code motif remise document",fr:"Code motif remise document",m:false,s:["ei"],t:"Code",d:"UNTDID 5189. Codes courants : 41=Bonus, 42=Autre bonus, 43=Remise fabricant, 44=Remise contrat, 45=Remise fidélité, 100=Remise spéciale. Cohérent avec BT-97.",r:"BR-33 BR-CO-5",ex:"95=Remise | 41=Bonus | 42=Autre bonus"},
+  {id:"BT-99",g:"allowcharges",l:"Montant charges document",fr:"Montant charges document",m:true,s:["ei"],t:"Montant",d:"Montant des charges/frais au niveau document (pied de facture), hors TVA. Exemples : frais de transport global, frais de dossier, frais d'emballage. Ajouté au BT-106 pour obtenir BT-109. BR-FR-DEC-01 : 2 décimales max.",r:"BR-36",ex:"15.00 (frais de port)"},
+  {id:"BT-100",g:"allowcharges",l:"Assiette charges document",fr:"Assiette charges document",m:false,s:["ei"],t:"Montant",d:"Base de calcul des charges document. BT-99 = BT-100 × BT-101/100.",r:"",ex:"1000.00"},
+  {id:"BT-101",g:"allowcharges",l:"Pourcentage charges document",fr:"Pourcentage charges document",m:false,s:["ei"],t:"Pourcentage",d:"Taux des charges en pourcentage. BT-99 = BT-100 × BT-101/100.",r:"",ex:"1.50 (1.5% frais de gestion)"},
+  {id:"BT-102",g:"allowcharges",l:"Code TVA charges document",fr:"Code TVA charges document",m:true,s:["ei"],t:"Code",d:"UNTDID 5305. Règle BR-FR-15 : codes autorisés S, E, AE, K, G, O, Z (L/M exclus France). Même liste que BT-95, BT-118, BT-151. Code AE = autoliquidation sur biens ET services (art.283 CGI). Si BT-102=AE/E/G/K/O/Z → BT-103=0.",r:"BR-37",ex:"S (frais port taxé) | AE (autoliquidation) | E (exonéré)"},
+  {id:"BT-103",g:"allowcharges",l:"Taux TVA charges document",fr:"Taux TVA charges document",m:false,s:["ei"],t:"Pourcentage",d:"Taux TVA applicable aux charges document. BR-FR-16 : taux autorisés 0, 2.1, 5.5, 7, 8.5, 10, 13, 20. Si BT-102=AE/E/G/K/O/Z → BT-103=0. Symbole % non indiqué dans la valeur.",r:"",ex:"20.00 | 0 (si AE ou exonéré)"},
+  {id:"BT-104",g:"allowcharges",l:"Motif charges document",fr:"Motif charges document",m:false,s:["ei"],t:"Texte",d:"Motif textuel des charges document. Exemples : frais de port, frais de dossier, frais d'emballage, supplément urgence. BR-CO-6 et BR-CO-22 : BT-104 et BT-105 doivent indiquer le même motif.",r:"BR-38 BR-CO-6",ex:"Frais de port | Frais de dossier | Emballage spécial"},
+  {id:"BT-105",g:"allowcharges",l:"Code motif charges document",fr:"Code motif charges document",m:false,s:["ei"],t:"Code",d:"UNTDID 7161. Codes courants : AA=Frais publicité, AAA=Frais comptables, AAC=Frais acceptation, AAS=Frais achat, ABK=Frais emballage, FC=Fret, FI=Financement, PC=Frais emballage, ZZZ=Autres. Cohérent avec BT-104.",r:"BR-38 BR-CO-6",ex:"FC (fret) | PC (emballage) | AAB (frais douane)"},
+  {id:"BT-106",g:"amounts",l:"Somme montants nets lignes",fr:"Somme montants nets lignes",m:true,s:["ei"],t:"Montant",d:"Somme mathématique exacte de tous les BT-131 (montants nets de chaque ligne). Calcul : Σ(BT-131). BR-CO-10. BR-FR-DEC-01 : 2 décimales max.",r:"BR-12 BR-CO-10",ex:"950.00 (= ligne1 500 + ligne2 450)"},
+  {id:"BT-107",g:"amounts",l:"Somme remises document",fr:"Somme remises document",m:false,s:["ei"],t:"Montant",d:"Somme de tous les montants de remise au niveau document (Σ BT-92 de tous les BG-20). Rappel : les remises au niveau ligne sont déjà incluses dans BT-131.",r:"BR-CO-11",ex:"50.00"},
+  {id:"BT-108",g:"amounts",l:"Somme charges document",fr:"Somme charges document",m:false,s:["ei"],t:"Montant",d:"Somme de tous les montants de charges au niveau document (Σ BT-99 de tous les BG-21). Rappel : les charges au niveau ligne sont déjà incluses dans BT-131.",r:"BR-CO-12",ex:"15.00"},
+  {id:"BT-109",g:"amounts",l:"Total HT facture",fr:"Total HT facture",m:true,s:["ei","er"],t:"Montant",d:"Montant total HT = BT-106 (lignes) − BT-107 (remises doc) + BT-108 (charges doc). Base imposable pour le calcul TVA. Doit correspondre à la somme des bases d'imposition BT-116 par catégorie TVA.",r:"BR-13 BR-CO-13",ex:"915.00 = 950 - 50 + 15"},
+  {id:"BT-110",g:"amounts",l:"Total TVA facture",fr:"Total TVA facture",m:false,s:["ei","er"],t:"Montant",d:"Somme de tous les BT-117 (montants TVA par catégorie). Tolérance arrondi : ±0.02 EUR. Chiffre clé transmis au DGFiP.",r:"BR-CO-14",ex:"183.00 (= 915 × 20%)"},
+  {id:"BT-111",g:"amounts",l:"Total TVA en devise comptabilisation",fr:"Total TVA en devise comptabilisation",m:false,s:["ei"],t:"Montant",d:"Total TVA exprimée en devise de comptabilisation (EUR). Requis uniquement quand BT-5 ≠ EUR. La TVA française doit toujours être déclarée en EUR. Devise de comptabilisation en BT-111-1.",r:"BR-53",ex:"183.00 EUR (si facture en USD)"},
+  {id:"BT-112",g:"amounts",l:"Total TTC facture",fr:"Total TTC facture",m:true,s:["ei","er"],t:"Montant",d:"Montant total TTC = BT-109 + BT-110. Doit être ≥ 0. Tolérance ±0.02 EUR. Pour un avoir (BT-3=381) : montant négatif autorisé.",r:"BR-14 BR-CO-15",ex:"1098.00"},
+  {id:"BT-113",g:"amounts",l:"Montant déjà réglé (acompte)",fr:"Montant déjà réglé (acompte)",m:false,s:["ei"],t:"Montant",d:"Montant déjà encaissé avant émission (acomptes, avances). Déduit de BT-112 pour obtenir BT-115. Référencer les factures d'acompte via BG-16. Dans l'ILC : le CDAR 212 (Encaissée) référencera BT-115.",r:"",ex:"200.00 (acompte versé le 01/08)"},
+  {id:"BT-114",g:"amounts",l:"Montant d'arrondi",fr:"Montant d'arrondi",m:false,s:["ei"],t:"Montant",d:"Montant positif ou négatif à ajouter au TTC pour obtenir un montant à payer arrondi. Généralement très faible (< 0.05 EUR). BT-115 = BT-112 − BT-113 + BT-114.",r:"",ex:"0.02 | -0.01"},
+  {id:"BT-115",g:"amounts",l:"Montant net à payer",fr:"Montant net à payer",m:true,s:["ei"],t:"Montant",d:"BT-112 (TTC) − BT-113 (acompte) + BT-114 (arrondi). Montant réel à encaisser. Référencé dans le CDAR 212 lors du statut 'Encaissée'. Pour TVA encaissements : déclenche l'exigibilité TVA à la réception du paiement.",r:"BR-15 BR-CO-16",ex:"898.00 = 1098 - 200"},
+  {id:"BT-116",g:"vat",l:"Base imposable par catégorie TVA",fr:"Base imposable par catégorie TVA",m:true,s:["ei","er"],t:"Montant",d:"Base imposable pour chaque catégorie TVA. Un bloc BG-23 par combinaison taux/catégorie. Ventilation détaillée par taux. Formule : Σ(BT-131 lignes à ce taux) − Σ(BT-92 remises à ce taux) + Σ(BT-99 charges à ce taux).",r:"BR-45",ex:"915.00 (base à 20%) | 200.00 (base à 5.5%)"},
+  {id:"BT-117",g:"vat",l:"Montant TVA par catégorie",fr:"Montant TVA par catégorie",m:true,s:["ei","er"],t:"Montant",d:"Montant TVA = BT-116 × BT-119/100. Tolérance arrondi 0.02 EUR par catégorie. La somme Σ(BT-117) doit égaler BT-110. Pour AE/E/G/K/O : BT-117 = 0.",r:"BR-46 BR-CO-17",ex:"183.00 (20% sur 915) | 11.00 (5.5% sur 200)"},
+  {id:"BT-118",g:"vat",l:"Code catégorie TVA",fr:"Code catégorie TVA",m:true,s:["ei","er"],t:"Code",d:"UNTDID 5305. Règle BR-FR-15 — codes autorisés France : S=Standard, E=Exonéré, AE=Autoliquidation (biens ET services, art.283 CGI), K=Livraison intracommunautaire (art.262 ter CGI), G=Export hors UE (art.262 CGI), O=Hors champ TVA, Z=Taux zéro/franchise en base (art.293B CGI). Codes L/M NON acceptés. Règle G1.47 : si E → BT-31 obligatoire.",r:"BR-47",ex:"S (standard) | AE (autoliquidation) | K (intra-UE)"},
+  {id:"BT-119",g:"vat",l:"Taux TVA",fr:"Taux TVA",m:false,s:["ei","er"],t:"Pourcentage",d:"Taux en vigueur France — BR-FR-16 : 0, 2.1 (médicaments remboursables, presse), 5.5 (alimentation, énergie, livres, logement social), 7 (DROM), 8.5 (DROM réduit), 10 (restauration, travaux, transport), 13 (Corse standard), 20 (taux normal). 0 pour exonéré/franchise.",r:"BR-48",ex:"20.00 | 10.00 | 5.50 | 2.10 | 0"},
+  {id:"BT-120",g:"vat",l:"Motif exonération TVA",fr:"Motif exonération TVA",m:false,s:["ei"],t:"Texte",d:"Texte expliquant pourquoi la TVA est exonérée. Requis quand BT-118 ≠ S. Exemples : 'TVA non applicable art.293B CGI' (franchise), 'Autoliquidation art.283 CGI', 'Exonération art.262 ter CGI' (intra-UE), 'Exonération art.262 CGI' (export).",r:"",ex:"TVA non applicable - art. 293 B du CGI | Autoliquidation - art. 283 CGI"},
+  {id:"BT-121",g:"vat",l:"Code motif exonération TVA",fr:"Code motif exonération TVA",m:false,s:["ei"],t:"Code",d:"Code normalisé EN16931 du motif d'exonération. Principaux codes : VATEX-EU-79-C=Exonération art.79(c), VATEX-EU-132=Exonération art.132, VATEX-EU-138=Livraison intra-UE, VATEX-EU-144=Importation exonérée, VATEX-EU-146=Export, VATEX-EU-148=Transport int'l, VATEX-FR-FRANCHISE=Franchise base France.",r:"",ex:"VATEX-EU-138 | VATEX-EU-146 | VATEX-FR-FRANCHISE"},
+  {id:"BT-122",g:"docs",l:"Référence document justificatif",fr:"Référence document justificatif",m:true,s:["ei"],t:"Référence",d:"Identifiant du document justificatif attaché ou référencé. Peut être un bon de livraison, rapport d'intervention, feuille de temps, bon de réception. Règle BR-52.",r:"BR-52",ex:"BL-2026-00123 | RAPPORT-INTERVENTION-09-2026"},
+  {id:"BT-123",g:"docs",l:"Description document justificatif",fr:"Description document justificatif",m:false,s:["ei"],t:"Texte",d:"Description du type ou du contenu du document justificatif. Règles BR-FR-17 (types autorisés) et BR-FR-18. Types AFNOR : FACTURE_AVOIR, BON_LIVRAISON, BON_COMMANDE, RAPPORT, RECAPITULATIF_COTRAITANCE, CONTRAT, etc.",r:"",ex:"Bon de livraison | Rapport d'intervention | Feuille de temps"},
+  {id:"BT-124",g:"docs",l:"URL document externe",fr:"URL document externe",m:false,s:["ei"],t:"Texte",d:"Lien HTTP/HTTPS vers le document externe hébergé. L'acheteur peut consulter ou télécharger le justificatif. Doit être accessible sans authentification ou avec les credentials inclus.",r:"",ex:"https://docs.acme.fr/bl-2026-00123.pdf"},
+  {id:"BT-125",g:"docs",l:"Document joint (binaire base64)",fr:"Document joint (binaire base64)",m:false,s:["ei"],t:"Binaire",d:"Contenu du document encodé en base64. Type MIME en BT-125-1, nom de fichier en BT-125-2. Formats autorisés par BR-FR-17 : PDF/A-3, image JPEG/PNG, XML. Attention : augmente la taille de la facture.",r:"",ex:"[base64 d'un PDF]"},
+  {id:"BT-126",g:"lines",l:"Identifiant ligne de facture",fr:"Identifiant ligne de facture",m:true,s:["ei"],t:"Identifiant",d:"Identifiant unique de la ligne au sein de la facture. Entiers séquentiels recommandés (1, 2, 3...). Référencé dans les avoirs (BT-3=381) pour les corrections ligne par ligne.",r:"BR-21",ex:"1 | 2 | 3"},
+  {id:"BT-127",g:"lines",l:"Note de ligne",fr:"Note de ligne",m:false,s:["ei"],t:"Texte",d:"Commentaire non structuré sur la ligne de facture. Exemples : période d'exécution, référence interne, conditions particulières d'exécution, numéro de série, numéro de lot. En UBL : code sujet entre ## en début de note.",r:"",ex:"Période sept. 2026 | Lot n°2026-09-A | Réf. contrat CTR-001"},
+  {id:"BT-128",g:"lines",l:"Identifiant objet ligne",fr:"Identifiant objet ligne",m:false,s:["ei"],t:"Identifiant",d:"Référence à l'objet facturé au niveau ligne (numéro contrat, numéro service, compteur, abonnement, numéro de téléphone). Schème en BT-128-1. Règles BR-FR-29/30 pour le profil EXTENDED-CTC-FR.",r:"",ex:"ABONNEMENT-2026-001 | COMPTEUR-12345678"},
+  {id:"BT-129",g:"lines",l:"Quantité facturée",fr:"Quantité facturée",m:true,s:["ei"],t:"Quantité",d:"Nombre d'unités facturées pour cette ligne. Négatif autorisé pour les avoirs. Jusqu'à 4 décimales (BR-FR-DEC-02). Doit avoir une unité de mesure en BT-130. BT-131 = BT-146 × BT-129.",r:"BR-22",ex:"10 | 2.5 | -1 (retour)"},
+  {id:"BT-130",g:"lines",l:"Unité de mesure",fr:"Unité de mesure",m:true,s:["ei"],t:"Code",d:"UN/ECE Rec 20. Codes courants : C62=Unité/pièce, HUR=Heure, DAY=Jour, MON=Mois, ANN=Année, KGM=Kilogramme, GRM=Gramme, MTR=Mètre, MTK=m², MTQ=m³, LTR=Litre, KWH=kWh, TNE=Tonne, SET=Ensemble, EA=Chacun. L'unité ligne doit correspondre à BT-150.",r:"BR-23",ex:"C62 (pièce) | HUR (heure) | DAY (jour) | KGM (kg)"},
+  {id:"BT-131",g:"lines",l:"Montant net ligne",fr:"Montant net ligne",m:true,s:["ei"],t:"Montant",d:"Montant net de la ligne, hors TVA. Inclut remises et charges au niveau ligne. Formule : (BT-148 − BT-147) × BT-129 ou BT-146 × BT-129. La somme Σ(BT-131) = BT-106. BR-FR-DEC-01 : 2 décimales max.",r:"BR-24",ex:"500.00 (= 50.00 × 10)"},
+  {id:"BT-132",g:"lines",l:"Référence ligne bon de commande",fr:"Référence ligne bon de commande",m:false,s:["ei"],t:"Référence",d:"Numéro de la ligne du bon de commande acheteur correspondant à cette ligne de facture. Permet le rapprochement précis (3-way match) ligne par ligne. Combine avec BT-13 (numéro commande document).",r:"",ex:"10 | PO-LINE-5"},
+  {id:"BT-133",g:"lines",l:"Référence comptable acheteur ligne",fr:"Référence comptable acheteur ligne",m:false,s:["ei"],t:"Texte",d:"Code comptable ou centre de coût de l'acheteur pour l'imputation de cette ligne spécifique. Permet l'imputation automatique ligne par ligne dans l'ERP acheteur. Complète BT-19 (référence comptable globale).",r:"",ex:"CC-MKTG-2026 | 627110 | PROJET-A"},
+  {id:"BT-134",g:"lines",l:"Date début période ligne",fr:"Date début période ligne",m:false,s:["ei"],t:"Date",d:"Premier jour de la période de facturation pour cette ligne spécifique. Format YYYY-MM-DD. Pour les services récurrents au niveau ligne. BR-CO-20 : doit être ≤ BT-135.",r:"BR-CO-20",ex:"2026-09-01"},
+  {id:"BT-135",g:"lines",l:"Date fin période ligne",fr:"Date fin période ligne",m:false,s:["ei"],t:"Date",d:"Dernier jour de la période de facturation pour cette ligne. Format YYYY-MM-DD. BR-30 et BR-CO-20 : BT-135 ≥ BT-134.",r:"BR-30 BR-CO-20",ex:"2026-09-30"},
+  {id:"BT-136",g:"line_allowcharges",l:"Montant remise ligne",fr:"Montant remise ligne",m:true,s:["ei"],t:"Montant",d:"Montant de remise sur la ligne, hors TVA. Déjà inclus dans BT-131 (montant net). Formule : BT-131 = (BT-148 − BT-147) × BT-129. BR-FR-DEC-01 : 2 décimales max.",r:"BR-41",ex:"25.00"},
+  {id:"BT-137",g:"line_allowcharges",l:"Assiette remise ligne",fr:"Assiette remise ligne",m:false,s:["ei"],t:"Montant",d:"Base de calcul de la remise ligne. BT-136 = BT-137 × BT-138/100. Optionnel si montant direct en BT-136.",r:"",ex:"500.00 (base pour remise 5%)"},
+  {id:"BT-138",g:"line_allowcharges",l:"Pourcentage remise ligne",fr:"Pourcentage remise ligne",m:false,s:["ei"],t:"Pourcentage",d:"Taux de remise ligne en pourcentage. BT-136 = BT-137 × BT-138/100.",r:"",ex:"5.00 (5%)"},
+  {id:"BT-139",g:"line_allowcharges",l:"Motif remise ligne",fr:"Motif remise ligne",m:false,s:["ei"],t:"Texte",d:"Motif textuel de la remise sur la ligne. BR-CO-7 et BR-CO-23 : BT-139 et BT-140 doivent indiquer le même motif.",r:"BR-42 BR-CO-7",ex:"Remise quantité | Remise contrat | Rabais fin de série"},
+  {id:"BT-140",g:"line_allowcharges",l:"Code motif remise ligne",fr:"Code motif remise ligne",m:false,s:["ei"],t:"Code",d:"UNTDID 5189. Code de motif remise ligne. Cohérent avec BT-139. Exemples : 41=Bonus, 42=Autre bonus, 43=Remise fabricant, 44=Remise contrat, 45=Remise fidélité.",r:"BR-42 BR-CO-7",ex:"41 | 95"},
+  {id:"BT-141",g:"line_allowcharges",l:"Montant charges ligne",fr:"Montant charges ligne",m:true,s:["ei"],t:"Montant",d:"Montant de charges/frais sur la ligne, hors TVA. Déjà inclus dans BT-131 (montant net). Exemples : frais d'installation, frais de mise en service, supplément spécial. BR-FR-DEC-01 : 2 décimales.",r:"BR-43",ex:"10.00 (frais installation)"},
+  {id:"BT-142",g:"line_allowcharges",l:"Assiette charges ligne",fr:"Assiette charges ligne",m:false,s:["ei"],t:"Montant",d:"Base de calcul des charges ligne. BT-141 = BT-142 × BT-143/100.",r:"",ex:"500.00"},
+  {id:"BT-143",g:"line_allowcharges",l:"Pourcentage charges ligne",fr:"Pourcentage charges ligne",m:false,s:["ei"],t:"Pourcentage",d:"Taux des charges ligne en pourcentage. BT-141 = BT-142 × BT-143/100.",r:"",ex:"2.00 (2%)"},
+  {id:"BT-144",g:"line_allowcharges",l:"Motif charges ligne",fr:"Motif charges ligne",m:false,s:["ei"],t:"Texte",d:"Motif textuel des charges sur la ligne. BR-CO-8 et BR-CO-24 : BT-144 et BT-145 doivent indiquer le même motif.",r:"BR-44 BR-CO-8",ex:"Frais d'installation | Mise en service | Emballage spécial"},
+  {id:"BT-145",g:"line_allowcharges",l:"Code motif charges ligne",fr:"Code motif charges ligne",m:false,s:["ei"],t:"Code",d:"UNTDID 7161. Code motif charges ligne. Cohérent avec BT-144. Exemples : AAB=Frais douane, ABK=Emballage, FC=Fret, FI=Financement, PC=Emballage/conditionnement.",r:"BR-44 BR-CO-8",ex:"ABK (emballage) | FC (fret ligne) | FI (financement)"},
+  {id:"BT-146",g:"line_items",l:"Prix net unitaire",fr:"Prix net unitaire",m:true,s:["ei"],t:"Montant",d:"Prix unitaire net après application du rabais article (BT-148 − BT-147). BT-131 = BT-146 × BT-129. Jusqu'à 4 décimales pour les produits à prix très faible. BR-26 : BT-146 ≥ 0 (sauf avoir).",r:"BR-26 BR-27",ex:"50.00 | 0.0125 (prix unitaire très faible)"},
+  {id:"BT-147",g:"line_items",l:"Rabais prix unitaire",fr:"Rabais prix unitaire",m:false,s:["ei"],t:"Montant",d:"Remise totale sur le prix unitaire brut. BT-146 = BT-148 − BT-147. Permet de documenter le tarif catalogue et la remise accordée. Si absent : BT-146 = BT-148.",r:"",ex:"5.00 (rabais sur BT-148=55.00)"},
+  {id:"BT-148",g:"line_items",l:"Prix brut unitaire",fr:"Prix brut unitaire",m:false,s:["ei"],t:"Montant",d:"Prix unitaire avant remise article (tarif catalogue). Requis si BT-147 présent. Permet à l'acheteur de vérifier la remise accordée.",r:"BR-28",ex:"55.00 (avant remise de 5)"},
+  {id:"BT-149",g:"line_items",l:"Quantité de base prix",fr:"Quantité de base prix",m:false,s:["ei"],t:"Quantité",d:"Nombre d'unités sur lequel s'applique le prix unitaire. Exemple : prix pour 1000 unités. BT-131 = BT-146 × BT-129 / BT-149. BR-FR-DEC-02 : 4 décimales max.",r:"",ex:"1 (défaut) | 1000 (prix au millier) | 100 (prix au cent)"},
+  {id:"BT-150",g:"line_items",l:"Unité de mesure quantité de base",fr:"Unité de mesure quantité de base",m:false,s:["ei"],t:"Code",d:"Unité de mesure de la quantité de base BT-149. Doit correspondre à BT-130 (unité de la quantité facturée). UN/ECE Rec 20.",r:"",ex:"C62 | KGM | LTR"},
+  {id:"BT-151",g:"line_items",l:"Code TVA article facturé",fr:"Code TVA article facturé",m:true,s:["ei"],t:"Code",d:"UNTDID 5305. Règle BR-FR-15 — même liste que BT-118, BT-95, BT-102 : S, E, AE, K, G, O, Z (L/M exclus France). Doit correspondre à une catégorie déclarée dans le récapitulatif TVA (BT-118 en BG-23). BR-CO-4 : Si BT-151=AE → BG-23 avec BT-118=AE obligatoire.",r:"BR-CO-4",ex:"S | AE (autoliquidation) | E (exonéré)"},
+  {id:"BT-152",g:"line_items",l:"Taux TVA article",fr:"Taux TVA article",m:false,s:["ei"],t:"Pourcentage",d:"BR-FR-16 : taux autorisés 0, 2.1, 5.5, 7, 8.5, 10, 13, 20. Un taux de 0% est appliqué même si hors champ TVA (O). Doit correspondre au taux déclaré dans BT-119 pour la même catégorie.",r:"",ex:"20.00 | 10.00 | 5.50 | 2.10 | 0"},
+  {id:"BT-153",g:"line_items",l:"Nom de l'article / prestation",fr:"Nom de l'article / prestation",m:true,s:["ei"],t:"Texte",d:"Désignation des biens ou services. Art. L441-9 C.com : niveau de détail suffisant — interdit les désignations génériques ('Divers', 'Prestation', 'Marchandises'). Doit permettre l'identification précise de ce qui est facturé.",r:"BR-25",ex:"Prestation de conseil informatique - Mission AFNOR | Ordinateur portable Dell XPS 15"},
+  {id:"BT-154",g:"line_items",l:"Description détaillée article",fr:"Description détaillée article",m:false,s:["ei"],t:"Texte",d:"Description longue complémentaire au BT-153. Pour les prestations complexes : cahier des charges, spécifications techniques, conditions d'exécution. Utile pour les factures de travaux ou prestations intellectuelles.",r:"",ex:"Migration ERP SAP S/4HANA - Phase 2 : paramétrage module FI/CO - livrables : documentation, formation"},
+  {id:"BT-155",g:"line_items",l:"Référence article vendeur",fr:"Référence article vendeur",m:false,s:["ei"],t:"Identifiant",d:"Code article interne du vendeur (référence catalogue). Permet à l'acheteur d'identifier le produit dans le catalogue vendeur. Utilisé dans les systèmes EDI pour le rapprochement automatique.",r:"",ex:"ART-SAP-CONS-001 | REF-V-7890"},
+  {id:"BT-156",g:"line_items",l:"Référence article acheteur",fr:"Référence article acheteur",m:false,s:["ei"],t:"Identifiant",d:"Code article tel que référencé dans le système de l'acheteur. Facilite l'intégration automatique dans l'ERP acheteur. Souvent requis par les grands donneurs d'ordres (GDO, centrales d'achat).",r:"",ex:"CUST-ART-7890 | REF-A-4567"},
+  {id:"BT-157",g:"line_items",l:"Code article standard (EAN/GTIN)",fr:"Code article standard (EAN/GTIN)",m:false,s:["ei"],t:"Identifiant",d:"Identifiant standard du produit. Schème en BT-157-1. Principaux schèmes : 0160=GTIN (EAN-13), 0161=GTIN-8, ISBN, UNSPSC, CPV (marchés publics), TARIC (douanes). BR-64.",r:"BR-64",ex:"3760055631823 (EAN-13) | 0001234567890 (GTIN)"},
+  {id:"BT-158",g:"line_items",l:"Code classification article",fr:"Code classification article",m:false,s:["ei"],t:"Identifiant",d:"Code de classification pour regrouper des articles similaires. Schème en BT-158-1. Systèmes courants : UNSPSC (commerce), CPV (marchés publics européens), eCl@ss (industrie), ETIM (installations). BR-65.",r:"BR-65",ex:"80111507 (UNSPSC conseil) | 72212000 (CPV travaux)"},
+  {id:"BT-159",g:"line_items",l:"Pays d'origine article",fr:"Pays d'origine article",m:false,s:["ei"],t:"Code",d:"Pays d'origine de l'article, ISO 3166-1 alpha-2. Utilisé pour les déclarations douanières, les règles d'origine (préférentielles ou non) et le marquage obligatoire sur certains produits.",r:"",ex:"FR | DE | CN | US"},
+  {id:"BT-160",g:"line_items",l:"Nom attribut article",fr:"Nom attribut article",m:true,s:["ei"],t:"Texte",d:"Nom de l'attribut ou propriété de l'article. EXTENDED-CTC-FR : peut être un code. Exemples : Couleur, Taille, Matière, Voltage, Poids net. Règle BR-FR-27. Associé à BT-161 (valeur).",r:"BR-54",ex:"Couleur | Taille | Matière | Voltage"},
+  {id:"BT-161",g:"line_items",l:"Valeur attribut article",fr:"Valeur attribut article",m:true,s:["ei"],t:"Texte",d:"Valeur de l'attribut décrit en BT-160. Règle BR-FR-28. BT-160 et BT-161 vont toujours par paire.",r:"BR-54",ex:"Rouge (couleur) | XL (taille) | Acier inoxydable (matière) | 230V"},
+  {id:"BT-162",g:"seller_addr",l:"Adresse vendeur — Ligne 3",fr:"Adresse vendeur — Ligne 3",m:false,s:["ei"],t:"Texte",d:"EXTENDED-CTC-FR : troisième ligne d'adresse vendeur. Utilisée dans certains pays pour le complément géographique (quartier, lieu-dit, etc.).",r:"",ex:"Quartier des Affaires"},
+  {id:"BT-163",g:"buyer_addr",l:"Adresse acheteur — Ligne 3",fr:"Adresse acheteur — Ligne 3",m:false,s:["ei"],t:"Texte",d:"EXTENDED-CTC-FR : troisième ligne d'adresse acheteur.",r:"",ex:"Zone Industrielle"},
+  {id:"BT-164",g:"fiscal_rep",l:"Adresse représentant fiscal — Ligne 3",fr:"Adresse représentant fiscal — Ligne 3",m:false,s:["ei"],t:"Texte",d:"EXTENDED-CTC-FR : troisième ligne d'adresse du représentant fiscal.",r:"",ex:""},
+  {id:"BT-165",g:"delivery",l:"Adresse livraison — Ligne 3",fr:"Adresse livraison — Ligne 3",m:false,s:["ei"],t:"Texte",d:"EXTENDED-CTC-FR : troisième ligne d'adresse de livraison.",r:"",ex:"Entrée Est — Porte 12"},
+];
 const ER=[
   {id:"ER-01",l:"Transmission identifier",fr:"Identifiant de transmission",m:true,s:"B2C/B2B-INT",t:"Identifier",d:"Unique ID of the e-reporting transmission generated by the PA.",ex:"TRANS-2026-09-001"},
   {id:"ER-02",l:"Transmission date",fr:"Date de transmission",m:true,s:"B2C/B2B-INT",t:"Date",d:"Date sent to DGFiP via PPF. Every 10 days or monthly for SMEs.",ex:"2026-09-10"},
@@ -145,21 +254,274 @@ const ILC=[
 ];
 
 const UC=[
-  {id:"UC-00",cat:"nominal",t:"Cas nominal — flux standard",d:"Standard B2B: Seller→PA→PPF→Buyer PA→Buyer. Statuts: 200→201→203→204→212.",flow:[{f:"Vendeur",to:"PA Vendeur",m:"Facture UBL/CII/Factur-X"},{f:"PA Vendeur",to:"PPF",m:"Flux 2 routage Annuaire"},{f:"PPF",to:"PA Acheteur",m:"Livraison"},{f:"Acheteur",to:"PA",m:"Statuts 203→204→212"}],st:["200","201","203","204","212"],cx:"basic"},
-  {id:"UC-01",cat:"nominal",t:"Facture refusée (statut 210)",d:"Buyer refuses invoice. Seller must issue credit note (BT-3=381) + new corrected invoice.",flow:[{f:"Acheteur",to:"PA",m:"Statut 210 Refusée"},{f:"Vendeur",to:"PA",m:"Avoir 381 + nouvelle facture"}],st:["200","210"],cx:"basic"},
-  {id:"UC-02",cat:"nominal",t:"Facture rejetée (statut 211)",d:"Technical rejection by PA. Seller must correct and submit NEW invoice with DIFFERENT BT-1.",flow:[{f:"PA/PPF",to:"Vendeur",m:"CDAR Statut 211"},{f:"Vendeur",to:"PA",m:"NOUVELLE facture (NOUVEAU BT-1)"}],st:["200","211"],cx:"basic"},
-  {id:"UC-03",cat:"correction",t:"Note de crédit (avoir)",d:"Credit note (BT-3=381) reverses a prior invoice. Must reference original in BT-25.",flow:[{f:"Vendeur",to:"PA",m:"Avoir BT-3=381, ref original BT-1"}],st:["200","201","204"],cx:"basic"},
-  {id:"UC-04",cat:"correction",t:"Facture rectificative",d:"Corrected invoice (BT-3=384) replaces incorrect one. Must reference original.",flow:[{f:"Vendeur",to:"PA",m:"Facture BT-3=384, ref original"}],st:["200","201","204"],cx:"basic"},
-  {id:"UC-05",cat:"special",t:"Autofacturation (self-billing 389)",d:"BUYER creates invoice on behalf of seller (BT-3=389). Requires prior agreement.",flow:[{f:"Acheteur",to:"PA Acheteur",m:"Autofacture BT-3=389"},{f:"PPF",to:"PA Vendeur",m:"Livraison au vendeur"}],st:["200","201","203","212"],cx:"medium"},
-  {id:"UC-06",cat:"special",t:"Acompte et solde",d:"Two invoices: (1) Advance/deposit, (2) Balance referencing deposit (BT-113).",flow:[{f:"Vendeur",to:"PA",m:"Facture acompte"},{f:"Vendeur",to:"PA",m:"Facture solde BT-113=acompte"}],st:["200","201","204","212"],cx:"medium"},
-  {id:"UC-07",cat:"special",t:"Facture en devise étrangère",d:"Invoice in foreign currency (BT-5≠EUR). VAT must still appear in EUR (BT-111).",flow:[{f:"Vendeur",to:"PA",m:"Facture BT-5=USD, BT-6=EUR, BT-111=TVA EUR"}],st:["200","201","212"],cx:"medium"},
-  {id:"UC-08",cat:"reporting",t:"E-reporting B2C (France)",d:"B2C sales to French consumers. Aggregated per day per VAT rate. Every 10 days.",flow:[{f:"Vendeur",to:"PA",m:"Données B2C quotidiennes par taux TVA"},{f:"PA",to:"PPF",m:"XML e-reporting agrégé"},{f:"PPF",to:"DGFiP",m:"Données TVA"}],st:[],cx:"basic"},
-  {id:"UC-09",cat:"reporting",t:"E-reporting B2B international",d:"French seller invoices foreign buyer. Per-transaction reporting. No line items required (2025).",flow:[{f:"Vendeur",to:"PA",m:"Données facture internationale"},{f:"PA",to:"PPF",m:"XML e-reporting individuel"}],st:[],cx:"medium"},
-  {id:"UC-10",cat:"reporting",t:"E-reporting de paiement",d:"For TVA sur les encaissements. Must report each payment received. Correlates to original invoice.",flow:[{f:"Vendeur",to:"PA",m:"Données paiement"},{f:"PA",to:"PPF",m:"E-reporting paiement + Statut 212"}],st:["212"],cx:"medium"},
-  {id:"UC-11",cat:"b2g",t:"B2G via Chorus Pro",d:"From Sept 2026: B2G invoices may go via Chorus Pro OR via a PA. Both coexist.",flow:[{f:"Fournisseur",to:"PA ou Chorus Pro",m:"Facture UBL/CII/Factur-X"},{f:"PPF",to:"Entité publique",m:"Livraison"}],st:["200","201","203","204","212"],cx:"medium"},
-  {id:"UC-17",cat:"annuaire",t:"Rejet 211 — Acheteur absent de l'Annuaire",d:"Invoice submitted but buyer not found in PPF Annuaire (BT-49 absent). CDAR 211 code AB returned. Buyer must register via their PA, then seller resubmits with NEW BT-1.",flow:[{f:"Vendeur",to:"PA",m:"Facture (BT-49 absent)"},{f:"PPF",to:"PA",m:"CDAR 211 code AB: Destinataire introuvable"},{f:"Vendeur",to:"Acheteur",m:"Demander enregistrement Annuaire"},{f:"Acheteur",to:"PA Acheteur",m:"Enregistrement SIRET + BT-49"},{f:"Vendeur",to:"PA",m:"NOUVELLE facture (NOUVEAU BT-1)"}],st:["200","211"],cx:"medium"},
+  // ── NOMINAL FLOWS ────────────────────────────────────────────────────────
+  {id:"UC-01",cat:"nominal",cx:"basic",
+   t:"Cas 1 — Commande multiple / Livraison multiple",
+   d:"Une facture peut faire référence à plusieurs bons de commande (BT-13) et plusieurs bons de livraison. Utiliser les groupes BG-16 (référence document précédent) pour chaque référence de commande. Flux standard EI.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec multi BT-13 (bons de commande)"},{f:"PA",to:"PPF",m:"Routage Annuaire"},{f:"Acheteur",to:"PA",m:"CDAR 203/204/212"}],
+   st:["200","201","203","204","212"]},
+  {id:"UC-02",cat:"nominal",cx:"basic",
+   t:"Cas 2 — Facture déjà payée (acheteur ou tiers payeur)",
+   d:"Facture émise après paiement déjà reçu. BT-113 (montant déjà réglé) = BT-112 (TTC). BT-115 (net à payer) = 0. Statut 212 non nécessaire si paiement déjà reçu avant émission.",
+   flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement préalable"},{f:"Vendeur",to:"PA",m:"Facture BT-113=TTC, BT-115=0"},{f:"Acheteur",to:"PA",m:"CDAR 204 (approbation)"}],
+   st:["200","201","204"]},
+  {id:"UC-03",cat:"nominal",cx:"basic",
+   t:"Cas 3 — Facture payable par un tiers payeur connu",
+   d:"Tiers payeur identifié au moment de la facturation (ex: assurance, caisse de solidarité). BT-49 du tiers payeur dans l'Annuaire. Le SELLER indique le tiers dans les instructions de paiement.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec coordonnées tiers payeur"},{f:"PA Tiers",to:"PPF",m:"Statut 204 + paiement"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement tiers"}],
+   st:["200","201","204","212"]},
+  {id:"UC-04",cat:"nominal",cx:"medium",
+   t:"Cas 4 — Facture partiellement couverte par un tiers (subvention, assurance)",
+   d:"L'acheteur paie une partie, un tiers (organisme, assurance, subvention) paie l'autre. Deux flux de paiement distincts. Deux statuts 212 possibles : un pour chaque paiement partiel.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115 = montant total"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Tiers",to:"PA",m:"CDAR 204 + paiement complément"},{f:"Vendeur",to:"PA",m:"2x CDAR 212 (paiements partiels)"}],
+   st:["200","201","204","212"]},
+  // ── EMPLOYEE EXPENSES ────────────────────────────────────────────────────
+  {id:"UC-05",cat:"expenses",cx:"basic",
+   t:"Cas 5 — Notes de frais avec factures au nom de la société",
+   d:"Employé paie pour le compte de la société. La facture est au nom de la société (BT-44). Flux EI standard. L'employé est transparent — seule la société est acheteur.",
+   flow:[{f:"Fournisseur",to:"PA",m:"Facture au nom de la société (BT-44)"},{f:"Société",to:"PA",m:"CDAR 203/204 (validation note de frais)"},{f:"Société",to:"Employé",m:"Remboursement note de frais"}],
+   st:["200","201","203","204"]},
+  {id:"UC-06",cat:"expenses",cx:"basic",
+   t:"Cas 6 — Notes de frais sans facture société (ticket, reçu)",
+   d:"Facture au nom de l'employé ou simple reçu. Hors périmètre EI. Traitement interne uniquement, pas de flux e-invoicing ni e-reporting.",
+   flow:[{f:"Fournisseur",to:"Employé",m:"Reçu ou facture nominative employé"},{f:"Employé",to:"Société",m:"Note de frais interne"},{f:"Société",to:"Employé",m:"Remboursement"}],
+   st:[]},
+  {id:"UC-07",cat:"expenses",cx:"basic",
+   t:"Cas 7 — Achat par carte achat (corporate card)",
+   d:"Facture suite à achat avec carte achat (purchasing card). La facture peut être consolidée (plusieurs achats) ou individuelle. Flux EI si facture au nom de la société.",
+   flow:[{f:"Fournisseur",to:"Réseau carte",m:"Transaction carte"},{f:"Réseau carte",to:"Société",m:"Facture consolidée"},{f:"Société",to:"PA",m:"Flux EI si périmètre B2B"}],
+   st:["200","201","204"]},
+  // ── THIRD-PARTY PAYMENT ──────────────────────────────────────────────────
+  {id:"UC-08",cat:"tiers",cx:"medium",
+   t:"Cas 8 — Affacturage / Cash pooling (tiers payeur identifié à la facturation)",
+   d:"Factor ou gestionnaire cash pooling identifié à la facturation. Note BAR (BT-21=ACC) pour affacturage. Identifiant supplémentaire factor (BT-29 avec schème spécifique). Statuts ILC dédiés pour le suivi.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-21=ACC, identifiant factor"},{f:"Factor",to:"PPF",m:"Notification prise en charge"},{f:"Acheteur",to:"Factor",m:"Paiement à l'échéance"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement factor"}],
+   st:["200","201","204","212"]},
+  {id:"UC-09",cat:"tiers",cx:"medium",
+   t:"Cas 9 — Tiers payeur connu gérant aussi la commande (distributeur/dépositaire)",
+   d:"Le tiers gère la commande ET le paiement. Cas distributeur/dépositaire. Adresse électronique du tiers dans l'Annuaire. Flux entre vendeur et tiers, pas directement l'acheteur final.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 du distributeur"},{f:"Distributeur",to:"PA",m:"CDAR 203/204 (approbation)"},{f:"Distributeur",to:"Vendeur",m:"CDAR 212 paiement"}],
+   st:["200","201","203","204","212"]},
+  {id:"UC-10",cat:"tiers",cx:"complex",
+   t:"Cas 10 — Tiers payeur inconnu à l'émission (subrogation, affacturage)",
+   d:"Le factor n'est pas connu à la date d'émission. Subrogation postérieure. BT-49 de l'acheteur initial dans l'Annuaire. Modification des instructions de paiement après émission par notification complémentaire.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 acheteur"},{f:"Factor",to:"Vendeur",m:"Notification subrogation (hors réseau EI)"},{f:"Acheteur",to:"Factor",m:"Paiement redirigé"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement factor"}],
+   st:["200","201","204","212"]},
+  // ── INTERMEDIAIRES ───────────────────────────────────────────────────────
+  {id:"UC-11",cat:"intermediaire",cx:"medium",
+   t:"Cas 11 — Réception et traitement par un tiers pour le compte de l'acheteur",
+   d:"Un tiers (PA-TR) reçoit et traite les factures pour le compte de l'acheteur. Le tiers a accès à l'adresse électronique de l'acheteur dans l'Annuaire. L'acheteur délègue le traitement complet.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=adresse tiers"},{f:"PA Tiers",to:"Tiers",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"PA",m:"CDAR 203/204 au nom acheteur"}],
+   st:["200","201","203","204","212"]},
+  {id:"UC-12",cat:"intermediaire",cx:"medium",
+   t:"Cas 12 — Intermédiaire transparent gérant les factures pour son mandant acheteur",
+   d:"Intermédiaire transparent (agent achat, centrale d'achat). Factures au nom de l'acheteur final. L'intermédiaire gère le flux mais l'acheteur reste le destinataire légal.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture au nom acheteur final"},{f:"Intermédiaire",to:"PA",m:"Traitement pour compte mandant"},{f:"Acheteur",to:"Intermédiaire",m:"Remboursement frais"}],
+   st:["200","201","203","204"]},
+  // ── SOUS-TRAITANCE ───────────────────────────────────────────────────────
+  {id:"UC-13",cat:"soustrait",cx:"complex",
+   t:"Cas 13 — Sous-traitance avec paiement direct ou délégation de paiement (B2B)",
+   d:"Sous-traitant facture le titulaire (BT-44=titulaire). Titulaire peut déléguer paiement direct au maître d'ouvrage. Autoliquidation TVA possible (BT-118=AE). SELLER=SOUS-TRAITANT dans BG-4.",
+   flow:[{f:"Sous-traitant",to:"PA",m:"Facture au titulaire (BT-44)"},{f:"Titulaire",to:"PA",m:"Accord paiement direct"},{f:"Maître d'ouvrage",to:"Sous-traitant",m:"Paiement direct (si accepté)"},{f:"Sous-traitant",to:"PA",m:"CDAR 212"}],
+   st:["200","201","203","204","212"]},
+  {id:"UC-14",cat:"soustrait",cx:"complex",
+   t:"Cas 14 — Cotraitance (groupement B2B)",
+   d:"Groupement momentané d'entreprises (GME). Chaque cotraitant facture le maître d'ouvrage directement. BG-4 SELLER=COTRAITANT, BG-7 BUYER=Maître d'ouvrage. Mandataire du groupement coordonne.",
+   flow:[{f:"Cotraitant A",to:"PA",m:"Facture part A (BT-44=MO)"},{f:"Cotraitant B",to:"PA",m:"Facture part B (BT-44=MO)"},{f:"MO",to:"PA",m:"CDAR 204 par cotraitant"},{f:"Chaque cotraitant",to:"PA",m:"CDAR 212"}],
+   st:["200","201","203","204","212"]},
+  // ── MANDATS / SELF-BILLING ───────────────────────────────────────────────
+  {id:"UC-15",cat:"mandat",cx:"medium",
+   t:"Cas 15 — Facture suite commande/paiement par tiers pour compte acheteur",
+   d:"Le tiers (agence média, centrale) passe la commande ET paie pour le compte de l'acheteur. Adresse électronique confiée à une PA-TR choisie par l'acheteur.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=tiers"},{f:"Tiers",to:"PA Acheteur",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"Vendeur",m:"CDAR 204 + paiement"}],
+   st:["200","201","204","212"]},
+  {id:"UC-16",cat:"mandat",cx:"medium",
+   t:"Cas 16 — Facture de refacturation des frais avancés par le tiers",
+   d:"Le tiers refacture à l'acheteur les montants avancés. Deux flux distincts : facture vendeur->tiers, puis facture tiers->acheteur. BT-3=380 pour les deux.",
+   flow:[{f:"Vendeur",to:"Tiers",m:"Facture initiale (EI)"},{f:"Tiers",to:"Acheteur",m:"Refacturation (EI)"},{f:"Acheteur",to:"Tiers",m:"CDAR 204 + paiement"}],
+   st:["200","201","204","212"]},
+  {id:"UC-17a",cat:"mandat",cx:"medium",
+   t:"Cas 17a — Facture payable à un tiers intermédiaire de paiement (Marketplace)",
+   d:"Marketplace comme intermédiaire de paiement. SELLER facture la Marketplace (BT-44=Marketplace). Le vendeur marketplace ne facture pas directement l'acheteur final.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-44=Marketplace"},{f:"Marketplace",to:"PA",m:"CDAR 203/204"},{f:"Marketplace",to:"Vendeur",m:"CDAR 212 après paiement acheteur"}],
+   st:["200","201","203","204","212"]},
+  {id:"UC-17b",cat:"mandat",cx:"complex",
+   t:"Cas 17b — Tiers intermédiaire paiement + mandat de facturation",
+   d:"Marketplace est à la fois intermédiaire de paiement ET mandataire de facturation (BT-3=389 autofacturation ou mandat). Facture émise par la Marketplace au nom du vendeur.",
+   flow:[{f:"Marketplace",to:"PA",m:"Facture au nom vendeur (mandat)"},{f:"Acheteur",to:"Marketplace",m:"Paiement"},{f:"Marketplace",to:"Vendeur",m:"Reversement - CDAR 212"}],
+   st:["200","201","204","212"]},
+  {id:"UC-18",cat:"mandat",cx:"medium",
+   t:"Cas 18 — Gestion des notes de débit",
+   d:"Note de débit émise par l'acheteur pour facturer des frais au vendeur. BT-3=383 (note de débit). Flux inverse : acheteur devient vendeur dans la facture. Rare en B2B France.",
+   flow:[{f:"Acheteur",to:"PA",m:"Note de débit BT-3=383"},{f:"Vendeur",to:"PA",m:"CDAR 203/204 (approbation note débit)"}],
+   st:["200","201","204"]},
+  {id:"UC-19a",cat:"mandat",cx:"medium",
+   t:"Cas 19a — Facture émise par un tiers mandataire (mandat de facturation)",
+   d:"Mandataire émet la facture au nom et pour le compte du vendeur (BT-3=380). Option 1 : mandataire et vendeur sur même PA. Option 2 : plateformes différentes. BG-4=VENDEUR, mentions mandat obligatoires.",
+   flow:[{f:"Mandataire",to:"PA Vendeur",m:"Facture au nom du vendeur (BG-4)"},{f:"PA Vendeur",to:"PPF",m:"Routage standard"},{f:"Acheteur",to:"PA",m:"CDAR 203/204/212"}],
+   st:["200","201","203","204","212"]},
+  {id:"UC-19b",cat:"mandat",cx:"medium",
+   t:"Cas 19b — Autofacturation (self-billing BT-3=389)",
+   d:"L'ACHETEUR émet la facture au nom du vendeur (BT-3=389). Accord préalable obligatoire. BG-4=VENDEUR, BG-7=ACHETEUR. Le vendeur reste responsable de la conformité TVA.",
+   flow:[{f:"Acheteur",to:"PA Acheteur",m:"Autofacture BT-3=389 au nom vendeur"},{f:"PPF",to:"PA Vendeur",m:"Livraison au vendeur"},{f:"Vendeur",to:"PA",m:"CDAR 203/204 (validation)"}],
+   st:["200","201","203","204","212"]},
+  // ── ACOMPTES / AVANCES ───────────────────────────────────────────────────
+  {id:"UC-20",cat:"acompte",cx:"medium",
+   t:"Cas 20 — Facture d'acompte (avant prestation)",
+   d:"Facture d'acompte émise avant réalisation complète de la prestation. BT-3=380. BT-113=0 (pas encore de paiement antérieur). La facture de solde (UC-21) référencera cet acompte.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture acompte BT-3=380"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement acompte"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement acompte"}],
+   st:["200","201","204","212"]},
+  {id:"UC-21",cat:"acompte",cx:"medium",
+   t:"Cas 21 — Facture de solde (après acompte)",
+   d:"Facture finale déduisant les acomptes versés. BT-113 = somme des acomptes. BT-115 = solde restant dû. Référence aux factures d'acompte via BG-16 (billing reference).",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture solde BT-113=acomptes, BT-115=solde"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"},{f:"Vendeur",to:"PA",m:"CDAR 212 solde"}],
+   st:["200","201","204","212"]},
+  // ── ESCOMPTES / REMISES ──────────────────────────────────────────────────
+  {id:"UC-22a",cat:"escompte",cx:"medium",
+   t:"Cas 22a — Facture avec escompte (TVA sur les encaissements)",
+   d:"Escompte pour paiement rapide sur prestations de services. TVA payable à l'encaissement (BT-8=432). Si l'acheteur paie avant échéance avec escompte, le montant TVA est calculé sur le montant effectivement encaissé.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec mention escompte (BT-20)"},{f:"Acheteur",to:"PA",m:"Paiement anticipé - montant réduit"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur montant encaissé réel"},{f:"Vendeur",to:"PA",m:"E-reporting paiement = montant HT réel"}],
+   st:["200","201","204","212"]},
+  {id:"UC-22b",cat:"escompte",cx:"medium",
+   t:"Cas 22b — Facture avec escompte (TVA sur les débits, livraisons de biens)",
+   d:"Escompte pour livraisons de biens (TVA sur débits, BT-8=3). La TVA est due à la date de facture sur le montant brut. Si l'acheteur profite de l'escompte, avoir partiel nécessaire pour régularisation TVA.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec clause escompte"},{f:"Acheteur",to:"PA",m:"Paiement anticipé avec escompte"},{f:"Vendeur",to:"PA",m:"Avoir partiel pour régularisation TVA (BT-3=381)"}],
+   st:["200","201","204"]},
+  // ── CAS SPECIAUX ─────────────────────────────────────────────────────────
+  {id:"UC-23",cat:"special",cx:"medium",
+   t:"Cas 23 — Autofacturation particulier vers professionnel",
+   d:"Un particulier exerçant une activité régulière facturée par un professionnel (ex: agriculteur vendant à une coopérative). BT-3=389. L'acheteur professionnel émet la facture au nom du particulier.",
+   flow:[{f:"Acheteur professionnel",to:"PA",m:"Autofacture BT-3=389 au nom particulier"},{f:"Particulier",to:"Acheteur",m:"Validation"}],
+   st:["200","201","204"]},
+  {id:"UC-24",cat:"special",cx:"medium",
+   t:"Cas 24 — Gestion des arrhes (dépôt de garantie)",
+   d:"Arrhes versées = engagement contractuel (≠ acompte). Si annulation acheteur : arrhes conservées. Si annulation vendeur : double des arrhes rendues. Traitement spécifique TVA selon CGI.",
+   flow:[{f:"Acheteur",to:"Vendeur",m:"Versement arrhes (hors périmètre EI)"},{f:"Vendeur",to:"PA",m:"Facture définitive avec déduction arrhes"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"}],
+   st:["200","201","204","212"]},
+  {id:"UC-25",cat:"special",cx:"medium",
+   t:"Cas 25 — Gestion des bons d'achat et cartes cadeaux",
+   d:"Bon à usage unique (BUU) : TVA exigible à la délivrance. Bon multi-usages (BUM) : TVA exigible à l'utilisation. Traitement différent selon type pour l'e-reporting.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture vente bon (BUU: TVA immédiate)"},{f:"Acheteur",to:"Vendeur",m:"Utilisation bon"},{f:"Vendeur",to:"PA",m:"BUM: e-reporting à l'utilisation"}],
+   st:["200","201","204"]},
+  {id:"UC-26",cat:"special",cx:"medium",
+   t:"Cas 26 — Factures avec clauses de réserve contractuelle",
+   d:"Partie du prix retenue jusqu'à levée de la réserve (garanties de parfait achèvement, retenues de garantie BTP). BT-115 < BT-112. Le solde retenu est payé après levée de réserve.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115=montant hors retenue"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Levée réserve",to:"PA",m:"Facture complémentaire retenue"},{f:"Vendeur",to:"PA",m:"CDAR 212"}],
+   st:["200","201","204","212"]},
+  {id:"UC-27",cat:"special",cx:"basic",
+   t:"Cas 27 — Gestion des péages (tickets de péage à assujetti)",
+   d:"Tickets de péage émis à des assujettis : périmètre EI en principe, mais tolérance administrative pour les reçus aux péages. Péages facturant des abonnements ou comptes entreprise : flux EI complet.",
+   flow:[{f:"Société péage",to:"PA",m:"Facture abonnement ou compte entreprise"},{f:"Entreprise",to:"PA",m:"CDAR 203/204"}],
+   st:["200","201","204"]},
+  {id:"UC-28",cat:"special",cx:"medium",
+   t:"Cas 28 — Tickets de restaurant (restaurateur assujetti en France)",
+   d:"Restaurateurs établis en France émettant des factures à des assujettis (repas d'affaires, restauration collective). Flux EI standard. Les notes de restaurant < 150€ ont des règles simplifiées.",
+   flow:[{f:"Restaurateur",to:"PA",m:"Facture repas (EI si client assujetti)"},{f:"Entreprise cliente",to:"PA",m:"CDAR 203/204"}],
+   st:["200","201","204"]},
+  {id:"UC-29",cat:"tva",cx:"complex",
+   t:"Cas 29 — Groupe TVA (assujetti unique art. 256C CGI)",
+   d:"Entité unique TVA regroupant plusieurs entités juridiques. L'assujetti unique a un seul numéro TVA pour le groupe. Les transactions intra-groupe sont hors champ TVA. Flux EI entre membres du groupe = e-reporting.",
+   flow:[{f:"Entité A",to:"Entité B",m:"Transaction intra-groupe (hors TVA)"},{f:"Entité groupe",to:"PA",m:"E-reporting consolidé au niveau groupe"}],
+   st:[]},
+  {id:"UC-30",cat:"tva",cx:"complex",
+   t:"Cas 30 — TVA déjà collectée (B2C → B2B rétrospectif)",
+   d:"Transaction initialement traitée en B2C (e-reporting), puis facture B2B émise rétrospectivement. Régularisation de l'e-reporting B2C. La facture B2B déclenche un flux EI.",
+   flow:[{f:"Vendeur",to:"PA",m:"E-reporting B2C initial"},{f:"Acheteur",to:"Vendeur",m:"Demande facture B2B a posteriori"},{f:"Vendeur",to:"PA",m:"Facture EI + régularisation e-reporting B2C"}],
+   st:["200","201","204"]},
+  {id:"UC-31",cat:"tva",cx:"medium",
+   t:"Cas 31 — Factures mixtes (opération principale + opération accessoire)",
+   d:"Une facture combine une opération principale (ex: vente) avec une opération accessoire différente (ex: transport). Chaque opération peut avoir un taux TVA différent. Plusieurs lignes avec BT-151 différents.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture multi-lignes multi-taux TVA"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   st:["200","201","204"]},
+  {id:"UC-32",cat:"special",cx:"medium",
+   t:"Cas 32 — Paiements échelonnés (mensualités)",
+   d:"Contrat avec paiements périodiques (abonnements, loyers, maintenance). Une facture par période ou une facture globale avec tableau d'échelonnement. BT-20 décrit les modalités.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture mensuelle ou globale avec BT-20"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement périodique"},{f:"Vendeur",to:"PA",m:"CDAR 212 par encaissement"}],
+   st:["200","201","204","212"]},
+  {id:"UC-33",cat:"tva",cx:"complex",
+   t:"Cas 33 — Régime de la marge (TVA sur profit)",
+   d:"Régime de la marge bénéficiaire : biens d'occasion, agences de voyages, antiquités. TVA calculée sur la marge, pas sur le prix total. BT-102=S sur lignes hors marge. Indicateur marge obligatoire.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec indicateur régime marge"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   st:["200","201","204"]},
+  {id:"UC-34",cat:"acompte",cx:"medium",
+   t:"Cas 34 — Accusé de paiement partiel et annulation d'accusé",
+   d:"Chaque paiement partiel déclenche un CDAR 212 avec le montant reçu. En cas d'annulation (chèque sans provision), un CDAR complémentaire annule le précédent. Applicable uniquement pour TVA encaissements.",
+   flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement partiel 1"},{f:"Vendeur",to:"PA",m:"CDAR 212 montant partiel"},{f:"Banque",to:"Vendeur",m:"Rejet chèque"},{f:"Vendeur",to:"PA",m:"CDAR 212 annulation (montant négatif)"}],
+   st:["212"]},
+  {id:"UC-35",cat:"special",cx:"basic",
+   t:"Cas 35 — Notes d'auteurs (droits d'auteur)",
+   d:"Cas en cours de discussion, sous réserve d'évolutions. Les auteurs percevant des droits peuvent être soumis à TVA selon leur régime. Flux à confirmer selon décision DGFIP.",
+   flow:[{f:"Auteur",to:"Éditeur/Société",m:"Note d'auteur (régime TVA à confirmer)"}],
+   st:[]},
+  {id:"UC-36",cat:"special",cx:"complex",
+   t:"Cas 36 — Secret professionnel et données sensibles",
+   d:"Transactions soumises au secret professionnel (art. 226-13 Code pénal : secret bancaire, médical, avocat...). Anonymisation possible des données dans le flux e-invoicing. Modalités spécifiques avec DGFIP.",
+   flow:[{f:"Prestataire",to:"PA",m:"Facture avec données minimales (anonymisées)"},{f:"PA",to:"PPF",m:"Flux avec restrictions données sensibles"}],
+   st:["200","201","204"]},
+  // ── STRUCTURES JURIDIQUES ────────────────────────────────────────────────
+  {id:"UC-37",cat:"structure",cx:"complex",
+   t:"Cas 37 — SEP (Sociétés en Participation / Groupements momentanés)",
+   d:"GME/GIE sans personnalité morale. Le mandataire du groupement est le vendeur unique (BG-4=mandataire). Facturation au nom du groupement via son mandataire. Chaque membre refacture au mandataire.",
+   flow:[{f:"Mandataire GME",to:"PA",m:"Facture client (BG-4=mandataire)"},{f:"Client",to:"PA",m:"CDAR 204"},{f:"Membres",to:"Mandataire",m:"Refacturation quote-part interne"}],
+   st:["200","201","204","212"]},
+  {id:"UC-38",cat:"special",cx:"medium",
+   t:"Cas 38 — Factures avec sous-lignes et regroupements",
+   d:"Certains secteurs nécessitent une description détaillée des composants. Kits, assemblages, facturation télécom avec détail des communications. Structure hiérarchique de lignes via BT-128 (référence objet).",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec lignes regroupées (BT-128)"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   st:["200","201","204"]},
+  {id:"UC-39",cat:"intermediaire",cx:"complex",
+   t:"Cas 39 — Intermédiaire transparent multi-vendeurs (facture consolidée)",
+   d:"Centrale d'achat ou agrégateur facturant à un acheteur unique pour le compte de plusieurs vendeurs. Facture consolidée multi-vendeurs (Multi-Vendor Invoice). BG-4 = chaque vendeur distinct.",
+   flow:[{f:"Vendeurs A,B,C",to:"Intermédiaire",m:"Factures individuelles"},{f:"Intermédiaire",to:"PA",m:"Facture consolidée multi-vendeurs"},{f:"Acheteur",to:"PA",m:"CDAR 204 global"}],
+   st:["200","201","204","212"]},
+  {id:"UC-40",cat:"special",cx:"complex",
+   t:"Cas 40 — Paiements groupés, netting ou compensation (achats croisés)",
+   d:"Deux entités qui s'achètent mutuellement peuvent compenser leurs créances. Netting : une seule transaction nette. Chaque facture reste individuelle dans EI, le paiement net est rapproché.",
+   flow:[{f:"A",to:"PA",m:"Facture A→B"},{f:"B",to:"PA",m:"Facture B→A"},{f:"Compensation",to:"PA",m:"CDAR 212 net (montant compensé)"}],
+   st:["200","201","204","212"]},
+  {id:"UC-41",cat:"special",cx:"complex",
+   t:"Cas 41 — Entreprises de troc (échange inter-entreprises)",
+   d:"Transactions de troc entre professionnels. Chaque partie est simultanément vendeur et acheteur. Deux factures séparées ou une seule avec compensation. Base TVA = valeur vénale des biens/services échangés.",
+   flow:[{f:"Entreprise A",to:"PA",m:"Facture A→B (valeur vénale)"},{f:"Entreprise B",to:"PA",m:"Facture B→A (valeur vénale)"},{f:"Les deux",to:"PA",m:"CDAR 212 croisés"}],
+   st:["200","201","204","212"]},
+  // ── TVA / EXONERATIONS ───────────────────────────────────────────────────
+  {id:"UC-42",cat:"tva",cx:"medium",
+   t:"Cas 42 — Gestion des exonérations fiscales (détaxe)",
+   d:"Ventes à des clients hors UE bénéficiant de la détaxe (TVA remboursée à la sortie du territoire). Cas 1 : vente B2C initiale avec TVA. Cas 2 : vente B2C sans TVA applicable en France.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec TVA (ou exonérée BT-118=G)"},{f:"Client",to:"Douane",m:"Demande remboursement TVA sortie"},{f:"Vendeur",to:"PA",m:"E-reporting B2C (montant HT)"}],
+   st:[]},
+  {id:"UC-43",cat:"international",cx:"complex",
+   t:"Cas 43 — E-reporting B2B international (ventes/acquisitions)",
+   d:"Transactions B2B avec acheteurs étrangers (hors périmètre EI). E-reporting individuel par transaction. BT-118=K (intra-UE) ou G (export). Sous-cas : 43a Transactions triangulaires, 43b Transferts de stocks intra-UE.",
+   flow:[{f:"Vendeur FR",to:"PA",m:"Données transaction internationale"},{f:"PA",to:"PPF",m:"E-reporting B2B-INT"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA internationale"}],
+   st:[]},
+  {id:"UC-43a",cat:"international",cx:"complex",
+   t:"Cas 43a — Transactions triangulaires (A→B→C, livraison A→C)",
+   d:"Vente triangulaire intra-UE : fournisseur A (FR) vend à B (UE), qui revend à C (UE), mais A livre directement à C. B bénéficie de la simplification triangulaire. Régime TVA spécifique art. 28ter-D CGI.",
+   flow:[{f:"Vendeur A (FR)",to:"PA",m:"E-reporting vente à B"},{f:"B",to:"C",m:"Revente (hors FR)"},{f:"Vendeur A",to:"PA",m:"Facture livraison directe A→C"}],
+   st:[]},
+  {id:"UC-43b",cat:"international",cx:"complex",
+   t:"Cas 43b — Transferts de stocks intra-UE (assimilation livraison IC)",
+   d:"Transfert de stocks entre établissements d'une même entreprise dans deux États membres différents. Assimilé à une livraison intra-communautaire. E-reporting en France pour la partie française.",
+   flow:[{f:"Entité FR",to:"PA",m:"E-reporting transfert stock (BT-118=K)"},{f:"Entité UE",to:"PA UE",m:"Acquisition IC dans l'autre État"}],
+   st:[]},
+  {id:"UC-44",cat:"international",cx:"medium",
+   t:"Cas 44 — Transactions avec entités DROMs/COMs/TAAFs",
+   d:"Transactions avec entités établies dans les collectivités d'outre-mer (DROMs, COMs, TAAFs). Régime TVA différent de la France métropolitaine. Codes pays spéciaux : NC (Nouvelle-Calédonie, ICD 0228), PF (Polynésie, ICD 0229). Traitement e-reporting spécifique.",
+   flow:[{f:"Vendeur FR Metro",to:"PA",m:"Facture BT-57b=NC ou PF"},{f:"PA",to:"PPF",m:"E-reporting international (hors périmètre EI métropole)"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA spécifique DROM"}],
+   st:[]},
+  // ── CORRECTION ───────────────────────────────────────────────────────────
+  {id:"UC-C1",cat:"correction",cx:"basic",
+   t:"Avoir / Note de crédit (BT-3=381)",
+   d:"Annulation partielle ou totale d'une facture. BT-3=381. Référence obligatoire à la facture originale via BG-16 (BillingReference). Montants négatifs. Déclenche une inversion TVA.",
+   flow:[{f:"Vendeur",to:"PA",m:"Avoir BT-3=381, BG-16=ref originale"},{f:"Acheteur",to:"PA",m:"CDAR 203/204 avoir"}],
+   st:["200","201","204"]},
+  {id:"UC-C2",cat:"correction",cx:"basic",
+   t:"Facture rectificative (BT-3=384)",
+   d:"Remplace partiellement une facture incorrecte sans annulation totale. BT-3=384. Référence à la facture originale obligatoire. Montants corrigés seulement.",
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-3=384, ref originale"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   st:["200","201","204"]},
 ];
-
 const RULES=[
   {id:"BR-FR-02",lvl:"error",std:"AFNOR",fields:["BT-30"],t:"Seller SIREN/SIRET mandatory",d:"BT-30 is MANDATORY. Must contain valid SIREN (9 digits) or SIRET (14 digits)."},
   {id:"BR-FR-20",lvl:"error",std:"AFNOR",fields:["BT-21","BT-22"],t:"BAR note required for e-invoicing",d:"Invoices in e-invoicing scope MUST contain a Note with subjectCode='BAR'."},
@@ -180,8 +542,8 @@ const SYS=`Tu es un expert de haut niveau en facturation électronique français
 
 const SUGG=["Pourquoi ma facture est rejetée statut 211 ?","Mon client n'est pas dans l'Annuaire, que faire ?","Différence TVA sur débits vs encaissements ?","Comment faire un avoir en e-invoicing ?","Quand le statut 212 est-il obligatoire ?","Qu'est-ce que la note BAR (BR-FR-20) ?","Comment fonctionne l'autofacturation 389 ?","Fréquence de l'e-reporting B2C ?","Différence PA, PPF, SC et Chorus Pro ?","Pénalités en cas de non-conformité ?","SIREN vs SIRET : quand utiliser lequel ?","Facture en devise étrangère : règles ?"];
 
-const GC={header:"#3B82F6",notes:"#8B5CF6",seller:"#10B981",buyer:"#F59E0B",amounts:"#EF4444",vat:"#EC4899",payment:"#06B6D4",lines:"#84CC16"};
-const GL={header:"Header",notes:"Notes",seller:"Seller",buyer:"Buyer",amounts:"Amounts",vat:"VAT",payment:"Payment",lines:"Lines"};
+const GC={header:"#6366F1",notes:"#6366F1",seller:"#3B82F6",seller_addr:"#3B82F6",seller_contact:"#60A5FA",buyer:"#8B5CF6",buyer_addr:"#8B5CF6",buyer_contact:"#A78BFA",beneficiary:"#EC4899",fiscal_rep:"#F97316",delivery:"#06B6D4",period:"#0EA5E9",payment:"#10B981",allowcharges:"#F59E0B",charges:"#F59E0B",amounts:"#EF4444",vat:"#84CC16",docs:"#A3E635",lines:"#14B8A6",line_allow:"#F59E0B",line_charge:"#F59E0B",line_allowcharges:"#F59E0B",line_price:"#FB923C",line_items:"#A78BFA",line_vat:"#84CC16",line_item:"#A78BFA",extended:"#6B7280"};
+const GL={header:"Header",notes:"Notes",seller:"Vendeur",seller_addr:"Adresse Vendeur",seller_contact:"Contact Vendeur",buyer:"Acheteur",buyer_addr:"Adresse Acheteur",buyer_contact:"Contact Acheteur",beneficiary:"Bénéficiaire",fiscal_rep:"Rep. Fiscal",delivery:"Livraison",period:"Période",payment:"Paiement",allowcharges:"Remises/Charges doc.",charges:"Charges doc.",amounts:"Montants",vat:"TVA",docs:"Documents",lines:"Lignes",line_allow:"Remises ligne",line_charge:"Charges ligne",line_allowcharges:"Remises/Charges ligne",line_price:"Prix article",line_vat:"TVA ligne",line_items:"Article",line_item:"Article",extended:"Étendu"};
 const FC={technique:"#3B82F6",business:"#8B5CF6",paiement:"#16A34A"};
 const FL={technique:"🔵 Technique",business:"🟣 Business",paiement:"🟢 Paiement"};
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
@@ -255,7 +617,7 @@ function App(){
   const [grp,setGrp]=useState("all");
   const [q,setQ]=useState("");
   const [sc,setSc]=useState("all");
-  const [mf,setMf]=useState("all");
+  const [req,setReq]=useState("all");
   const [sortBy,setSortBy]=useState("id");
   const [sortDir,setSortDir]=useState("asc");
   const [selBT,setSelBT]=useState(BT[0]);
@@ -278,11 +640,11 @@ function App(){
   const filtBT=useMemo(()=>BT.filter(f=>{
     if(grp!=="all"&&f.g!==grp)return false;
     if(sc!=="all"&&!f.s.includes(sc))return false;
-    if(mf==="m"&&!f.m)return false;
-    if(mf==="o"&&f.m)return false;
+    if(req==="req"&&!f.m)return false;
+    if(req==="opt"&&f.m)return false;
     if(q){const s=q.toLowerCase();return f.id.toLowerCase().includes(s)||f.l.toLowerCase().includes(s)||f.fr.toLowerCase().includes(s)||f.d.toLowerCase().includes(s);}
     return true;
-  }),[grp,sc,mf,q]);
+  }),[grp,sc,req,q]);
 
   const sortedBT=useMemo(()=>[...filtBT].sort((a,b)=>{
     let va,vb;
@@ -320,7 +682,7 @@ function App(){
   const sort=(key)=>{if(sortBy===key)setSortDir(d=>d==="asc"?"desc":"asc");else{setSortBy(key);setSortDir("asc");}};
 
   return (
-    <div style={{minHeight:"100vh",background:"#080B14",color:"#E2E8F0",fontFamily:"'DM Sans','Segoe UI',sans-serif",display:"flex",flexDirection:"column"}}>
+    <div style={{height:"100vh",overflow:"hidden",background:"#080B14",color:"#E2E8F0",fontFamily:"'DM Sans','Segoe UI',sans-serif",display:"flex",flexDirection:"column"}}>
 
       {/* HEADER */}
       <div style={{background:"rgba(255,255,255,0.025)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"12px 20px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",flexShrink:0}}>
@@ -336,97 +698,108 @@ function App(){
         </div>
       </div>
 
+      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minHeight:0}}>
       {/* ── BT FIELDS ── */}
       {tab==="bt"&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
-          <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-            <div style={{padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
-              <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher un champ BT..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:7,padding:"7px 10px",color:"#fff",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",flex:1,overflow:"hidden",minHeight:0,height:"calc(100vh - 58px)"}}>
+
+          {/* LEFT PANEL — list */}
+          <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden",height:"100%"}}>
+
+            {/* Sticky search + filters header */}
+            <div style={{padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0,background:"#0f1117"}}>
+              <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher un champ BT..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:7,padding:"7px 10px",color:"#E2E8F0",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
               <div style={{display:"flex",gap:3,marginTop:7,flexWrap:"wrap"}}>
                 {["all","ei","er"].map(v=><P key={v} label={v==="all"?"Tous":v==="ei"?"E-Invoice":"E-Report"} active={sc===v} onClick={()=>setSc(v)}/>)}
-                {["all","m","o"].map(v=><P key={v} label={v==="all"?"Tous":v==="m"?"Requis":"Optionnel"} active={mf===v} onClick={()=>setMf(v)} color="#EF4444"/>)}
+                <span style={{width:1,background:"rgba(255,255,255,0.1)",margin:"0 2px"}}/>
+                {["all","req","opt"].map(v=><P key={v} label={v==="all"?"Requis+Opt":v==="req"?"Requis":"Optionnel"} active={req===v} onClick={()=>setReq(v)}/>)}
               </div>
-              <div style={{display:"flex",gap:3,marginTop:6,overflowX:"auto",paddingBottom:2}}>
-                <button onClick={()=>setGrp("all")} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",background:grp==="all"?"rgba(255,255,255,0.1)":"transparent",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.5)",whiteSpace:"nowrap"}}>Tous</button>
-                {Object.entries(GL).map(([k,v])=>(
-                  <button key={k} onClick={()=>setGrp(k)} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",background:grp===k?GC[k]+"20":"transparent",border:"1px solid "+(grp===k?GC[k]:"rgba(255,255,255,0.08)"),color:grp===k?GC[k]:"rgba(255,255,255,0.4)",whiteSpace:"nowrap"}}>{v}</button>
-                ))}
+              <div style={{display:"flex",gap:3,marginTop:5,flexWrap:"wrap"}}>
+                {[["all","Tous"],["header","Header"],["seller","Vendeur"],["buyer","Acheteur"],["delivery","Livraison"],["payment","Paiement"],["allowcharges","Rem./Charges doc."],["amounts","Montants"],["vat","TVA"],["lines","Lignes"],["line_allowcharges","Rem./Charges ligne"],["line_items","Article"]].map(([v,l])=>
+                  <P key={v} label={l} active={grp===v} onClick={()=>setGrp(v)}/>
+                )}
               </div>
             </div>
-            {/* Sort headers */}
-            <div style={{display:"grid",gridTemplateColumns:"250px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(0,0,0,0.25)",gap:6,flexShrink:0}}>
-              {[["id","Champ BT"],["l","Désignation"],["m","Statut"]].map(([key,label])=>(
-                <button key={key} onClick={()=>sort(key)} style={{background:"none",border:"none",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:3,padding:0}}>
-                  <span style={{fontSize:10,fontWeight:700,color:sortBy===key?"#A5B4FC":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>{label}</span>
-                  <span style={{fontSize:9,color:sortBy===key?"#A5B4FC":"rgba(255,255,255,0.2)"}}>{sortBy===key?(sortDir==="asc"?"▲":"▼"):"⇅"}</span>
-                </button>
+
+            {/* Sortable column header */}
+            <div style={{display:"grid",gridTemplateColumns:"3px 250px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0}}>
+              <div></div>
+              {[["id","CHAMP BT"],["l","DÉSIGNATION"],["m","STATUT"]].map(([k,lbl])=>(
+                <div key={k} onClick={()=>{setSortBy(k);setSortDir(d=>d==="asc"?"desc":"asc");}} style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8,cursor:"pointer",userSelect:"none"}}>
+                  {lbl}{sortBy===k&&(sortDir==="asc"?" ▲":" ▼")}
+                </div>
               ))}
             </div>
-            <div style={{flex:1,overflow:"auto",padding:"3px 6px"}}>
-              <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",padding:"4px 6px"}}>{sortedBT.length} champs</div>
-              {sortedBT.map(f=>(
-                <button key={f.id} onClick={()=>setSelBT(f)}
-                  style={{background:selBT?.id===f.id?GC[f.g]+"18":"transparent",border:"1px solid "+(selBT?.id===f.id?GC[f.g]+"60":"transparent"),borderRadius:6,padding:"7px 6px",textAlign:"left",cursor:"pointer",width:"100%",marginBottom:1,display:"grid",gridTemplateColumns:"250px 1fr 72px",gap:6,alignItems:"center",transition:"background 0.1s"}}
-                  onMouseEnter={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.04)";}}
+
+            {/* Scrollable list */}
+            <div style={{flex:1,overflow:"auto",overscrollBehavior:"contain"}}>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",padding:"4px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>{filtBT.length} champs</div>
+              {filtBT.map(f=>(
+                <div key={f.id} onClick={()=>setSelBT(selBT?.id===f.id?null:f)}
+                  style={{display:"grid",gridTemplateColumns:"3px 250px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    background:selBT?.id===f.id?(GC[f.g]||"#6366F1")+"18":"transparent",transition:"background 0.1s"}}
+                  onMouseEnter={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                   onMouseLeave={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="transparent";}}>
-                  <div style={{display:"flex",alignItems:"center",gap:5,overflow:"hidden"}}>
-                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:GC[f.g],fontWeight:700,flexShrink:0}}>{f.id}</span>
-                    <span style={{fontSize:11,color:"rgba(255,255,255,0.32)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontStyle:"italic"}}>{f.fr}</span>
+                  <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:GC[f.g]||"#6366F1",flexShrink:0,minHeight:16}}></div>
+                  <div style={{display:"flex",gap:6,alignItems:"center",minWidth:0}}>
+                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:GC[f.g]||"#6366F1",flexShrink:0}}>{f.id}</span>
+                    <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontStyle:"italic"}}>{f.fr}</span>
                   </div>
-                  <div style={{fontSize:12,color:"rgba(255,255,255,0.78)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
-                  <div style={{display:"flex",gap:2,justifyContent:"flex-end"}}>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
+                  <div style={{display:"flex",gap:3,justifyContent:"flex-end"}}>
                     {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
-                  {f.s.includes("ei")&&f.s.includes("er")&&<span style={{fontSize:8,background:"rgba(245,158,11,0.15)",color:"#F59E0B",borderRadius:3,padding:"1px 3px"}}>EI+ER</span>}
-                  {f.s.includes("ei")&&!f.s.includes("er")&&<span style={{fontSize:8,background:"rgba(59,130,246,0.15)",color:"#60A5FA",borderRadius:3,padding:"1px 3px"}}>EI</span>}
+                    {f.s.includes("er")&&<span style={{fontSize:8,background:"rgba(16,185,129,0.15)",color:"#34D399",borderRadius:3,padding:"1px 3px"}}>ER</span>}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
-          <div key={selBT?.id} style={{overflow:"auto",padding:24,background:"rgba(0,0,0,0.12)"}}>
+
+          {/* RIGHT PANEL — detail, independently scrollable */}
+          <div key={selBT?.id} style={{overflow:"auto",height:"100%",background:"rgba(0,0,0,0.12)",overscrollBehavior:"contain"}}>
             {selBT?(
-              <div>
-                <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:20,paddingBottom:18,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-                  <div style={{background:GC[selBT.g]+"18",border:"1px solid "+GC[selBT.g]+"40",borderRadius:10,padding:"10px 16px",flexShrink:0,textAlign:"center"}}>
-                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:20,color:GC[selBT.g],fontWeight:900}}>{selBT.id}</div>
-                    <div style={{fontSize:9,color:GC[selBT.g]+"99",marginTop:4,textTransform:"uppercase",letterSpacing:0.8}}>{GL[selBT.g]}</div>
-                  </div>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
-                      <span style={{fontSize:16,fontWeight:700,color:"#fff"}}>{selBT.l}</span>
-                      {selBT.m?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.35)",borderRadius:5,padding:"2px 9px",fontWeight:700}}>OBLIGATOIRE</span>:<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",borderRadius:5,padding:"2px 9px"}}>Optionnel</span>}
-                    </div>
-                    <div style={{fontSize:14,color:"rgba(255,255,255,0.5)",fontStyle:"italic"}}>{selBT.fr}</div>
-                  </div>
+              <div style={{padding:22}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:24,fontWeight:900,color:"#6366F1"}}>{selBT.id}</span>
+                  {selBT.m&&<span style={{fontSize:10,background:"rgba(239,68,68,0.2)",color:"#FCA5A5",borderRadius:5,padding:"2px 8px",fontWeight:700}}>REQUIS</span>}
+                  <span style={{fontSize:10,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:5,padding:"2px 8px"}}>{selBT.t}</span>
+                  {selBT.s.includes("er")&&<span style={{fontSize:10,background:"rgba(16,185,129,0.15)",color:"#34D399",borderRadius:5,padding:"2px 8px"}}>E-Reporting</span>}
                 </div>
-                <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:16,marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.7,border:"1px solid rgba(255,255,255,0.04)"}}>{selBT.d}</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
-                  {[["Type",selBT.t,GC[selBT.g]],["Règle",selBT.r||"—","#F59E0B"],["Scope",selBT.s.map(s=>s==="ei"?"E-Invoice":"E-Report").join(" + "),GC[selBT.g]]].map(([k,v,c])=>(
-                    <div key={k} style={{background:"rgba(0,0,0,0.25)",borderRadius:8,padding:12,border:"1px solid rgba(255,255,255,0.04)"}}>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:5}}>{k}</div>
-                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:c,fontWeight:700}}>{v}</div>
-                    </div>
-                  ))}
+                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:12,lineHeight:1.4}}>{selBT.l}</div>
+                <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"12px 16px",marginBottom:12}}>
+                  <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>Description</div>
+                  <div style={{fontSize:13,color:"rgba(255,255,255,0.8)",lineHeight:1.7}}>{selBT.d}</div>
                 </div>
                 {selBT.diff&&(<div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:9,padding:12,marginBottom:12}}>
-                  <div style={{fontSize:9,color:"#F59E0B",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>Difference EI vs ER</div>
+                  <div style={{fontSize:9,color:"#F59E0B",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>Différence EI vs ER</div>
                   <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6}}>{selBT.diff}</div>
                 </div>)}
-                {selBT.ex&&<div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"12px 16px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,flexShrink:0}}>Exemple</span><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:14,color:"#22C55E",fontWeight:600}}>{selBT.ex}</code></div>}
+                {selBT.r&&selBT.r.trim()&&(<div style={{background:"rgba(139,92,246,0.06)",border:"1px solid rgba(139,92,246,0.2)",borderRadius:9,padding:"8px 12px",marginBottom:10}}>
+                  <div style={{fontSize:9,color:"#A78BFA",textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontWeight:700}}>Règles applicables</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                    {selBT.r.split(/[,\s]+/).filter(Boolean).map(r=>(
+                      <span key={r} style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(139,92,246,0.12)",color:"#A78BFA",borderRadius:4,padding:"2px 6px"}}>{r.trim()}</span>
+                    ))}
+                  </div>
+                </div>)}
+                {selBT.ex&&(<div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"8px 12px",display:"flex",gap:12,alignItems:"center"}}>
+                  <span style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase"}}>Exemple</span>
+                  <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#22C55E"}}>{selBT.ex}</code>
+                </div>)}
               </div>
             ):(
-              <div style={{height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,color:"rgba(255,255,255,0.15)"}}>
-                <div style={{fontSize:48}}>👈</div>
-                <div style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.3)"}}>Sélectionnez un champ BT</div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",color:"rgba(255,255,255,0.15)"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📋</div>
+                <div style={{fontSize:14,fontWeight:600}}>Sélectionnez un champ BT</div>
+                <div style={{fontSize:12,marginTop:6,color:"rgba(255,255,255,0.1)"}}>Cliquez sur une ligne pour voir le détail</div>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ── E-REPORTING ── */}
       {tab==="er"&&(
-        <div style={{display:"grid",gridTemplateColumns:"280px 1fr",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+        <div style={{display:"grid",gridTemplateColumns:"280px 1fr",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
           <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",overflow:"auto",padding:"8px"}}>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",padding:"6px 4px 10px",lineHeight:1.5}}>Format XML propriétaire DGFiP. B2C · B2B-International · Paiements.</div>
             {ER.map(f=>(
@@ -466,7 +839,7 @@ function App(){
 
       {/* ── ILC ── */}
       {tab==="ilc"&&(
-        <div style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden",height:"calc(100vh - 58px)"}}>
+        <div style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden",minHeight:0}}>
           {/* Header + filters */}
           <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,flexWrap:"wrap",gap:8}}>
@@ -603,12 +976,12 @@ function App(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
               <div><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Cas d'usage <span style={{color:"#10B981"}}>XP Z12-014</span></h2><p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:4}}>Cliquez un cas pour voir le flux de messages.</p></div>
               <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                {[["all","Tous"],["nominal","Nominal"],["correction","Corrections"],["special","Spéciaux"],["reporting","E-Reporting"],["b2g","B2G"],["annuaire","Annuaire"]].map(([v,l])=><P key={v} label={l} active={ucCat===v} onClick={()=>setUcCat(v)} color="#10B981"/>)}
+                {[["all","Tous"],["nominal","Nominal"],["expenses","Notes de frais"],["tiers","Tiers payeur"],["intermediaire","Intermédiaires"],["soustrait","Sous-traitance"],["mandat","Mandats/Self-billing"],["acompte","Acomptes"],["escompte","Escomptes"],["tva","TVA spéciaux"],["structure","Structures juridiques"],["international","International"],["correction","Corrections"],["special","Cas spéciaux"]].map(([v,l])=><P key={v} label={l} active={ucCat===v} onClick={()=>setUcCat(v)} color="#10B981"/>)}
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(310px,1fr))",gap:12}}>
               {filtUC.map(uc=>{
-                const cc={nominal:"#3B82F6",correction:"#F59E0B",special:"#8B5CF6",reporting:"#10B981",b2g:"#06B6D4",annuaire:"#EF4444"}[uc.cat]||"#888";
+                const cc={nominal:"#3B82F6",expenses:"#10B981",tiers:"#F59E0B",intermediaire:"#8B5CF6",soustrait:"#EF4444",mandat:"#06B6D4",acompte:"#84CC16",escompte:"#F59E0B",tva:"#EC4899",structure:"#6366F1",international:"#0EA5E9",correction:"#F59E0B",special:"#8B5CF6"}[uc.cat]||"#888";
                 return(
                   <div key={uc.id} onClick={()=>setSelUC(selUC?.id===uc.id?null:uc)} style={{background:selUC?.id===uc.id?cc+"12":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selUC?.id===uc.id?cc:"rgba(255,255,255,0.07)"),borderRadius:11,padding:16,cursor:"pointer",transition:"all 0.14s"}}>
                     <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
@@ -645,7 +1018,7 @@ function App(){
 
       {/* ── VALIDATOR ── */}
       {tab==="val"&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 400px",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 400px",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
           <div style={{display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,0.07)"}}>
             <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",flexShrink:0}}>
               <span style={{fontSize:12,fontWeight:700}}>PA Simulator — XML Validator</span>
@@ -787,7 +1160,7 @@ function App(){
 
       {/* ── EXPERT IA ── */}
       {tab==="ai"&&(
-        <div style={{display:"flex",flex:1,overflow:"hidden",height:"calc(100vh - 62px)"}}>
+        <div style={{display:"flex",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
           <div style={{width:230,borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden",flexShrink:0}}>
             <div style={{padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,0.07)",fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:1}}>Questions suggérées</div>
             <div style={{flex:1,overflow:"auto",padding:"8px"}}>
@@ -865,6 +1238,7 @@ function App(){
       )}
 
       <style dangerouslySetInnerHTML={{__html:"@keyframes b{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}"}}/>
+      </div>
     </div>
   );
 }
