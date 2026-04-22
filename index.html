@@ -47,13 +47,7 @@ const BT=[
   {id:"BT-40b",g:"seller",l:"Seller country code",fr:"Pays vendeur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR pour la France métropolitaine. DOM-TOM : GP=Guadeloupe, MQ=Martinique, RE=La Réunion, GF=Guyane, YT=Mayotte, PM=Saint-Pierre-et-Miquelon, NC=Nouvelle-Calédonie, PF=Polynésie.",r:"BR-9",ex:"FR"},
   {id:"BT-44",g:"buyer",l:"Buyer name",fr:"Dénomination sociale acheteur",m:true,s:["ei","er"],t:"Text",d:"Raison sociale complète de l'acheteur.",diff:"EI: destinataire de la facture. ER B2B-INT: identifie l'acheteur étranger. ER B2C: non requis (protection données personnelles RGPD).",r:"BR-7",ex:"Client Corp SARL"},
   {id:"BT-46",g:"buyer",l:"Buyer identifier",fr:"Identifiant acheteur",m:false,s:["ei"],t:"Identifier",d:"Identifiant de l'acheteur dans le système du vendeur. Schème libre ou normalisé. Utilisé pour le rapprochement interne. Différent de BT-47 (SIREN/SIRET officiel).",r:"",ex:"CUST-00456"},
-  {id:"BT-47",g:"buyer",l:"Buyer legal identifier (ICD)",fr:"Identifiant légal acheteur (ICD)",m:false,s:["ei","er"],t:"Identifier",d:"Identifiant légal de l'acheteur selon son pays. Règles de sélection du schème ICD (ISO 6523) :
-• FR (LAND1=FR) → ICD 0002 + SIREN (9 chiffres, positions 3-11 du numéro TVA)
-• UE hors FR (pays ≠ FR, TVA UE connue) → ICD 0223 + numéro TVA complet (ex: DE123456789)
-• Hors UE ou pas de TVA UE → ICD 0227 + code pays + nom ≤ 16 car. (ex: US-ACME_INC_USA)
-• Nouvelle-Calédonie (NC) → ICD 0228 + RIDET
-• Polynésie française (PF) → ICD 0229 + identifiant local
-• Sinon (hors UE sans TVA identifiable) → champ absent",diff:"EI: crucial pour le routage via l'Annuaire PPF. ER: identifie l'acheteur dans la déclaration DGFiP.",r:"BR-FR-03",ex:"0002:123456789 (FR) | 0223:DE123456789 (UE) | 0227:US-ACMEINC"},
+  {id:"BT-47",g:"buyer",l:"Buyer legal identifier (ICD)",fr:"Identifiant légal acheteur (ICD)",m:false,s:["ei","er"],t:"Identifier",d:"Identifiant légal de l'acheteur selon son pays. Règles de sélection du schème ICD (ISO 6523) : • FR (LAND1=FR) → ICD 0002 + SIREN (9 chiffres, positions 3-11 du numéro TVA) • UE hors FR (pays ≠ FR, TVA UE connue) → ICD 0223 + numéro TVA complet (ex: DE123456789) • Hors UE ou pas de TVA UE → ICD 0227 + code pays + nom ≤ 16 car. (ex: US-ACME_INC_USA) • Nouvelle-Calédonie (NC) → ICD 0228 + RIDET • Polynésie française (PF) → ICD 0229 + identifiant local • Sinon (hors UE sans TVA identifiable) → champ absent",diff:"EI: crucial pour le routage via l'Annuaire PPF. ER: identifie l'acheteur dans la déclaration DGFiP.",r:"BR-FR-03",ex:"0002:123456789 (FR) | 0223:DE123456789 (UE) | 0227:US-ACMEINC"},
   {id:"BT-48",g:"buyer",l:"Buyer VAT number",fr:"Numéro TVA acheteur",m:false,s:["ei","er"],t:"Identifier",d:"Numéro TVA intracommunautaire de l'acheteur. Requis pour transactions intra-UE et autoliquidation (BT-118=AE ou K). Pour acheteurs hors UE : leur numéro fiscal local. Format UE : code pays + chiffres.",r:"BR-CO-9",ex:"FR98765432100"},
   {id:"BT-49",g:"buyer",l:"Buyer electronic address (Annuaire)",fr:"Adresse électronique acheteur",m:false,s:["ei"],t:"Identifier",d:"CRITIQUE : Endpoint acheteur dans l'Annuaire PPF. Sans cette adresse → rejet automatique CDAR 211 code AB (Destinataire introuvable). L'acheteur DOIT s'enregistrer via sa PA AVANT la première facture. Schème recommandé : 0009 + SIRET.",r:"ANNUAIRE",ex:"0009:98765432100024"},
   {id:"BT-57b",g:"buyer",l:"Buyer country code",fr:"Pays acheteur",m:true,s:["ei"],t:"Code",d:"ISO 3166-1 alpha-2. FR=B2B domestique (e-invoicing). Autre=international → e-reporting B2B-INT obligatoire. Codes spéciaux : NC=Nouvelle-Calédonie (ICD 0228), PF=Polynésie (ICD 0229).",r:"BR-11",ex:"FR"},
@@ -188,6 +182,8 @@ const SUGG=["Pourquoi ma facture est rejetée statut 211 ?","Mon client n'est pa
 
 const GC={header:"#3B82F6",notes:"#8B5CF6",seller:"#10B981",buyer:"#F59E0B",amounts:"#EF4444",vat:"#EC4899",payment:"#06B6D4",lines:"#84CC16"};
 const GL={header:"Header",notes:"Notes",seller:"Seller",buyer:"Buyer",amounts:"Amounts",vat:"VAT",payment:"Payment",lines:"Lines"};
+const FC={technique:"#3B82F6",business:"#8B5CF6",paiement:"#16A34A"};
+const FL={technique:"🔵 Technique",business:"🟣 Business",paiement:"🟢 Paiement"};
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
@@ -387,7 +383,7 @@ function App(){
               ))}
             </div>
           </div>
-          <div style={{overflow:"auto",padding:24,background:"rgba(0,0,0,0.12)"}}>
+          <div key={selBT?.id} style={{overflow:"auto",padding:24,background:"rgba(0,0,0,0.12)"}}>
             {selBT?(
               <div>
                 <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:20,paddingBottom:18,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
@@ -525,8 +521,8 @@ function App(){
 
                   {/* Famille */}
                   <div>
-                    <span style={{fontSize:9,background:{"technique":"#3B82F6","business":"#8B5CF6","paiement":"#16A34A"}[st.famille]+"20",color:{"technique":"#3B82F6","business":"#8B5CF6","paiement":"#16A34A"}[st.famille],borderRadius:10,padding:"2px 8px",fontWeight:600,whiteSpace:"nowrap"}}>
-                      {{"technique":"🔵 Technique","business":"🟣 Business","paiement":"🟢 Paiement"}[st.famille]}
+                    <span style={{fontSize:9,background:FC[st.famille]+"20",color:FC[st.famille],borderRadius:10,padding:"2px 8px",fontWeight:600,whiteSpace:"nowrap"}}>
+                      {FL[st.famille]}
                     </span>
                   </div>
 
