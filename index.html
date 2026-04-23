@@ -233,7 +233,7 @@ const ER=[
    tt:"TT-86",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxPercent",ex:"20 | 10 | 5.5 | 2.1 | 0",sap:"BSET-MWSKZ → T007A-MWSTZ (taux)\nOu KONP-KBETR (condition pricing SD)\nT-code: FTXP pour paramétrage taux",alert:"⚠️ Mapping MWSKZ → taux numérique nécessaire (table SAP T007A ou Z-table dédiée)."},
   {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Code",a:"Business",
    d:"Catégorie TVA — champ très important souvent sous-estimé. Valeurs : S=taxable, E=exonéré, AE=autoliquidation (art.283 CGI), K=intra-UE, G=export, O=hors champ, Z=franchise (art.293B). Lien direct avec tax code SAP (MWSKZ) et liasse déclarative TVA DGFiP.",
-   tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet",alert:"🔴 Champ critique. Mapping MWSKZ → UNTDID 5305 indispensable. IH=AE, VU/VN=S, U1=G. Table de correspondance obligatoire."},
+   tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet",alert:"🔴 Champ critique. Mapping MWSKZ → UNTDID 5305 indispensable. IH=AE, VU/VN=S, U1=G. Table de correspondance obligatoire.",er13_matrix:true},
   {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",dir:"AR + AP",t:"Code",a:"Business",
    d:"Pays de l'acheteur (ISO 3166-1 alpha-2). En AR : critique pour distinguer B2C vs B2B-INT. En AP : souvent inutile — c'est le pays du fournisseur qui détermine EU/non-EU (mais ce champ est absent du schéma ER). Mapping : KNA1-LAND1 (AR) / LFA1-LAND1 (AP).",
    tt:"TT-39",path:"/TransactionsReport/Invoice/Buyer/PostalAddress/CountryId",ex:"DE | GB | US | CN",sap:"KNA1-LAND1 (pays client AR)\nOu LFA1-LAND1 (pays fournisseur AP)\nADRC-COUNTRY (adresse)",alert:"ℹ️ AR : critique pour scope. AP : inutile. Attention : pays fournisseur AP absent du schéma ER — à déduire de LFA1-LAND1 / N° TVA fournisseur."},
@@ -882,6 +882,24 @@ const BFR=[
   {no:99,grp:"Credit Note PO & Mixed Supplier",msg:"Please type a valid Coty Material code value (max. 18 characters)",doc:"",active:[],del:["PO","PO_SA","Mixed","Mixed_SA"]},
   {no:100,grp:"Credit Note PO & Mixed Supplier",msg:"It is not possible to invoice lines amounting 0.00. Please remove all your lines amounting 0.00.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]}
 ];
+const ER13_MATRIX=[
+  {rate:"0.00",cat:"E",code:"E",vatex:"VATEX-FR-CGI261C-2",bt23:"*",bt8:"*",from:"FR",acct:"*",sap:"IH",er13:"E/O*"},
+  {rate:"0.00",cat:"Z",code:"O",vatex:"VATEX-FR-298SEXDECIESA",bt23:"*",bt8:"*",from:"FR",acct:"*",sap:"II",er13:"O"},
+  {rate:"0.00",cat:"E",code:"E",vatex:"VATEX-FR-CGI275",bt23:"B",bt8:"*",from:"FR",acct:"*",sap:"O4",er13:"E"},
+  {rate:"2.10",cat:"S",code:"S",vatex:"*",bt23:"B",bt8:"*",from:"FR",acct:"*",sap:"IG",er13:"S"},
+  {rate:"5.50",cat:"S",code:"S",vatex:"*",bt23:"*",bt8:"*",from:"FR",acct:"*",sap:"IF",er13:"S"},
+  {rate:"20.00",cat:"S",code:"S",vatex:"*",bt23:"S",bt8:"35",from:"FR",acct:"Z",sap:"VO",er13:"S"},
+  {rate:"20.00",cat:"S",code:"S",vatex:"*",bt23:"S",bt8:"35",from:"FR",acct:"*",sap:"VU",er13:"S"},
+  {rate:"20.00",cat:"S",code:"S",vatex:"*",bt23:"S",bt8:"432",from:"FR",acct:"*",sap:"VV",er13:"S"},
+  {rate:"20.00",cat:"S",code:"S",vatex:"*",bt23:"B",bt8:"*",from:"FR",acct:"Z",sap:"VP",er13:"S"},
+  {rate:"20.00",cat:"S",code:"S",vatex:"*",bt23:"B",bt8:"*",from:"FR",acct:"*",sap:"VT",er13:"S"},
+  {rate:"20.00",cat:"AE",code:"AE",vatex:"*",bt23:"B",bt8:"*",from:"NOT FR",acct:"*",sap:"VQ",er13:"AE"},
+  {rate:"20.00",cat:"AE",code:"AE",vatex:"*",bt23:"S",bt8:"*",from:"NOT FR",acct:"*",sap:"VR",er13:"AE"},
+  {rate:"20.00",cat:"AE",code:"AE",vatex:"*",bt23:"S",bt8:"*",from:"NOT FR",acct:"Z",sap:"VZ",er13:"AE"},
+  {rate:"20.00",cat:"AE",code:"AE",vatex:"*",bt23:"B",bt8:"*",from:"EU",acct:"*",sap:"YC",er13:"AE"},
+  {rate:"0.00",cat:"G",code:"G",vatex:"*",bt23:"B",bt8:"*",from:"NOT FR",acct:"*",sap:"XP",er13:"G"},
+  {rate:"0.00",cat:"G",code:"G",vatex:"*",bt23:"B",bt8:"*",from:"NOT FR",acct:"Z",sap:"Y9",er13:"G"},
+];
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
@@ -1383,6 +1401,66 @@ function App(){
                         </div>
                       </div>
                       <div style={{fontSize:11,color:"#FCA5A5",background:"rgba(239,68,68,0.06)",borderRadius:6,padding:"6px 10px"}}>⚡ ER-07 = champ dérivé. 3 dimensions: B2B/B2C + géographie + goods/services. Ne pas calculer depuis 1 seul champ SAP.</div>
+                    </div>
+                  )}
+                  selER.er13_matrix&&(
+                    <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:9,padding:"10px 14px",marginBottom:10}}>
+                      <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:6,fontWeight:700}}>📋 Complexité AR vs AP</div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,fontSize:10}}>
+                        <div>
+                          <div style={{fontSize:9,color:"#22C55E",fontWeight:700,marginBottom:4}}>🔼 AR — Simple: MWSKZ → ER-13</div>
+                          {[["Vente B2B/B2C FR","Faible","MWSKZ → ER-13"],["Vente B2B/B2C INT","Faible-Moy.","MWSKZ + contrôle pays"]].map(([f,c,n])=>(
+                            <div key={f} style={{marginBottom:3}}>
+                              <span style={{color:"rgba(255,255,255,0.7)",fontSize:9}}>{f}</span>
+                              <span style={{fontSize:8,color:c==="Faible"?"#22C55E":c==="Élevée"?"#EF4444":"#F59E0B",marginLeft:6,fontWeight:600}}>[{c}]</span>
+                              <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",marginLeft:4}}>{n}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <div style={{fontSize:9,color:"#F59E0B",fontWeight:700,marginBottom:4}}>🔽 AP — Complexe: matrice → MWSKZ → ER-13</div>
+                          {[["Achat FR goods/svc","Moy.","Tax code → ER-13"],["Achat UE goods/svc","Élevée","Matrice → MWSKZ → ER-13"],["Achat non-UE svc","Élevée","Matrice → MWSKZ → ER-13"],["Import goods non-UE","Hors scope","Traiter séparément"]].map(([f,c,n])=>(
+                            <div key={f} style={{marginBottom:3}}>
+                              <span style={{color:"rgba(255,255,255,0.7)",fontSize:9}}>{f}</span>
+                              <span style={{fontSize:8,color:c==="Élevée"?"#EF4444":c==="Moy."?"#F59E0B":c==="Hors scope"?"#94A3B8":"#22C55E",marginLeft:6,fontWeight:600}}>[{c}]</span>
+                              <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",marginLeft:4}}>{n}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  selER.er13_matrix&&(
+                    <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:9,padding:"10px 14px",marginBottom:10}}>
+                      <div style={{fontSize:9,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>📊 Matrice métier → Tax Code → ER-13</div>
+                      <div style={{overflowX:"auto"}}>
+                        <table style={{width:"100%",borderCollapse:"collapse",fontSize:9}}>
+                          <thead><tr style={{background:"rgba(0,0,0,0.3)"}}>
+                            {["Taux","Cat.","BT-102","VATEX","BT-23","BT-8","Pays","Acct","SAP","ER-13"].map(h=>(
+                              <th key={h} style={{padding:"4px 6px",textAlign:"left",color:"rgba(255,255,255,0.4)",borderBottom:"1px solid rgba(255,255,255,0.1)",whiteSpace:"nowrap"}}>{h}</th>
+                            ))}
+                          </tr></thead>
+                          <tbody>
+                            {ER13_MATRIX.map((r,i)=>{
+                              const ec={"S":"#22C55E","AE":"#F59E0B","E":"#3B82F6","G":"#06B6D4","O":"#94A3B8","Z":"#84CC16"}[r.er13]||"#6366F1";
+                              return(
+                              <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,0.04)",background:i%2===0?"transparent":"rgba(255,255,255,0.01)"}}>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",color:"#FCD34D"}}>{r.rate}%</td>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",color:"rgba(255,255,255,0.5)"}}>{r.cat}</td>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",color:"rgba(255,255,255,0.5)"}}>{r.code}</td>
+                                <td style={{padding:"3px 6px",fontSize:8,color:"rgba(255,255,255,0.4)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.vatex}</td>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",color:"#C4B5FD"}}>{r.bt23}</td>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",color:"rgba(255,255,255,0.5)"}}>{r.bt8}</td>
+                                <td style={{padding:"3px 6px",fontSize:9,color:"rgba(255,255,255,0.5)"}}>{r.from}</td>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",color:"rgba(255,255,255,0.5)"}}>{r.acct}</td>
+                                <td style={{padding:"3px 6px",fontFamily:"JetBrains Mono,monospace",fontWeight:700,color:"#34D399"}}>{r.sap}</td>
+                                <td style={{padding:"3px 6px"}}><span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,fontWeight:700,color:ec,background:ec+"15",borderRadius:3,padding:"1px 5px"}}>{r.er13}</span></td>
+                              </tr>);
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div style={{marginTop:6,fontSize:10,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>* = toutes valeurs. Source: Coty FR Tracker + AFNOR XP Z12-012 V1.3</div>
                     </div>
                   )}
                   selER.sap&&(
