@@ -1216,12 +1216,12 @@ function App(){
           </div>
 
           {/* Two-column layout: list left, detail right */}
-          <div style={{display:"grid",gridTemplateColumns:"520px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"640px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — sortable list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 70px 1fr 120px 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 62px 1fr 110px 58px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 {[["id","CODE"],["t","TITRE"],["cat","CATÉGORIE"],["cx","NIVEAU"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(ucSort===k)setUcSortDir(d=>d==="asc"?"desc":"asc");else{setUcSort(k);setUcSortDir("asc");}}}
@@ -1252,13 +1252,13 @@ function App(){
                     const title=ucLang==="en"?(f.en||f.t):f.t;
                     return(
                     <div key={f.id} onClick={()=>setSelUC(selUC?.id===f.id?null:f)}
-                      style={{display:"grid",gridTemplateColumns:"3px 70px 1fr 120px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                      style={{display:"grid",gridTemplateColumns:"3px 62px 1fr 110px 58px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
                         background:selUC?.id===f.id?cc+"18":"transparent",transition:"background 0.1s"}}
                       onMouseEnter={e=>{if(selUC?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                       onMouseLeave={e=>{if(selUC?.id!==f.id)e.currentTarget.style.background="transparent";}}>
                       <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:cc,minHeight:18}}></div>
                       <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,fontWeight:700,color:cc}}>{f.id}</div>
-                      <div style={{fontSize:12,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{title}</div>
+                      <div style={{fontSize:12,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",paddingRight:4}}>{title}</div>
                       <div style={{display:"flex",justifyContent:"center"}}>
                         <span style={{fontSize:9,background:cc+"18",color:cc,borderRadius:3,padding:"2px 6px",fontWeight:600,textTransform:"uppercase",whiteSpace:"nowrap"}}>{f.cat}</span>
                       </div>
