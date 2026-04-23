@@ -612,6 +612,15 @@ const RULES=[
   {id:"BR-CO-16",lvl:"error",std:"EN16931",fields:["BT-115","BT-112"],t:"Amount due calculation",d:"BT-115 = BT-112 − prepaid + rounding."},
   {id:"PENALTY-1",lvl:"info",std:"LF2026",fields:[],t:"Pénalité: 50€/facture",d:"Loi de Finances 2026: 50€ per e-invoice not transmitted. Annual cap. 30-day grace period."},
   {id:"PENALTY-2",lvl:"info",std:"LF2026",fields:[],t:"Pénalité: 500€/e-reporting",d:"500€ per e-reporting transmission not sent. Annual cap. 30-day grace period."},
+  {id:"AP-ER-AGG-01",lvl:"open",std:"TR/AFNOR",fields:["ER-09","ER-10","ER-12"],
+   t:"AP E-Reporting: Agrégation des lignes par code TVA",
+   d:"Question escaladée aux Affaires Réglementaires (mail Laurent Malzac 17/04/2026). Les lignes facture ayant le même taux/code TVA sur une même facture peuvent-elles être agrégées en une seule ligne dans le e-reporting ? Laurent (Coty): oui, probable jusqu'en 2027. Thomson Reuters: feasible techniquement — rien dans le schéma n'interdit l'agrégation. Flux 10.1 : 1 bloc TaxSubTotal par taux TVA. Recommandation: consulter conseiller fiscal avant implémentation."},
+  {id:"AP-ER-BULK-01",lvl:"open",std:"TR/AFNOR",fields:["ER-01","ER-03","ER-04"],
+   t:"AP E-Reporting: Fichier consolidé (Bulk Upload)",
+   d:"Question escaladée aux Affaires Réglementaires. Plutôt qu'un fichier ER par facture, peut-on soumettre 1 fichier consolidé contenant N factures (1 ligne par facture, consolidée par code TVA/nature) ? Laurent: soumettre 1 fichier, 1 ligne par facture reçue (10 factures = 10 lignes), sans détail des lignes factures. GD (Thomson Reuters): chaque occurrence du bloc 10.1 = 1 facture — techniquement faisable. Aucune règle du schéma n'interdit explicitement cette approche. Statut: en attente validation Thomson Reuters Regulatory Affairs."},
+  {id:"AP-ER-LINE-01",lvl:"info",std:"LF2026",fields:["ER-09","ER-10","ER-11"],
+   t:"AP E-Reporting: Niveau de détail — par ligne ou par facture ?",
+   d:"Flux 10.1 (B2B international) : chaque bloc TG-8 (Invoice) correspond à 1 facture. La ventilation TVA (TG-23) est par taux, pas par ligne physique. Donc le e-reporting AP ne transmet pas le détail ligne par ligne mais une synthèse par taux TVA par facture. Différent du e-invoicing (Flux 2) qui transmet la facture complète avec toutes les lignes (BG-25)."},
 ];
 
 const SYS=`Tu es un expert de haut niveau en facturation électronique française (Réforme Facture Électronique 2026), spécialisé dans les normes AFNOR XP Z12-012, XP Z12-013, XP Z12-014, EN 16931, et le système DGFiP. Tu réponds en FRANÇAIS (sauf si question en anglais). Tu es précis, technique, et tu cites toujours les règles (BR-FR-xx, BT-xxx, statuts ILC, articles de loi). Réponds toujours de façon opérationnelle : que doit faire concrètement le comptable/développeur ?`;
@@ -1388,10 +1397,10 @@ function App(){
       {tab==="rules"&&(
         <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
           <div style={{maxWidth:860,margin:"0 auto"}}>
-            <div style={{marginBottom:16}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Règles <span style={{color:"#6366F1"}}>BR-FR · EN16931 · LF2026</span></h2></div>
-            {[["error","🔴 Erreurs — facture rejetée"],["warning","🟡 Warnings — risque non-conformité"],["info","ℹ️ Info — contexte"]].map(([lvl,title])=>{
+            <div style={{marginBottom:16}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Règles <span style={{color:"#6366F1"}}>BR-FR · EN16931 · LF2026</span><span style={{fontSize:11,color:"rgba(255,255,255,0.35)",marginLeft:12,fontWeight:400}}>+ Questions réglementaires AP e-reporting</span></h2></div>
+            {[["error","🔴 Erreurs — facture rejetée"],["warning","🟡 Warnings — risque non-conformité"],["open","🔵 Questions ouvertes / Interprétations réglementaires"],["info","ℹ️ Info — contexte"]].map(([lvl,title])=>{
               const items=RULES.filter(r=>r.lvl===lvl);if(!items.length)return null;
-              const lc={error:"#EF4444",warning:"#F59E0B",info:"#3B82F6"}[lvl];
+              const lc={error:"#EF4444",warning:"#F59E0B",open:"#06B6D4",info:"#3B82F6"}[lvl];
               return<div key={lvl} style={{marginBottom:22}}>
                 <div style={{fontSize:11,color:lc,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>{title}</div>
                 {items.map(r=>(
