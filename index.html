@@ -621,7 +621,8 @@ function App(){
   const [sortBy,setSortBy]=useState("id");
   const [sortDir,setSortDir]=useState("asc");
   const [selBT,setSelBT]=useState(BT[0]);
-  const [selER,setSelER]=useState(ER[0]);
+  const [selER,setSelER]=useState(null);
+  const [erSc,setErSc]=useState('all');
   const [selILC,setSelILC]=useState(null);
   const [ilcFam,setIlcFam]=useState('all');
   const [selUC,setSelUC]=useState(null);
@@ -710,13 +711,13 @@ function App(){
             <div style={{padding:"10px 12px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0,background:"#0f1117"}}>
               <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher un champ BT..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:7,padding:"7px 10px",color:"#E2E8F0",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
               <div style={{display:"flex",gap:3,marginTop:7,flexWrap:"wrap"}}>
-                {["all","ei","er"].map(v=><P key={v} label={v==="all"?"Tous":v==="ei"?"E-Invoice":"E-Report"} active={sc===v} onClick={()=>setSc(v)}/>)}
+                {[["all","Tous","#6366F1"],["ei","E-Invoice","#3B82F6"],["er","E-Report","#10B981"]].map(([v,l,c])=><P key={v} label={l} active={sc===v} onClick={()=>setSc(v)} color={c}/>)}
                 <span style={{width:1,background:"rgba(255,255,255,0.1)",margin:"0 2px"}}/>
-                {["all","req","opt"].map(v=><P key={v} label={v==="all"?"Requis+Opt":v==="req"?"Requis":"Optionnel"} active={req===v} onClick={()=>setReq(v)}/>)}
+                {[["all","Requis+Opt","#6366F1"],["req","Requis","#EF4444"],["opt","Optionnel","rgba(255,255,255,0.4)"]].map(([v,l,c])=><P key={v} label={l} active={req===v} onClick={()=>setReq(v)} color={c}/>)}
               </div>
               <div style={{display:"flex",gap:3,marginTop:5,flexWrap:"wrap"}}>
-                {[["all","Tous"],["header","Header"],["seller","Vendeur"],["buyer","Acheteur"],["delivery","Livraison"],["payment","Paiement"],["allowcharges","Rem./Charges doc."],["amounts","Montants"],["vat","TVA"],["lines","Lignes"],["line_allowcharges","Rem./Charges ligne"],["line_items","Article"]].map(([v,l])=>
-                  <P key={v} label={l} active={grp===v} onClick={()=>setGrp(v)}/>
+                {[["all","Tous","#6366F1"],["header","Header","#6366F1"],["seller","Vendeur","#3B82F6"],["buyer","Acheteur","#8B5CF6"],["delivery","Livraison","#06B6D4"],["payment","Paiement","#10B981"],["allowcharges","Rem./Charges doc.","#F59E0B"],["amounts","Montants","#EF4444"],["vat","TVA","#84CC16"],["lines","Lignes","#14B8A6"],["line_allowcharges","Rem./Charges ligne","#F59E0B"],["line_items","Article","#A78BFA"]].map(([v,l,c])=>
+                  <P key={v} label={l} active={grp===v} onClick={()=>setGrp(v)} color={c}/>
                 )}
               </div>
             </div>
@@ -799,45 +800,106 @@ function App(){
       )}
 
       {tab==="er"&&(
-        <div style={{display:"grid",gridTemplateColumns:"280px 1fr",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
-          <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",overflow:"auto",padding:"8px"}}>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",padding:"6px 4px 10px",lineHeight:1.5}}>Format XML propriétaire DGFiP. B2C · B2B-International · Paiements.</div>
-            {ER.map(f=>(
-              <button key={f.id} onClick={()=>setSelER(f)} style={{background:selER?.id===f.id?"rgba(245,158,11,0.12)":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selER?.id===f.id?"#F59E0B":"rgba(255,255,255,0.07)"),borderRadius:8,padding:"8px 10px",textAlign:"left",cursor:"pointer",width:"100%",marginBottom:4}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:"#F59E0B",fontWeight:700}}>{f.id}</span>
-                  <div style={{display:"flex",gap:2}}>{f.m&&<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>}<span style={{fontSize:9,background:"rgba(245,158,11,0.15)",color:"#F59E0B",borderRadius:4,padding:"1px 5px"}}>{f.s}</span></div>
-                </div>
-                <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",marginTop:2}}>{f.l}</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:1,fontStyle:"italic"}}>{f.fr}</div>
-              </button>
-            ))}
-          </div>
-          <div style={{overflow:"auto",padding:24}}>
-            {selER&&(
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:12,padding:20}}>
-                <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
-                  <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:22,color:"#F59E0B",fontWeight:900,background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:8,padding:"8px 14px"}}>{selER.id}</div>
-                  <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700,marginBottom:4}}>{selER.l}</div><div style={{fontSize:14,color:"rgba(255,255,255,0.5)",fontStyle:"italic"}}>{selER.fr}</div></div>
-                  {selER.m?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.35)",borderRadius:5,padding:"2px 9px",fontWeight:700}}>OBLIGATOIRE</span>:<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",borderRadius:5,padding:"2px 9px"}}>Optionnel</span>}
-                </div>
-                <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:16,marginBottom:12,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.7}}>{selER.d}</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-                  {[["Type",selER.t,"#F59E0B"],["Scope",selER.s,"#06B6D4"]].map(([k,v,c])=>(
-                    <div key={k} style={{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:10}}>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{k}</div>
-                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:c,fontWeight:700}}>{v}</div>
-                    </div>
-                  ))}
-                </div>
-                {selER.ex&&selER.ex!=="—"&&<div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"10px 14px",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase"}}>Exemple</span><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#22C55E"}}>{selER.ex}</code></div>}
+        <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
+          {/* Header + filters */}
+          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
+              <div>
+                <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Champs <span style={{color:"#F59E0B"}}>E-Reporting</span></h2>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>Format XML propriétaire DGFiP · B2C · B2B-International · Paiements</p>
               </div>
-            )}
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                {[["all","Tous","#6366F1"],["B2C/B2B-INT","B2C / B2B-INT","#F59E0B"],["B2B-INT","B2B-INT","#3B82F6"],["PAIEMENT","Paiement","#10B981"],["B2C","B2C","#8B5CF6"]].map(([v,l,c])=>(
+                  <button key={v} onClick={()=>setErSc(v)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(erSc===v?c:"rgba(255,255,255,0.1)"),background:erSc===v?c+"20":"transparent",color:erSc===v?c:"rgba(255,255,255,0.4)",fontWeight:erSc===v?700:400}}>{l}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Two-column layout — list left, detail right */}
+          <div style={{display:"grid",gridTemplateColumns:"260px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+
+            {/* LEFT — scrollable list */}
+            <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+              {/* Sort header */}
+              <div style={{display:"grid",gridTemplateColumns:"3px 80px 1fr 56px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:6}}>
+                <div></div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>CHAMP ER</div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>DÉSIGNATION</div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>STATUT</div>
+              </div>
+              {/* List */}
+              <div style={{flex:1,overflow:"auto",padding:"3px 6px"}}>
+                {ER.filter(f=>erSc==="all"||f.s===erSc||f.s.includes(erSc)).map(f=>{
+                  const SC_COLOR={"B2C/B2B-INT":"#F59E0B","B2B-INT":"#3B82F6","PAIEMENT":"#10B981","B2C":"#8B5CF6"}[f.s]||"#F59E0B";
+                  return(
+                  <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
+                    style={{display:"grid",gridTemplateColumns:"3px 80px 1fr 56px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                      background:selER?.id===f.id?SC_COLOR+"18":"transparent",transition:"background 0.1s"}}
+                    onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
+                    onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
+                    <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:SC_COLOR,minHeight:16,flexShrink:0}}></div>
+                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:SC_COLOR}}>{f.id}</span>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.82)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
+                    <div style={{display:"flex",gap:2,justifyContent:"flex-end"}}>
+                      {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
+                    </div>
+                  </div>
+                );})}
+              </div>
+            </div>
+
+            {/* RIGHT — detail panel */}
+            <div key={selER?.id} style={{overflow:"auto",padding:22,background:"rgba(0,0,0,0.12)"}}>
+              {selER?(()=>{
+                const SC_COLOR={"B2C/B2B-INT":"#F59E0B","B2B-INT":"#3B82F6","PAIEMENT":"#10B981","B2C":"#8B5CF6"}[selER.s]||"#F59E0B";
+                return(
+                <div>
+                  {/* Title */}
+                  <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:18}}>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:22,color:SC_COLOR,fontWeight:900,background:SC_COLOR+"12",border:"1px solid "+SC_COLOR+"35",borderRadius:8,padding:"8px 14px",flexShrink:0}}>{selER.id}</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:16,fontWeight:700,marginBottom:4}}>{selER.l}</div>
+                      <div style={{fontSize:13,color:"rgba(255,255,255,0.45)",fontStyle:"italic"}}>{selER.fr}</div>
+                    </div>
+                    {selER.m?
+                      <span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.35)",borderRadius:5,padding:"3px 10px",fontWeight:700,flexShrink:0}}>OBLIGATOIRE</span>:
+                      <span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",borderRadius:5,padding:"3px 10px",flexShrink:0}}>Optionnel</span>}
+                  </div>
+
+                  {/* Description */}
+                  <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.75}}>{selER.d}</div>
+
+                  {/* Meta row */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                    <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 14px"}}>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>TYPE</div>
+                      <div style={{fontSize:13,fontWeight:700,color:SC_COLOR}}>{selER.t}</div>
+                    </div>
+                    <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 14px"}}>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>SCOPE</div>
+                      <div style={{fontSize:13,fontWeight:700,color:SC_COLOR}}>{selER.s}</div>
+                    </div>
+                  </div>
+
+                  {/* Example */}
+                  {selER.ex&&(
+                    <div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"10px 14px",display:"flex",gap:12,alignItems:"center"}}>
+                      <span style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,flexShrink:0,fontWeight:700}}>Exemple</span>
+                      <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#22C55E"}}>{selER.ex}</code>
+                    </div>
+                  )}
+                </div>
+              );})():
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
+                <div style={{fontSize:40}}>📊</div>
+                <div style={{fontSize:13}}>Sélectionnez un champ ER pour voir sa définition</div>
+              </div>}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── ILC ── */}
       {tab==="ilc"&&(
         <div style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden",minHeight:0}}>
           {/* Header + filters */}
