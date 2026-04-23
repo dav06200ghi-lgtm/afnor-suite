@@ -216,28 +216,28 @@ const ER=[
   {id:"ER-07",l:"Transaction type code",fr:"Catégorie de transactions",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Code",a:"PA",
    d:"Catégorie calculée par la PA selon le type d'opération. TT-81. Valeurs : TLB1=B2C domestique, TPS1=B2B-INT services, TNT1=B2B-INT biens, TMA1=Marge.",
    tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1 | TPS1 | TNT1 | TMA1",sap:""},
-  {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Date",a:"Business",
+  {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Date",a:"Business",
    d:"Date à laquelle les transactions ont été comptabilisées. Format AAAAMMJJ. Issue des données facture de l'entreprise.",
    tt:"TT-77",path:"/TransactionsReport/Transactions/Date",ex:"20260905",sap:"BKPF-BUDAT (date comptabilisation)\nOu BKPF-BLDAT (date document)\nVBRK-FKDAT (SD billing date)"},
-  {id:"ER-09",l:"Taxable amount excl. VAT",fr:"Base d'imposition HT",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Montant",a:"Business",
+  {id:"ER-09",l:"Taxable amount excl. VAT",fr:"Base d'imposition HT",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Montant",a:"Business",
    d:"Somme HT agrégée par taux TVA sur la période. B2C : agrégat quotidien. B2B-INT : par facture individuelle. Format 19.2. Issu de BT-116.",
    tt:"TT-87",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxableAmount",ex:"1500.00",sap:"BSET-HWBAS (base imposable en devise société)\nOu BSET-FWBAS (devise document)\nT-code: FB03, S_ALR_87012357"},
-  {id:"ER-10",l:"VAT amount",fr:"Montant TVA",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Montant",a:"Business",
+  {id:"ER-10",l:"VAT amount",fr:"Montant TVA",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Montant",a:"Business",
    d:"Montant TVA = ER-09 × ER-12/100. Toujours en EUR. Issu de BT-117. TT-88.",
    tt:"TT-88",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxTotal",ex:"300.00",sap:"BSET-HWSTE (montant TVA devise société)\nOu BSET-FWSTE (devise document)\nJoint à BSET-MWSKZ (code TVA)"},
-  {id:"ER-11",l:"Total incl. VAT",fr:"Montant TTC",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Montant",a:"Business",
+  {id:"ER-11",l:"Total incl. VAT",fr:"Montant TTC",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Montant",a:"Business",
    d:"Total TTC = ER-09 + ER-10. Issu de BT-109 (HT) + BT-110 (TVA). Déclaré pour contrôle cohérence DGFiP. TT-82 + TT-83.",
    tt:"TT-82+TT-83",path:"/TransactionsReport/Transactions/TaxExclusiveAmount",ex:"1800.00",sap:"BKPF-HWBAS+BSET-HWSTE\nOu VBRK-NETWR+VBRK-MWSBP (SD)\nBSEG-DMBTR (montant total)"},
-  {id:"ER-12",l:"VAT rate",fr:"Taux de TVA",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Pourcentage",a:"Business",
+  {id:"ER-12",l:"VAT rate",fr:"Taux de TVA",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Pourcentage",a:"Business",
    d:"Taux TVA applicable. Valeurs BR-FR-16 : 0, 2.1, 5.5, 7, 8.5, 10, 13, 20. Un bloc TT-86/87/88 par taux. Issu de BT-119.",
    tt:"TT-86",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxPercent",ex:"20 | 10 | 5.5 | 2.1 | 0",sap:"BSET-MWSKZ → T007A-MWSTZ (taux)\nOu KONP-KBETR (condition pricing SD)\nT-code: FTXP pour paramétrage taux"},
-  {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Code",a:"Business",
+  {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Code",a:"Business",
    d:"Code UNTDID 5305. Mêmes valeurs que BT-118 : S, E, AE, K, G, O, Z. L/M exclus France (BR-FR-15). Issu de BT-118. TT-56.",
    tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet"},
-  {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",dir:"AR",t:"Code",a:"Business",
+  {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",dir:"AR + AP",t:"Code",a:"Business",
    d:"Code pays ISO 3166-1 alpha-2 de l'acheteur. Requis uniquement pour B2B-INT. Issu de BT-55. TT-39.",
    tt:"TT-39",path:"/TransactionsReport/Invoice/Buyer/PostalAddress/CountryId",ex:"DE | GB | US | CN",sap:"KNA1-LAND1 (pays client AR)\nOu LFA1-LAND1 (pays fournisseur AP)\nADRC-COUNTRY (adresse)"},
-  {id:"ER-15",l:"Buyer VAT number",fr:"N° TVA acheteur",m:false,s:"B2B-INT",dir:"AR",t:"Identifiant",a:"Business",
+  {id:"ER-15",l:"Buyer VAT number",fr:"N° TVA acheteur",m:false,s:"B2B-INT",dir:"AR + AP",t:"Identifiant",a:"Business",
    d:"N° TVA acheteur étranger. Requis pour autoliquidation intra-UE (ER-13=AE/K). Issu de BT-48. TT-38, qualifiant TT-38-0=VAT.",
    tt:"TT-38",path:"/TransactionsReport/Invoice/Buyer/TaxRegistrationId",ex:"DE123456789 | GB123456789",sap:"KNA1-STCEG (TVA client AR)\nOu LFA1-STCEG (TVA fournisseur AP)\nTable J_1ATAX"},
   {id:"ER-17",l:"Payment date",fr:"Date d'encaissement",m:true,s:"PAIEMENT",dir:"PAIEMENT",t:"Date",a:"Business",
@@ -1011,7 +1011,7 @@ function App(){
               </div>
               {/* List */}
               <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
-                {[...ER].filter(f=>(erSc==="all"||f.dir===erSc)&&(erSc2==="all"||f.s===erSc2||f.s.includes(erSc2))).sort((a,b)=>{
+                {[...ER].filter(f=>(erSc==="all"||(erSc==="AP"?(f.dir==="AP"||f.dir==="AR + AP"):erSc==="AR"?(f.dir==="AR"||f.dir==="AR + AP"):f.dir===erSc))&&(erSc2==="all"||f.s===erSc2||f.s.includes(erSc2))).sort((a,b)=>{
                   const av=erSort==="m"?(a.m?0:1):erSort==="a"?(a.a||""):(a[erSort]||"");
                   const bv=erSort==="m"?(b.m?0:1):erSort==="a"?(b.a||""):(b[erSort]||"");
                   return erSortDir==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
