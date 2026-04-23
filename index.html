@@ -197,58 +197,58 @@ const BT=[
 const ER=[
   {id:"ER-01",l:"Transmission identifier",fr:"Identifiant de transmission",m:true,s:"B2C/B2B-INT",t:"Identifiant",a:"PA",
    d:"Identifiant unique de la transmission généré par la PA ou par le PPF. Non renseigné par l'entreprise.",
-   tt:"TT-1",path:"/ReportDocument/Id",ex:"TRANS-2026-09-001"},
+   tt:"TT-1",path:"/ReportDocument/Id",ex:"TRANS-2026-09-001",sap:""},
   {id:"ER-02",l:"Transmission date",fr:"Date de transmission",m:true,s:"B2C/B2B-INT",t:"Date",a:"PA",
    d:"Date et heure de création de la transmission. Format AAAAMMJJHHMMSS. Généré automatiquement par la PA à l'envoi.",
-   tt:"TT-3",path:"/ReportDocument/IssueDateTime/DateTimeString",ex:"20260901120000"},
+   tt:"TT-3",path:"/ReportDocument/IssueDateTime/DateTimeString",ex:"20260901120000",sap:""},
   {id:"ER-03",l:"Reporting period start",fr:"Début de période",m:true,s:"B2C/B2B-INT",t:"Date",a:"PA",
    d:"Date de début de la période de transmission. Format AAAAMMJJ. Calculé par la PA selon les règles G6.24/G6.25.",
-   tt:"TT-17",path:"/TransactionsReport/ReportPeriod/StartDate",ex:"20260901"},
+   tt:"TT-17",path:"/TransactionsReport/ReportPeriod/StartDate",ex:"20260901",sap:""},
   {id:"ER-04",l:"Reporting period end",fr:"Fin de période",m:true,s:"B2C/B2B-INT",t:"Date",a:"PA",
    d:"Date de fin de la période. Format AAAAMMJJ. Max 10 jours. Calculé par la PA.",
-   tt:"TT-18",path:"/TransactionsReport/ReportPeriod/EndDate",ex:"20260910"},
+   tt:"TT-18",path:"/TransactionsReport/ReportPeriod/EndDate",ex:"20260910",sap:""},
   {id:"ER-05",l:"Transmitter SIRET",fr:"SIRET déclarant",m:true,s:"B2C/B2B-INT",t:"Identifiant",a:"Business",
    d:"SIREN (9 chiffres) du déclarant. Fourni par l'entreprise à la PA lors de l'inscription. Schème ICD 0002.",
-   tt:"TT-13",path:"/ReportDocument/Issuer/Id",ex:"123456789 (SIREN)"},
+   tt:"TT-13",path:"/ReportDocument/Issuer/Id",ex:"123456789 (SIREN)",sap:"T001 (BUKRS→SIREN) / J_1AFISC / ADRC→STCD3\nBUKRS→Customizing OAD fiche société"},
   {id:"ER-06",l:"Transmitter VAT number",fr:"N° TVA déclarant",m:true,s:"B2C/B2B-INT",t:"Identifiant",a:"Business",
    d:"Numéro TVA français du déclarant. Format FR + clé + SIREN. Fourni par l'entreprise à la PA. TT-34-0 qualifiant = VAT.",
-   tt:"TT-34",path:"/TransactionsReport/Invoice/Seller/TaxRegistrationId",ex:"FR12345678900"},
+   tt:"TT-34",path:"/TransactionsReport/Invoice/Seller/TaxRegistrationId",ex:"FR12345678900",sap:"T001-STCEG / ADRC-STCEG\nOu: LFA1-STCEG (vendeur)\nTable J_1ATAX (n° TVA)"},
   {id:"ER-07",l:"Transaction type code",fr:"Catégorie de transactions",m:true,s:"B2C/B2B-INT",t:"Code",a:"PA",
    d:"Catégorie calculée par la PA selon le type d'opération. TT-81. Valeurs : TLB1=B2C domestique, TPS1=B2B-INT services, TNT1=B2B-INT biens, TMA1=Marge.",
-   tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1 | TPS1 | TNT1 | TMA1"},
+   tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1 | TPS1 | TNT1 | TMA1",sap:""},
   {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",t:"Date",a:"Business",
    d:"Date à laquelle les transactions ont été comptabilisées. Format AAAAMMJJ. Issue des données facture de l'entreprise.",
-   tt:"TT-77",path:"/TransactionsReport/Transactions/Date",ex:"20260905"},
+   tt:"TT-77",path:"/TransactionsReport/Transactions/Date",ex:"20260905",sap:"BKPF-BUDAT (date comptabilisation)\nOu BKPF-BLDAT (date document)\nVBRK-FKDAT (SD billing date)"},
   {id:"ER-09",l:"Taxable amount excl. VAT",fr:"Base d'imposition HT",m:true,s:"B2C/B2B-INT",t:"Montant",a:"Business",
    d:"Somme HT agrégée par taux TVA sur la période. B2C : agrégat quotidien. B2B-INT : par facture individuelle. Format 19.2. Issu de BT-116.",
-   tt:"TT-87",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxableAmount",ex:"1500.00"},
+   tt:"TT-87",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxableAmount",ex:"1500.00",sap:"BSET-HWBAS (base imposable en devise société)\nOu BSET-FWBAS (devise document)\nT-code: FB03, S_ALR_87012357"},
   {id:"ER-10",l:"VAT amount",fr:"Montant TVA",m:true,s:"B2C/B2B-INT",t:"Montant",a:"Business",
    d:"Montant TVA = ER-09 × ER-12/100. Toujours en EUR. Issu de BT-117. TT-88.",
-   tt:"TT-88",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxTotal",ex:"300.00"},
+   tt:"TT-88",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxTotal",ex:"300.00",sap:"BSET-HWSTE (montant TVA devise société)\nOu BSET-FWSTE (devise document)\nJoint à BSET-MWSKZ (code TVA)"},
   {id:"ER-11",l:"Total incl. VAT",fr:"Montant TTC",m:true,s:"B2C/B2B-INT",t:"Montant",a:"Business",
    d:"Total TTC = ER-09 + ER-10. Issu de BT-109 (HT) + BT-110 (TVA). Déclaré pour contrôle cohérence DGFiP. TT-82 + TT-83.",
-   tt:"TT-82+TT-83",path:"/TransactionsReport/Transactions/TaxExclusiveAmount",ex:"1800.00"},
+   tt:"TT-82+TT-83",path:"/TransactionsReport/Transactions/TaxExclusiveAmount",ex:"1800.00",sap:"BKPF-HWBAS+BSET-HWSTE\nOu VBRK-NETWR+VBRK-MWSBP (SD)\nBSEG-DMBTR (montant total)"},
   {id:"ER-12",l:"VAT rate",fr:"Taux de TVA",m:true,s:"B2C/B2B-INT",t:"Pourcentage",a:"Business",
    d:"Taux TVA applicable. Valeurs BR-FR-16 : 0, 2.1, 5.5, 7, 8.5, 10, 13, 20. Un bloc TT-86/87/88 par taux. Issu de BT-119.",
-   tt:"TT-86",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxPercent",ex:"20 | 10 | 5.5 | 2.1 | 0"},
+   tt:"TT-86",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxPercent",ex:"20 | 10 | 5.5 | 2.1 | 0",sap:"BSET-MWSKZ → T007A-MWSTZ (taux)\nOu KONP-KBETR (condition pricing SD)\nT-code: FTXP pour paramétrage taux"},
   {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",t:"Code",a:"Business",
    d:"Code UNTDID 5305. Mêmes valeurs que BT-118 : S, E, AE, K, G, O, Z. L/M exclus France (BR-FR-15). Issu de BT-118. TT-56.",
-   tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z"},
+   tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet"},
   {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",t:"Code",a:"Business",
    d:"Code pays ISO 3166-1 alpha-2 de l'acheteur. Requis uniquement pour B2B-INT. Issu de BT-55. TT-39.",
-   tt:"TT-39",path:"/TransactionsReport/Invoice/Buyer/PostalAddress/CountryId",ex:"DE | GB | US | CN"},
+   tt:"TT-39",path:"/TransactionsReport/Invoice/Buyer/PostalAddress/CountryId",ex:"DE | GB | US | CN",sap:"KNA1-LAND1 (pays client AR)\nOu LFA1-LAND1 (pays fournisseur AP)\nADRC-COUNTRY (adresse)"},
   {id:"ER-15",l:"Buyer VAT number",fr:"N° TVA acheteur",m:false,s:"B2B-INT",t:"Identifiant",a:"Business",
    d:"N° TVA acheteur étranger. Requis pour autoliquidation intra-UE (ER-13=AE/K). Issu de BT-48. TT-38, qualifiant TT-38-0=VAT.",
-   tt:"TT-38",path:"/TransactionsReport/Invoice/Buyer/TaxRegistrationId",ex:"DE123456789 | GB123456789"},
+   tt:"TT-38",path:"/TransactionsReport/Invoice/Buyer/TaxRegistrationId",ex:"DE123456789 | GB123456789",sap:"KNA1-STCEG (TVA client AR)\nOu LFA1-STCEG (TVA fournisseur AP)\nTable J_1ATAX"},
   {id:"ER-17",l:"Payment date",fr:"Date d'encaissement",m:true,s:"PAIEMENT",t:"Date",a:"Business",
    d:"Date d'encaissement du paiement. Format AAAAMMJJ. Déclenche l'exigibilité TVA pour assujettis TVA sur encaissements (BT-8=432). TT-92.",
-   tt:"TT-92",path:"/PaymentsReport/Invoice/Payment/Date",ex:"20260915"},
+   tt:"TT-92",path:"/PaymentsReport/Invoice/Payment/Date",ex:"20260915",sap:"BKPF-BUDAT (date paiement clearing)\nOu REGUH-ZALDT (date paiement proposé)\nBSEG-AUGDT (date lettrage/clearing)"},
   {id:"ER-19",l:"Original invoice reference",fr:"Référence facture originale",m:true,s:"PAIEMENT",t:"Identifiant",a:"Business",
    d:"Numéro BT-1 de la facture originale à laquelle se rapporte ce paiement. Permet le rapprochement DGFiP. TT-91.",
-   tt:"TT-91",path:"/PaymentsReport/Invoice/InvoiceID",ex:"FA-2026-00123"},
+   tt:"TT-91",path:"/PaymentsReport/Invoice/InvoiceID",ex:"FA-2026-00123",sap:"BKPF-XBLNR (référence externe document)\nOu VBRK-VBELN (numéro facture SD)\nBSEG-ZUONR (champ affectation)\nOu champ personnalisé BT-1 mapping"},
   {id:"ER-21",l:"B2C simplification flag",fr:"Simplification B2C (août 2025)",m:false,s:"B2C",t:"Code",a:"PA",
    d:"Depuis BOI-RES-RVA-000209 du 05/06/2025 : indicateur non obligatoire pour déclarations B2C agrégées. Géré par la PA. TT-81.",
-   tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1"},
+   tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1",sap:""},
 ];
 const ILC=[
   {code:"200",famille:"technique",l:"Déposée",en:"Submitted",m:true,actor:"Supplier PA",d:"Entry point for ALL e-invoices. PPF and buyer PA notified.",c:"#3B82F6",next:["201","211"],fix:null,cdarCodes:null},
@@ -854,16 +854,16 @@ function App(){
           </div>
 
           {/* Two-column layout */}
-          <div style={{display:"grid",gridTemplateColumns:"420px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"540px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 72px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
-                {[["id","CODE"],["fr","DÉSIGNATION"],["m","STATUT"],["a","ACTEUR"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DÉSIGNATION"],["m","STATUT"],["a","ACTEUR"],["sap","SAP S/4H"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
-                    style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
+                    style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
                   </div>
                 ))}
@@ -879,7 +879,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 90px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -903,6 +903,12 @@ function App(){
                       <span style={{fontSize:9,background:AC+"18",color:AC,borderRadius:4,padding:"3px 6px",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>
                         {f.a==="PA"?"🔧 PA":"📋 Biz"}
                       </span>
+                    </div>
+                    {/* SAP S/4H mapping */}
+                    <div style={{overflow:"hidden"}}>
+                      {f.sap
+                        ?<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#34D399",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",lineHeight:1.4}}>{f.sap.split("\n")[0]}</div>
+                        :<div style={{fontSize:9,color:"rgba(255,255,255,0.15)",fontStyle:"italic",textAlign:"center"}}>—</div>}
                     </div>
                   </div>
                 );})}
@@ -952,6 +958,18 @@ function App(){
                         <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:3,fontWeight:700}}>PATH XML</div>
                         <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"rgba(255,255,255,0.55)",wordBreak:"break-all"}}>{selER.path}</code>
                       </div>}
+                    </div>
+                  )}
+                  {selER.sap&&(
+                    <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.18)",borderRadius:8,padding:"12px 14px",marginBottom:12}}>
+                      <div style={{fontSize:9,color:"#34D399",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700,display:"flex",alignItems:"center",gap:6}}>
+                        <span>⚙️</span> Mapping SAP S/4HANA
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                        {selER.sap.split("\n").map((line,i)=>(
+                          <code key={i} style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#86EFAC",lineHeight:1.6,display:"block"}}>{line}</code>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {selER.ex&&(
