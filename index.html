@@ -232,8 +232,8 @@ const ER=[
    d:"Taux TVA applicable (0, 2.1, 5.5, 7, 8.5, 10, 13, 20% — BR-FR-16). 1 ligne par taux distinct. Mapping SAP : BSET-MWSKZ → table correspondance code TVA → taux numérique (T007A).",
    tt:"TT-86",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxPercent",ex:"20 | 10 | 5.5 | 2.1 | 0",sap:"BSET-MWSKZ → T007A-MWSTZ (taux)\nOu KONP-KBETR (condition pricing SD)\nT-code: FTXP pour paramétrage taux",alert:"⚠️ Mapping MWSKZ → taux numérique nécessaire (table SAP T007A ou Z-table dédiée)."},
   {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Code",a:"Business",
-   d:"Code catégorie TVA — logique SIMPLE dans les 2 sens. AR: ER-13 = BT-118, issu directement du tax code SAP (MWSKZ → ER-13, mapping direct). AP e-reporting (UE/non-UE): idem, ER-13 = tax code saisi par le SSC dans SAP → mapping direct vers ER-13. NB: les AP fournisseurs FR ne sont PAS concernés par le e-reporting — hors scope ER-13. La matrice BT→SAP Tax Code sert uniquement à aider le SSC à déterminer le bon MWSKZ en amont, pas à calculer ER-13.",
-   tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet",alert:"ER-13 = TOUJOURS mapping direct MWSKZ → ER-13. AR: BT-118. AP e-reporting: tax code SSC. AP fourn. FR: hors scope e-reporting. La matrice = aide détermination MWSKZ, pas source ER-13.",er13_matrix:true},
+   d:"VAT category code — ER-13 is ALWAYS derived from SAP tax code via a mapping table (MWSKZ → VAT category S/AE/E/G/O/Z). SAP tax code ≠ ER-13 directly — a correspondence table is mandatory. AR: derived directly from SAP tax code (BT-118). AP e-reporting (UE/non-UE): derived from SSC-posted SAP tax codes via the same mapping. FR AP suppliers: out of scope for e-reporting, ER-13 not required. The matrix below supports SSC in determining the correct upstream SAP tax code.",
+   tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet",alert:"ER-13 is ALWAYS derived via mapping: MWSKZ → VAT category (S/AE/E/G/O/Z). Never copy SAP tax code directly. AR: from BT-118. AP e-reporting: from SSC-posted MWSKZ. AP FR suppliers: out of scope. Mapping examples: VT/VO/VU/VP/VV→S, VQ/VR→AE, O4→E, II→O, IH→E or O.",er13_matrix:true},
   {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",dir:"AR + AP",t:"Code",a:"Business",
    d:"Pays de l'acheteur (ISO 3166-1 alpha-2). En AR : critique pour distinguer B2C vs B2B-INT. En AP : souvent inutile — c'est le pays du fournisseur qui détermine EU/non-EU (mais ce champ est absent du schéma ER). Mapping : KNA1-LAND1 (AR) / LFA1-LAND1 (AP).",
    tt:"TT-39",path:"/TransactionsReport/Invoice/Buyer/PostalAddress/CountryId",ex:"DE | GB | US | CN",sap:"KNA1-LAND1 (pays client AR)\nOu LFA1-LAND1 (pays fournisseur AP)\nADRC-COUNTRY (adresse)",alert:"ℹ️ AR : critique pour scope. AP : inutile. Attention : pays fournisseur AP absent du schéma ER — à déduire de LFA1-LAND1 / N° TVA fournisseur."},
@@ -1412,9 +1412,9 @@ function App(){
                           <div style={{fontSize:9,color:"rgba(255,255,255,0.5)",lineHeight:1.5,marginTop:3}}>Issu directement du tax code SAP. Mapping MWSKZ → ER-13. Toutes ventes.</div>
                         </div>
                         <div style={{background:"rgba(99,102,241,0.05)",borderRadius:7,padding:"8px 10px",border:"1px solid rgba(99,102,241,0.15)"}}>
-                          <div style={{fontSize:9,color:"#A5B4FC",fontWeight:700,marginBottom:5}}>② AP e-reporting — Direct</div>
-                          <div style={{fontSize:10,color:"rgba(255,255,255,0.75)",lineHeight:1.6}}>ER-13 = <strong>tax code saisi SSC</strong></div>
-                          <div style={{fontSize:9,color:"rgba(255,255,255,0.5)",lineHeight:1.5,marginTop:3}}>Fournisseurs UE/non-UE. Même principe: MWSKZ → ER-13. Import goods non-UE = hors scope.</div>
+                          <div style={{fontSize:9,color:"#A5B4FC",fontWeight:700,marginBottom:5}}>② AP e-reporting — Via mapping</div>
+                          <div style={{fontSize:10,color:"rgba(255,255,255,0.75)",lineHeight:1.6}}>MWSKZ (SSC) <strong>→ mapping → ER-13</strong></div>
+                          <div style={{fontSize:9,color:"rgba(255,255,255,0.5)",lineHeight:1.5,marginTop:3}}>Fournisseurs UE/non-UE. Tax code saisi SSC dans SAP → table de correspondance → ER-13. Import goods non-UE = hors scope.</div>
                         </div>
                         <div style={{background:"rgba(148,163,184,0.05)",borderRadius:7,padding:"8px 10px",border:"1px solid rgba(148,163,184,0.15)"}}>
                           <div style={{fontSize:9,color:"#94A3B8",fontWeight:700,marginBottom:5}}>③ AP fourn. FR — Hors scope</div>
@@ -1423,7 +1423,7 @@ function App(){
                         </div>
                       </div>
                       <div style={{marginTop:6,padding:"6px 10px",background:"rgba(245,158,11,0.06)",borderRadius:6,border:"1px solid rgba(245,158,11,0.15)",fontSize:11,color:"#FCD34D",lineHeight:1.6}}>
-                        ⚡ La matrice ci-dessous sert uniquement à aider le <strong>SSC à déterminer le bon MWSKZ SAP</strong> en amont — elle n'est pas une source directe pour ER-13.
+                        ⚡ <strong>ER-13 ≠ tax code SAP.</strong> Il faut toujours une table de correspondance : MWSKZ → catégorie TVA (S / AE / E / G / O / Z). La matrice ci-dessous aide le SSC à déterminer le bon MWSKZ en amont — le mapping MWSKZ → ER-13 reste obligatoire ensuite.
                       </div>
                     </div>
                   )}
@@ -1456,7 +1456,15 @@ function App(){
                           </tbody>
                         </table>
                       </div>
-                      <div style={{marginTop:6,fontSize:10,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>* = toutes valeurs. Usage: aide SSC à déterminer MWSKZ SAP — pas une source directe ER-13. Source: Coty FR Tracker + AFNOR XP Z12-012 V1.3</div>
+                      <div style={{marginTop:8,display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+                        <span style={{fontSize:9,color:"rgba(255,255,255,0.35)",fontWeight:600}}>MWSKZ → ER-13 :</span>
+                        {[["VT/VO/VU/VP/VV/VW","S","#22C55E"],["VQ/VR/VZ/IH","AE","#F59E0B"],["O4","E","#3B82F6"],["II","O","#94A3B8"],["XP/Y9","G","#06B6D4"]].map(([codes,er13,c])=>(
+                          <span key={codes} style={{fontSize:9,fontFamily:"JetBrains Mono,monospace",color:"rgba(255,255,255,0.55)"}}>
+                            {codes} <span style={{color:c,fontWeight:700}}>→ {er13}</span>
+                          </span>
+                        ))}
+                      </div>
+                      <div style={{marginTop:6,fontSize:10,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>* = toutes valeurs. Source: Coty FR Tracker + AFNOR XP Z12-012 V1.3</div>
                     </div>
                   )}
                   {selER.sap&&(
