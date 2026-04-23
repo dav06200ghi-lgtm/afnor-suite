@@ -1308,6 +1308,80 @@ function App(){
         </div>
       )}
 
+      {tab==="val"&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 400px",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
+          <div style={{display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",flexShrink:0}}>
+              <span style={{fontSize:12,fontWeight:700}}>PA Simulator — XML Validator</span>
+              <div style={{display:"flex",gap:3,marginLeft:"auto"}}>
+                <button onClick={()=>{setXml(SXML);setRes(null);}} style={{fontSize:11,padding:"4px 10px",borderRadius:5,cursor:"pointer",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",color:"#A5B4FC"}}>Sample UBL</button>
+              </div>
+              <button onClick={()=>fileRef.current.click()} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:5,padding:"4px 10px",color:"rgba(255,255,255,0.5)",cursor:"pointer",fontSize:11}}>📂 Load</button>
+              <input ref={fileRef} type="file" accept=".xml" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{setXml(ev.target.result);setRes(null);};r.readAsText(f);}}} style={{display:"none"}}/>
+              <button onClick={doVal} disabled={validating||!xml.trim()} style={{background:validating?"rgba(99,102,241,0.1)":"linear-gradient(135deg,#6366F1,#3B82F6)",border:"none",borderRadius:6,padding:"5px 16px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>
+                {validating?"⏳":"▶ Valider"}
+              </button>
+            </div>
+            <textarea value={xml} onChange={e=>{setXml(e.target.value);setRes(null);}} style={{flex:1,background:"#050810",color:"#A5B4FC",fontFamily:"JetBrains Mono,monospace",fontSize:11,border:"none",outline:"none",padding:14,resize:"none",lineHeight:1.7}}/>
+          </div>
+          <div style={{overflow:"auto",padding:14,display:"flex",flexDirection:"column",gap:10}}>
+            {!res&&<div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,0.2)",gap:8}}><span style={{fontSize:40}}>🔬</span><div style={{fontSize:13,fontWeight:600}}>PA Simulator</div><div style={{fontSize:11,textAlign:"center"}}>UBL 2.1 · CII/Factur-X · E-Reporting XML</div></div>}
+            {res&&<>
+              <div style={{background:res.valid?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",border:"1.5px solid "+(res.valid?"#22C55E":"#EF4444"),borderRadius:9,padding:12,display:"flex",gap:10,alignItems:"center"}}>
+                <span style={{fontSize:24}}>{res.valid?"✅":"❌"}</span>
+                <div><div style={{fontWeight:800,fontSize:14,color:res.valid?"#22C55E":"#EF4444"}}>{res.valid?"CONFORME":"NON CONFORME"}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:2}}>{res.fmt} · {res.stats.e} erreur(s) · {res.stats.w} warning(s) · {res.stats.p} OK</div></div>
+              </div>
+              {[["error","🔴 Erreurs",res.errs],["warning","🟡 Warnings",res.warns],["info","🟢 OK",res.infos]].map(([lvl,title,items])=>
+                items.length>0&&(
+                  <div key={lvl}>
+                    <div style={{fontSize:11,color:lvl==="error"?"#EF4444":lvl==="warning"?"#F59E0B":"#22C55E",fontWeight:700,marginBottom:5,textTransform:"uppercase",letterSpacing:0.8}}>{title} ({items.length})</div>
+                    {items.map((it,i)=>(
+                      <div key={i} style={{background:lvl==="error"?"rgba(239,68,68,0.06)":lvl==="warning"?"rgba(245,158,11,0.06)":"rgba(34,197,94,0.04)",border:"1px solid "+(lvl==="error"?"rgba(239,68,68,0.2)":lvl==="warning"?"rgba(245,158,11,0.2)":"rgba(34,197,94,0.15)"),borderRadius:6,padding:"7px 10px",marginBottom:4}}>
+                        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:it.m?3:0}}>
+                          {it.r&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:lvl==="error"?"rgba(239,68,68,0.2)":lvl==="warning"?"rgba(245,158,11,0.2)":"rgba(34,197,94,0.2)",color:lvl==="error"?"#EF4444":lvl==="warning"?"#F59E0B":"#22C55E",borderRadius:4,padding:"1px 5px"}}>{it.r}</span>}
+                          {it.f&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:4,padding:"1px 5px"}}>{it.f}</span>}
+                        </div>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",lineHeight:1.5}}>{it.m}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </>}
+          </div>
+        </div>
+      )}
+
+      {/* ── RULES ── */}
+      {tab==="rules"&&(
+        <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
+          <div style={{maxWidth:860,margin:"0 auto"}}>
+            <div style={{marginBottom:16}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Règles <span style={{color:"#6366F1"}}>BR-FR · EN16931 · LF2026</span></h2></div>
+            {[["error","🔴 Erreurs — facture rejetée"],["warning","🟡 Warnings — risque non-conformité"],["info","ℹ️ Info — contexte"]].map(([lvl,title])=>{
+              const items=RULES.filter(r=>r.lvl===lvl);if(!items.length)return null;
+              const lc={error:"#EF4444",warning:"#F59E0B",info:"#3B82F6"}[lvl];
+              return<div key={lvl} style={{marginBottom:22}}>
+                <div style={{fontSize:11,color:lc,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>{title}</div>
+                {items.map(r=>(
+                  <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+lc+"20",borderRadius:10,padding:14,marginBottom:7,display:"flex",gap:12,alignItems:"flex-start"}}>
+                    <div style={{minWidth:100,flexShrink:0}}>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:11,color:lc}}>{r.id}</div>
+                      <span style={{fontSize:9,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:4,padding:"1px 5px"}}>{r.std}</span>
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:4}}>{r.t}</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.55,marginBottom:r.fields.length?7:0}}>{r.d}</div>
+                      {r.fields.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.fields.map(f=><span key={f} onClick={()=>{const field=BT.find(b=>b.id===f);if(field){setSelBT(field);setTab("bt");}}} style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",border:"1px solid rgba(99,102,241,0.3)",borderRadius:4,padding:"1px 7px",cursor:"pointer"}}>{f}</span>)}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>;
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── FLUX DE DONNEES ── */}
       {tab==="flux"&&(
         <div style={{overflow:"auto",padding:"18px 22px",flex:1}}>
           <div style={{maxWidth:980,margin:"0 auto"}}>
