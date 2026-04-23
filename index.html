@@ -290,87 +290,103 @@ const ILC=[
 
 const UC=[
   // ── NOMINAL FLOWS ────────────────────────────────────────────────────────
-  {id:"UC-01",cat:"nominal",cx:"basic",
+  {id:"UC-01",cat:"nominal",
+   en:"Multiple PO / Multiple Delivery",cx:"basic",
    t:"Cas 1 — Commande multiple / Livraison multiple",
    d:"Une facture peut faire référence à plusieurs bons de commande (BT-13) et plusieurs bons de livraison. Utiliser les groupes BG-16 (référence document précédent) pour chaque référence de commande. Flux standard EI.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec multi BT-13 (bons de commande)"},{f:"PA",to:"PPF",m:"Routage Annuaire"},{f:"Acheteur",to:"PA",m:"CDAR 203/204/212"}],
    st:["200","201","203","204","212"]},
-  {id:"UC-02",cat:"nominal",cx:"basic",
+  {id:"UC-02",cat:"nominal",
+   en:"Invoice Already Paid (buyer or third party)",cx:"basic",
    t:"Cas 2 — Facture déjà payée (acheteur ou tiers payeur)",
    d:"Facture émise après paiement déjà reçu. BT-113 (montant déjà réglé) = BT-112 (TTC). BT-115 (net à payer) = 0. Statut 212 non nécessaire si paiement déjà reçu avant émission.",
    flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement préalable"},{f:"Vendeur",to:"PA",m:"Facture BT-113=TTC, BT-115=0"},{f:"Acheteur",to:"PA",m:"CDAR 204 (approbation)"}],
    st:["200","201","204"]},
-  {id:"UC-03",cat:"nominal",cx:"basic",
+  {id:"UC-03",cat:"nominal",
+   en:"Invoice Payable by Known Third Party",cx:"basic",
    t:"Cas 3 — Facture payable par un tiers payeur connu",
    d:"Tiers payeur identifié au moment de la facturation (ex: assurance, caisse de solidarité). BT-49 du tiers payeur dans l'Annuaire. Le SELLER indique le tiers dans les instructions de paiement.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec coordonnées tiers payeur"},{f:"PA Tiers",to:"PPF",m:"Statut 204 + paiement"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement tiers"}],
    st:["200","201","204","212"]},
-  {id:"UC-04",cat:"nominal",cx:"medium",
+  {id:"UC-04",cat:"nominal",
+   en:"Invoice Partially Covered by Third Party (subsidy, insurance)",cx:"medium",
    t:"Cas 4 — Facture partiellement couverte par un tiers (subvention, assurance)",
    d:"L'acheteur paie une partie, un tiers (organisme, assurance, subvention) paie l'autre. Deux flux de paiement distincts. Deux statuts 212 possibles : un pour chaque paiement partiel.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115 = montant total"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Tiers",to:"PA",m:"CDAR 204 + paiement complément"},{f:"Vendeur",to:"PA",m:"2x CDAR 212 (paiements partiels)"}],
    st:["200","201","204","212"]},
   // ── EMPLOYEE EXPENSES ────────────────────────────────────────────────────
-  {id:"UC-05",cat:"expenses",cx:"basic",
+  {id:"UC-05",cat:"expenses",
+   en:"Expense Reports — Company Invoice",cx:"basic",
    t:"Cas 5 — Notes de frais avec factures au nom de la société",
    d:"Employé paie pour le compte de la société. La facture est au nom de la société (BT-44). Flux EI standard. L'employé est transparent — seule la société est acheteur.",
    flow:[{f:"Fournisseur",to:"PA",m:"Facture au nom de la société (BT-44)"},{f:"Société",to:"PA",m:"CDAR 203/204 (validation note de frais)"},{f:"Société",to:"Employé",m:"Remboursement note de frais"}],
    st:["200","201","203","204"]},
-  {id:"UC-06",cat:"expenses",cx:"basic",
+  {id:"UC-06",cat:"expenses",
+   en:"Expense Reports — No Company Invoice (receipt)",cx:"basic",
    t:"Cas 6 — Notes de frais sans facture société (ticket, reçu)",
    d:"Facture au nom de l'employé ou simple reçu. Hors périmètre EI. Traitement interne uniquement, pas de flux e-invoicing ni e-reporting.",
    flow:[{f:"Fournisseur",to:"Employé",m:"Reçu ou facture nominative employé"},{f:"Employé",to:"Société",m:"Note de frais interne"},{f:"Société",to:"Employé",m:"Remboursement"}],
    st:[]},
-  {id:"UC-07",cat:"expenses",cx:"basic",
+  {id:"UC-07",cat:"expenses",
+   en:"Corporate Card Purchase",cx:"basic",
    t:"Cas 7 — Achat par carte achat (corporate card)",
    d:"Facture suite à achat avec carte achat (purchasing card). La facture peut être consolidée (plusieurs achats) ou individuelle. Flux EI si facture au nom de la société.",
    flow:[{f:"Fournisseur",to:"Réseau carte",m:"Transaction carte"},{f:"Réseau carte",to:"Société",m:"Facture consolidée"},{f:"Société",to:"PA",m:"Flux EI si périmètre B2B"}],
    st:["200","201","204"]},
   // ── THIRD-PARTY PAYMENT ──────────────────────────────────────────────────
-  {id:"UC-08",cat:"tiers",cx:"medium",
+  {id:"UC-08",cat:"tiers",
+   en:"Factoring / Cash Pooling (third party at invoicing)",cx:"medium",
    t:"Cas 8 — Affacturage / Cash pooling (tiers payeur identifié à la facturation)",
    d:"Factor ou gestionnaire cash pooling identifié à la facturation. Note BAR (BT-21=ACC) pour affacturage. Identifiant supplémentaire factor (BT-29 avec schème spécifique). Statuts ILC dédiés pour le suivi.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture BT-21=ACC, identifiant factor"},{f:"Factor",to:"PPF",m:"Notification prise en charge"},{f:"Acheteur",to:"Factor",m:"Paiement à l'échéance"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement factor"}],
    st:["200","201","204","212"]},
-  {id:"UC-09",cat:"tiers",cx:"medium",
+  {id:"UC-09",cat:"tiers",
+   en:"Known Third Party Managing Order & Payment (distributor)",cx:"medium",
    t:"Cas 9 — Tiers payeur connu gérant aussi la commande (distributeur/dépositaire)",
    d:"Le tiers gère la commande ET le paiement. Cas distributeur/dépositaire. Adresse électronique du tiers dans l'Annuaire. Flux entre vendeur et tiers, pas directement l'acheteur final.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 du distributeur"},{f:"Distributeur",to:"PA",m:"CDAR 203/204 (approbation)"},{f:"Distributeur",to:"Vendeur",m:"CDAR 212 paiement"}],
    st:["200","201","203","204","212"]},
-  {id:"UC-10",cat:"tiers",cx:"complex",
+  {id:"UC-10",cat:"tiers",
+   en:"Unknown Third Party at Issuance (subrogation, factoring)",cx:"complex",
    t:"Cas 10 — Tiers payeur inconnu à l'émission (subrogation, affacturage)",
    d:"Le factor n'est pas connu à la date d'émission. Subrogation postérieure. BT-49 de l'acheteur initial dans l'Annuaire. Modification des instructions de paiement après émission par notification complémentaire.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 acheteur"},{f:"Factor",to:"Vendeur",m:"Notification subrogation (hors réseau EI)"},{f:"Acheteur",to:"Factor",m:"Paiement redirigé"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement factor"}],
    st:["200","201","204","212"]},
   // ── INTERMEDIAIRES ───────────────────────────────────────────────────────
-  {id:"UC-11",cat:"intermediaire",cx:"medium",
+  {id:"UC-11",cat:"intermediaire",
+   en:"Reception & Processing by Third Party for Buyer",cx:"medium",
    t:"Cas 11 — Réception et traitement par un tiers pour le compte de l'acheteur",
    d:"Un tiers (PA-TR) reçoit et traite les factures pour le compte de l'acheteur. Le tiers a accès à l'adresse électronique de l'acheteur dans l'Annuaire. L'acheteur délègue le traitement complet.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=adresse tiers"},{f:"PA Tiers",to:"Tiers",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"PA",m:"CDAR 203/204 au nom acheteur"}],
    st:["200","201","203","204","212"]},
-  {id:"UC-12",cat:"intermediaire",cx:"medium",
+  {id:"UC-12",cat:"intermediaire",
+   en:"Transparent Intermediary Managing Invoices for Buyer",cx:"medium",
    t:"Cas 12 — Intermédiaire transparent gérant les factures pour son mandant acheteur",
    d:"Intermédiaire transparent (agent achat, centrale d'achat). Factures au nom de l'acheteur final. L'intermédiaire gère le flux mais l'acheteur reste le destinataire légal.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture au nom acheteur final"},{f:"Intermédiaire",to:"PA",m:"Traitement pour compte mandant"},{f:"Acheteur",to:"Intermédiaire",m:"Remboursement frais"}],
    st:["200","201","203","204"]},
   // ── SOUS-TRAITANCE ───────────────────────────────────────────────────────
-  {id:"UC-13",cat:"soustrait",cx:"complex",
+  {id:"UC-13",cat:"soustrait",
+   en:"Subcontracting with Direct Payment or Payment Delegation",cx:"complex",
    t:"Cas 13 — Sous-traitance avec paiement direct ou délégation de paiement (B2B)",
    d:"Sous-traitant facture le titulaire (BT-44=titulaire). Titulaire peut déléguer paiement direct au maître d'ouvrage. Autoliquidation TVA possible (BT-118=AE). SELLER=SOUS-TRAITANT dans BG-4.",
    flow:[{f:"Sous-traitant",to:"PA",m:"Facture au titulaire (BT-44)"},{f:"Titulaire",to:"PA",m:"Accord paiement direct"},{f:"Maître d'ouvrage",to:"Sous-traitant",m:"Paiement direct (si accepté)"},{f:"Sous-traitant",to:"PA",m:"CDAR 212"}],
    st:["200","201","203","204","212"]},
-  {id:"UC-14",cat:"soustrait",cx:"complex",
+  {id:"UC-14",cat:"soustrait",
+   en:"Joint Venture (B2B Group)",cx:"complex",
    t:"Cas 14 — Cotraitance (groupement B2B)",
    d:"Groupement momentané d'entreprises (GME). Chaque cotraitant facture le maître d'ouvrage directement. BG-4 SELLER=COTRAITANT, BG-7 BUYER=Maître d'ouvrage. Mandataire du groupement coordonne.",
    flow:[{f:"Cotraitant A",to:"PA",m:"Facture part A (BT-44=MO)"},{f:"Cotraitant B",to:"PA",m:"Facture part B (BT-44=MO)"},{f:"MO",to:"PA",m:"CDAR 204 par cotraitant"},{f:"Chaque cotraitant",to:"PA",m:"CDAR 212"}],
    st:["200","201","203","204","212"]},
   // ── MANDATS / SELF-BILLING ───────────────────────────────────────────────
-  {id:"UC-15",cat:"mandat",cx:"medium",
+  {id:"UC-15",cat:"mandat",
+   en:"Invoice for Third-Party Order/Payment on Buyer's Behalf",cx:"medium",
    t:"Cas 15 — Facture suite commande/paiement par tiers pour compte acheteur",
    d:"Le tiers (agence média, centrale) passe la commande ET paie pour le compte de l'acheteur. Adresse électronique confiée à une PA-TR choisie par l'acheteur.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=tiers"},{f:"Tiers",to:"PA Acheteur",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"Vendeur",m:"CDAR 204 + paiement"}],
    st:["200","201","204","212"]},
-  {id:"UC-16",cat:"mandat",cx:"medium",
+  {id:"UC-16",cat:"mandat",
+   en:"Rebilling of Costs Advanced by Third Party",cx:"medium",
    t:"Cas 16 — Facture de refacturation des frais avancés par le tiers",
    d:"Le tiers refacture à l'acheteur les montants avancés. Deux flux distincts : facture vendeur->tiers, puis facture tiers->acheteur. BT-3=380 pour les deux.",
    flow:[{f:"Vendeur",to:"Tiers",m:"Facture initiale (EI)"},{f:"Tiers",to:"Acheteur",m:"Refacturation (EI)"},{f:"Acheteur",to:"Tiers",m:"CDAR 204 + paiement"}],
@@ -385,7 +401,8 @@ const UC=[
    d:"Marketplace est à la fois intermédiaire de paiement ET mandataire de facturation (BT-3=389 autofacturation ou mandat). Facture émise par la Marketplace au nom du vendeur.",
    flow:[{f:"Marketplace",to:"PA",m:"Facture au nom vendeur (mandat)"},{f:"Acheteur",to:"Marketplace",m:"Paiement"},{f:"Marketplace",to:"Vendeur",m:"Reversement - CDAR 212"}],
    st:["200","201","204","212"]},
-  {id:"UC-18",cat:"mandat",cx:"medium",
+  {id:"UC-18",cat:"mandat",
+   en:"Debit Note Management",cx:"medium",
    t:"Cas 18 — Gestion des notes de débit",
    d:"Note de débit émise par l'acheteur pour facturer des frais au vendeur. BT-3=383 (note de débit). Flux inverse : acheteur devient vendeur dans la facture. Rare en B2B France.",
    flow:[{f:"Acheteur",to:"PA",m:"Note de débit BT-3=383"},{f:"Vendeur",to:"PA",m:"CDAR 203/204 (approbation note débit)"}],
@@ -401,12 +418,14 @@ const UC=[
    flow:[{f:"Acheteur",to:"PA Acheteur",m:"Autofacture BT-3=389 au nom vendeur"},{f:"PPF",to:"PA Vendeur",m:"Livraison au vendeur"},{f:"Vendeur",to:"PA",m:"CDAR 203/204 (validation)"}],
    st:["200","201","203","204","212"]},
   // ── ACOMPTES / AVANCES ───────────────────────────────────────────────────
-  {id:"UC-20",cat:"acompte",cx:"medium",
+  {id:"UC-20",cat:"acompte",
+   en:"Deposit Invoice (before delivery)",cx:"medium",
    t:"Cas 20 — Facture d'acompte (avant prestation)",
    d:"Facture d'acompte émise avant réalisation complète de la prestation. BT-3=380. BT-113=0 (pas encore de paiement antérieur). La facture de solde (UC-21) référencera cet acompte.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture acompte BT-3=380"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement acompte"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement acompte"}],
    st:["200","201","204","212"]},
-  {id:"UC-21",cat:"acompte",cx:"medium",
+  {id:"UC-21",cat:"acompte",
+   en:"Balance Invoice (after deposit)",cx:"medium",
    t:"Cas 21 — Facture de solde (après acompte)",
    d:"Facture finale déduisant les acomptes versés. BT-113 = somme des acomptes. BT-115 = solde restant dû. Référence aux factures d'acompte via BG-16 (billing reference).",
    flow:[{f:"Vendeur",to:"PA",m:"Facture solde BT-113=acomptes, BT-115=solde"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"},{f:"Vendeur",to:"PA",m:"CDAR 212 solde"}],
@@ -423,109 +442,130 @@ const UC=[
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec clause escompte"},{f:"Acheteur",to:"PA",m:"Paiement anticipé avec escompte"},{f:"Vendeur",to:"PA",m:"Avoir partiel pour régularisation TVA (BT-3=381)"}],
    st:["200","201","204"]},
   // ── CAS SPECIAUX ─────────────────────────────────────────────────────────
-  {id:"UC-23",cat:"special",cx:"medium",
+  {id:"UC-23",cat:"special",
+   en:"Self-Billing — Individual to Professional",cx:"medium",
    t:"Cas 23 — Autofacturation particulier vers professionnel",
    d:"Un particulier exerçant une activité régulière facturée par un professionnel (ex: agriculteur vendant à une coopérative). BT-3=389. L'acheteur professionnel émet la facture au nom du particulier.",
    flow:[{f:"Acheteur professionnel",to:"PA",m:"Autofacture BT-3=389 au nom particulier"},{f:"Particulier",to:"Acheteur",m:"Validation"}],
    st:["200","201","204"]},
-  {id:"UC-24",cat:"special",cx:"medium",
+  {id:"UC-24",cat:"special",
+   en:"Earnest Money / Security Deposit",cx:"medium",
    t:"Cas 24 — Gestion des arrhes (dépôt de garantie)",
    d:"Arrhes versées = engagement contractuel (≠ acompte). Si annulation acheteur : arrhes conservées. Si annulation vendeur : double des arrhes rendues. Traitement spécifique TVA selon CGI.",
    flow:[{f:"Acheteur",to:"Vendeur",m:"Versement arrhes (hors périmètre EI)"},{f:"Vendeur",to:"PA",m:"Facture définitive avec déduction arrhes"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"}],
    st:["200","201","204","212"]},
-  {id:"UC-25",cat:"special",cx:"medium",
+  {id:"UC-25",cat:"special",
+   en:"Gift Cards and Vouchers",cx:"medium",
    t:"Cas 25 — Gestion des bons d'achat et cartes cadeaux",
    d:"Bon à usage unique (BUU) : TVA exigible à la délivrance. Bon multi-usages (BUM) : TVA exigible à l'utilisation. Traitement différent selon type pour l'e-reporting.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture vente bon (BUU: TVA immédiate)"},{f:"Acheteur",to:"Vendeur",m:"Utilisation bon"},{f:"Vendeur",to:"PA",m:"BUM: e-reporting à l'utilisation"}],
    st:["200","201","204"]},
-  {id:"UC-26",cat:"special",cx:"medium",
+  {id:"UC-26",cat:"special",
+   en:"Invoices with Contractual Retention Clauses",cx:"medium",
    t:"Cas 26 — Factures avec clauses de réserve contractuelle",
    d:"Partie du prix retenue jusqu'à levée de la réserve (garanties de parfait achèvement, retenues de garantie BTP). BT-115 < BT-112. Le solde retenu est payé après levée de réserve.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115=montant hors retenue"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Levée réserve",to:"PA",m:"Facture complémentaire retenue"},{f:"Vendeur",to:"PA",m:"CDAR 212"}],
    st:["200","201","204","212"]},
-  {id:"UC-27",cat:"special",cx:"basic",
+  {id:"UC-27",cat:"special",
+   en:"Toll Tickets (to taxable entity in France)",cx:"basic",
    t:"Cas 27 — Gestion des péages (tickets de péage à assujetti)",
    d:"Tickets de péage émis à des assujettis : périmètre EI en principe, mais tolérance administrative pour les reçus aux péages. Péages facturant des abonnements ou comptes entreprise : flux EI complet.",
    flow:[{f:"Société péage",to:"PA",m:"Facture abonnement ou compte entreprise"},{f:"Entreprise",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
-  {id:"UC-28",cat:"special",cx:"medium",
+  {id:"UC-28",cat:"special",
+   en:"Restaurant Tickets (taxable restaurateur in France)",cx:"medium",
    t:"Cas 28 — Tickets de restaurant (restaurateur assujetti en France)",
    d:"Restaurateurs établis en France émettant des factures à des assujettis (repas d'affaires, restauration collective). Flux EI standard. Les notes de restaurant < 150€ ont des règles simplifiées.",
    flow:[{f:"Restaurateur",to:"PA",m:"Facture repas (EI si client assujetti)"},{f:"Entreprise cliente",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
-  {id:"UC-29",cat:"tva",cx:"complex",
+  {id:"UC-29",cat:"tva",
+   en:"VAT Group (Single Taxable Entity art. 256C CGI)",cx:"complex",
    t:"Cas 29 — Groupe TVA (assujetti unique art. 256C CGI)",
    d:"Entité unique TVA regroupant plusieurs entités juridiques. L'assujetti unique a un seul numéro TVA pour le groupe. Les transactions intra-groupe sont hors champ TVA. Flux EI entre membres du groupe = e-reporting.",
    flow:[{f:"Entité A",to:"Entité B",m:"Transaction intra-groupe (hors TVA)"},{f:"Entité groupe",to:"PA",m:"E-reporting consolidé au niveau groupe"}],
    st:[]},
-  {id:"UC-30",cat:"tva",cx:"complex",
+  {id:"UC-30",cat:"tva",
+   en:"VAT Already Collected (B2C → B2B Retrospective)",cx:"complex",
    t:"Cas 30 — TVA déjà collectée (B2C → B2B rétrospectif)",
    d:"Transaction initialement traitée en B2C (e-reporting), puis facture B2B émise rétrospectivement. Régularisation de l'e-reporting B2C. La facture B2B déclenche un flux EI.",
    flow:[{f:"Vendeur",to:"PA",m:"E-reporting B2C initial"},{f:"Acheteur",to:"Vendeur",m:"Demande facture B2B a posteriori"},{f:"Vendeur",to:"PA",m:"Facture EI + régularisation e-reporting B2C"}],
    st:["200","201","204"]},
-  {id:"UC-31",cat:"tva",cx:"medium",
+  {id:"UC-31",cat:"tva",
+   en:"Mixed Invoices (main + ancillary operation)",cx:"medium",
    t:"Cas 31 — Factures mixtes (opération principale + opération accessoire)",
    d:"Une facture combine une opération principale (ex: vente) avec une opération accessoire différente (ex: transport). Chaque opération peut avoir un taux TVA différent. Plusieurs lignes avec BT-151 différents.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture multi-lignes multi-taux TVA"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
-  {id:"UC-32",cat:"special",cx:"medium",
+  {id:"UC-32",cat:"special",
+   en:"Instalment Payments (monthly)",cx:"medium",
    t:"Cas 32 — Paiements échelonnés (mensualités)",
    d:"Contrat avec paiements périodiques (abonnements, loyers, maintenance). Une facture par période ou une facture globale avec tableau d'échelonnement. BT-20 décrit les modalités.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture mensuelle ou globale avec BT-20"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement périodique"},{f:"Vendeur",to:"PA",m:"CDAR 212 par encaissement"}],
    st:["200","201","204","212"]},
-  {id:"UC-33",cat:"tva",cx:"complex",
+  {id:"UC-33",cat:"tva",
+   en:"Margin Scheme (VAT on profit)",cx:"complex",
    t:"Cas 33 — Régime de la marge (TVA sur profit)",
    d:"Régime de la marge bénéficiaire : biens d'occasion, agences de voyages, antiquités. TVA calculée sur la marge, pas sur le prix total. BT-102=S sur lignes hors marge. Indicateur marge obligatoire.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec indicateur régime marge"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
-  {id:"UC-34",cat:"acompte",cx:"medium",
+  {id:"UC-34",cat:"acompte",
+   en:"Partial Payment Acknowledgement & Cancellation",cx:"medium",
    t:"Cas 34 — Accusé de paiement partiel et annulation d'accusé",
    d:"Chaque paiement partiel déclenche un CDAR 212 avec le montant reçu. En cas d'annulation (chèque sans provision), un CDAR complémentaire annule le précédent. Applicable uniquement pour TVA encaissements.",
    flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement partiel 1"},{f:"Vendeur",to:"PA",m:"CDAR 212 montant partiel"},{f:"Banque",to:"Vendeur",m:"Rejet chèque"},{f:"Vendeur",to:"PA",m:"CDAR 212 annulation (montant négatif)"}],
    st:["212"]},
-  {id:"UC-35",cat:"special",cx:"basic",
+  {id:"UC-35",cat:"special",
+   en:"Author's Fees (copyright)",cx:"basic",
    t:"Cas 35 — Notes d'auteurs (droits d'auteur)",
    d:"Cas en cours de discussion, sous réserve d'évolutions. Les auteurs percevant des droits peuvent être soumis à TVA selon leur régime. Flux à confirmer selon décision DGFIP.",
    flow:[{f:"Auteur",to:"Éditeur/Société",m:"Note d'auteur (régime TVA à confirmer)"}],
    st:[]},
-  {id:"UC-36",cat:"special",cx:"complex",
+  {id:"UC-36",cat:"special",
+   en:"Professional Secrecy and Sensitive Data",cx:"complex",
    t:"Cas 36 — Secret professionnel et données sensibles",
    d:"Transactions soumises au secret professionnel (art. 226-13 Code pénal : secret bancaire, médical, avocat...). Anonymisation possible des données dans le flux e-invoicing. Modalités spécifiques avec DGFIP.",
    flow:[{f:"Prestataire",to:"PA",m:"Facture avec données minimales (anonymisées)"},{f:"PA",to:"PPF",m:"Flux avec restrictions données sensibles"}],
    st:["200","201","204"]},
   // ── STRUCTURES JURIDIQUES ────────────────────────────────────────────────
-  {id:"UC-37",cat:"structure",cx:"complex",
+  {id:"UC-37",cat:"structure",
+   en:"Joint Ventures / Temporary Groupings",cx:"complex",
    t:"Cas 37 — SEP (Sociétés en Participation / Groupements momentanés)",
    d:"GME/GIE sans personnalité morale. Le mandataire du groupement est le vendeur unique (BG-4=mandataire). Facturation au nom du groupement via son mandataire. Chaque membre refacture au mandataire.",
    flow:[{f:"Mandataire GME",to:"PA",m:"Facture client (BG-4=mandataire)"},{f:"Client",to:"PA",m:"CDAR 204"},{f:"Membres",to:"Mandataire",m:"Refacturation quote-part interne"}],
    st:["200","201","204","212"]},
-  {id:"UC-38",cat:"special",cx:"medium",
+  {id:"UC-38",cat:"special",
+   en:"Invoices with Sub-lines and Groupings",cx:"medium",
    t:"Cas 38 — Factures avec sous-lignes et regroupements",
    d:"Certains secteurs nécessitent une description détaillée des composants. Kits, assemblages, facturation télécom avec détail des communications. Structure hiérarchique de lignes via BT-128 (référence objet).",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec lignes regroupées (BT-128)"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
-  {id:"UC-39",cat:"intermediaire",cx:"complex",
+  {id:"UC-39",cat:"intermediaire",
+   en:"Multi-vendor Transparent Intermediary (consolidated invoice)",cx:"complex",
    t:"Cas 39 — Intermédiaire transparent multi-vendeurs (facture consolidée)",
    d:"Centrale d'achat ou agrégateur facturant à un acheteur unique pour le compte de plusieurs vendeurs. Facture consolidée multi-vendeurs (Multi-Vendor Invoice). BG-4 = chaque vendeur distinct.",
    flow:[{f:"Vendeurs A,B,C",to:"Intermédiaire",m:"Factures individuelles"},{f:"Intermédiaire",to:"PA",m:"Facture consolidée multi-vendeurs"},{f:"Acheteur",to:"PA",m:"CDAR 204 global"}],
    st:["200","201","204","212"]},
-  {id:"UC-40",cat:"special",cx:"complex",
+  {id:"UC-40",cat:"special",
+   en:"Group Payments, Netting or Compensation",cx:"complex",
    t:"Cas 40 — Paiements groupés, netting ou compensation (achats croisés)",
    d:"Deux entités qui s'achètent mutuellement peuvent compenser leurs créances. Netting : une seule transaction nette. Chaque facture reste individuelle dans EI, le paiement net est rapproché.",
    flow:[{f:"A",to:"PA",m:"Facture A→B"},{f:"B",to:"PA",m:"Facture B→A"},{f:"Compensation",to:"PA",m:"CDAR 212 net (montant compensé)"}],
    st:["200","201","204","212"]},
-  {id:"UC-41",cat:"special",cx:"complex",
+  {id:"UC-41",cat:"special",
+   en:"Barter Companies (inter-company exchange)",cx:"complex",
    t:"Cas 41 — Entreprises de troc (échange inter-entreprises)",
    d:"Transactions de troc entre professionnels. Chaque partie est simultanément vendeur et acheteur. Deux factures séparées ou une seule avec compensation. Base TVA = valeur vénale des biens/services échangés.",
    flow:[{f:"Entreprise A",to:"PA",m:"Facture A→B (valeur vénale)"},{f:"Entreprise B",to:"PA",m:"Facture B→A (valeur vénale)"},{f:"Les deux",to:"PA",m:"CDAR 212 croisés"}],
    st:["200","201","204","212"]},
   // ── TVA / EXONERATIONS ───────────────────────────────────────────────────
-  {id:"UC-42",cat:"tva",cx:"medium",
+  {id:"UC-42",cat:"tva",
+   en:"Tax Exemptions (duty-free)",cx:"medium",
    t:"Cas 42 — Gestion des exonérations fiscales (détaxe)",
    d:"Ventes à des clients hors UE bénéficiant de la détaxe (TVA remboursée à la sortie du territoire). Cas 1 : vente B2C initiale avec TVA. Cas 2 : vente B2C sans TVA applicable en France.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture avec TVA (ou exonérée BT-118=G)"},{f:"Client",to:"Douane",m:"Demande remboursement TVA sortie"},{f:"Vendeur",to:"PA",m:"E-reporting B2C (montant HT)"}],
    st:[]},
-  {id:"UC-43",cat:"international",cx:"complex",
+  {id:"UC-43",cat:"international",
+   en:"B2B International E-Reporting (sales/acquisitions)",cx:"complex",
    t:"Cas 43 — E-reporting B2B international (ventes/acquisitions)",
    d:"Transactions B2B avec acheteurs étrangers (hors périmètre EI). E-reporting individuel par transaction. BT-118=K (intra-UE) ou G (export). Sous-cas : 43a Transactions triangulaires, 43b Transferts de stocks intra-UE.",
    flow:[{f:"Vendeur FR",to:"PA",m:"Données transaction internationale"},{f:"PA",to:"PPF",m:"E-reporting B2B-INT"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA internationale"}],
@@ -540,7 +580,8 @@ const UC=[
    d:"Transfert de stocks entre établissements d'une même entreprise dans deux États membres différents. Assimilé à une livraison intra-communautaire. E-reporting en France pour la partie française.",
    flow:[{f:"Entité FR",to:"PA",m:"E-reporting transfert stock (BT-118=K)"},{f:"Entité UE",to:"PA UE",m:"Acquisition IC dans l'autre État"}],
    st:[]},
-  {id:"UC-44",cat:"international",cx:"medium",
+  {id:"UC-44",cat:"international",
+   en:"Transactions with DOM/COM/TAAF Entities",cx:"medium",
    t:"Cas 44 — Transactions avec entités DROMs/COMs/TAAFs",
    d:"Transactions avec entités établies dans les collectivités d'outre-mer (DROMs, COMs, TAAFs). Régime TVA différent de la France métropolitaine. Codes pays spéciaux : NC (Nouvelle-Calédonie, ICD 0228), PF (Polynésie, ICD 0229). Traitement e-reporting spécifique.",
    flow:[{f:"Vendeur FR Metro",to:"PA",m:"Facture BT-57b=NC ou PF"},{f:"PA",to:"PPF",m:"E-reporting international (hors périmètre EI métropole)"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA spécifique DROM"}],
@@ -1124,140 +1165,164 @@ function App(){
 
       {/* ── USE CASES ── */}
       {tab==="uc"&&(
-        <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
-          <div style={{maxWidth:1080,margin:"0 auto"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
-              <div><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Cas d'usage <span style={{color:"#10B981"}}>XP Z12-014</span></h2><p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:4}}>Cliquez un cas pour voir le flux de messages.</p></div>
-              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                {[["all","Tous"],["nominal","Nominal"],["expenses","Notes de frais"],["tiers","Tiers payeur"],["intermediaire","Intermédiaires"],["soustrait","Sous-traitance"],["mandat","Mandats/Self-billing"],["acompte","Acomptes"],["escompte","Escomptes"],["tva","TVA spéciaux"],["structure","Structures juridiques"],["international","International"],["correction","Corrections"],["special","Cas spéciaux"]].map(([v,l])=><P key={v} label={l} active={ucCat===v} onClick={()=>setUcCat(v)} color="#10B981"/>)}
+        <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
+          {/* Header + filters */}
+          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
+              <div>
+                <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Cas d'usage <span style={{color:"#10B981"}}>XP Z12-014</span></h2>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>41 cas normatifs · AFNOR XP Z12-014</p>
+              </div>
+              {/* Lang toggle */}
+              <div style={{display:"flex",gap:3}}>
+                {[["fr","🇫🇷 FR"],["en","🇬🇧 EN"]].map(([v,l])=>(
+                  <button key={v} onClick={()=>setUcLang(v)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(ucLang===v?"#10B981":"rgba(255,255,255,0.1)"),background:ucLang===v?"rgba(16,185,129,0.15)":"transparent",color:ucLang===v?"#10B981":"rgba(255,255,255,0.4)",fontWeight:ucLang===v?700:400}}>{l}</button>
+                ))}
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(310px,1fr))",gap:12}}>
-              {filtUC.map(uc=>{
-                const cc={nominal:"#3B82F6",expenses:"#10B981",tiers:"#F59E0B",intermediaire:"#8B5CF6",soustrait:"#EF4444",mandat:"#06B6D4",acompte:"#84CC16",escompte:"#F59E0B",tva:"#EC4899",structure:"#6366F1",international:"#0EA5E9",correction:"#F59E0B",special:"#8B5CF6"}[uc.cat]||"#888";
-                return(
-                  <div key={uc.id} onClick={()=>setSelUC(selUC?.id===uc.id?null:uc)} style={{background:selUC?.id===uc.id?cc+"12":"rgba(255,255,255,0.02)",border:"1.5px solid "+(selUC?.id===uc.id?cc:"rgba(255,255,255,0.07)"),borderRadius:11,padding:16,cursor:"pointer",transition:"all 0.14s"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                      <span style={{fontSize:9,background:cc+"20",color:cc,border:"1px solid "+cc+"40",borderRadius:4,padding:"2px 7px"}}>{uc.cat.toUpperCase()}</span>
-                      <div style={{display:"flex",gap:4}}>
-                        <span style={{fontSize:9,background:uc.cx==="basic"?"rgba(34,197,94,0.15)":uc.cx==="medium"?"rgba(245,158,11,0.15)":"rgba(239,68,68,0.15)",color:uc.cx==="basic"?"#22C55E":uc.cx==="medium"?"#F59E0B":"#EF4444",borderRadius:4,padding:"1px 6px"}}>{uc.cx}</span>
-                        <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"rgba(255,255,255,0.3)"}}>{uc.id}</span>
+            {/* Category filters */}
+            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+              {[["all","Tous","#6366F1"],["nominal","Nominal","#3B82F6"],["expenses","Notes frais","#F59E0B"],["tiers","Tiers payeur","#8B5CF6"],["intermediaire","Intermédiaires","#06B6D4"],["soustrait","Sous-traitance","#10B981"],["mandat","Mandats","#EC4899"],["acompte","Acomptes","#F97316"],["escompte","Escomptes","#84CC16"],["tva","TVA spéciaux","#EF4444"],["juridique","Structures jur.","#A78BFA"],["international","International","#34D399"],["correction","Corrections","#94A3B8"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setUcCat(v)} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",border:"1px solid "+(ucCat===v?c:"rgba(255,255,255,0.1)"),background:ucCat===v?c+"20":"transparent",color:ucCat===v?c:"rgba(255,255,255,0.35)",fontWeight:ucCat===v?700:400}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Two-column layout: list left, detail right */}
+          <div style={{display:"grid",gridTemplateColumns:"380px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+
+            {/* LEFT — sortable list */}
+            <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+              {/* Sort header */}
+              <div style={{display:"grid",gridTemplateColumns:"3px 56px 1fr 58px 54px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+                <div></div>
+                {[["id","CODE"],["t","TITRE"],["cat","CATÉGORIE"],["cx","NIVEAU"]].map(([k,lbl])=>(
+                  <div key={k} onClick={()=>{if(ucSort===k)setUcSortDir(d=>d==="asc"?"desc":"asc");else{setUcSort(k);setUcSortDir("asc");}}}
+                    style={{fontSize:9,fontWeight:700,color:ucSort===k?"#10B981":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
+                    {lbl}{ucSort===k&&<span style={{fontSize:8}}>{ucSortDir==="asc"?"▲":"▼"}</span>}
+                  </div>
+                ))}
+              </div>
+              {/* List */}
+              <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
+                {(()=>{
+                  const CX_ORDER={"basic":0,"medium":1,"complex":2};
+                  const CAT_C={"nominal":"#3B82F6","expenses":"#F59E0B","tiers":"#8B5CF6","intermediaire":"#06B6D4","soustrait":"#10B981","mandat":"#EC4899","acompte":"#F97316","escompte":"#84CC16","tva":"#EF4444","juridique":"#A78BFA","international":"#34D399","correction":"#94A3B8"};
+                  const CX_C={"basic":"#22C55E","medium":"#F59E0B","complex":"#EF4444"};
+                  const filtered=[...UC]
+                    .filter(f=>ucCat==="all"||f.cat===ucCat)
+                    .sort((a,b)=>{
+                      let av,bv;
+                      if(ucSort==="cx"){av=CX_ORDER[a.cx]||0;bv=CX_ORDER[b.cx]||0;}
+                      else if(ucSort==="cat"){av=a.cat||"";bv=b.cat||"";}
+                      else if(ucSort==="t"){av=(ucLang==="en"?a.en:a.t)||"";bv=(ucLang==="en"?b.en:b.t)||"";}
+                      else{av=parseInt(a.id.replace("UC-",""))||0;bv=parseInt(b.id.replace("UC-",""))||0;}
+                      return ucSortDir==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
+                    });
+                  return filtered.map(f=>{
+                    const cc=CAT_C[f.cat]||"#6366F1";
+                    const cxc=CX_C[f.cx]||"#6366F1";
+                    const title=ucLang==="en"?(f.en||f.t):f.t;
+                    return(
+                    <div key={f.id} onClick={()=>setSelUC(selUC?.id===f.id?null:f)}
+                      style={{display:"grid",gridTemplateColumns:"3px 56px 1fr 58px 54px",padding:"7px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                        background:selUC?.id===f.id?cc+"18":"transparent",transition:"background 0.1s"}}
+                      onMouseEnter={e=>{if(selUC?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
+                      onMouseLeave={e=>{if(selUC?.id!==f.id)e.currentTarget.style.background="transparent";}}>
+                      <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:cc,minHeight:18}}></div>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:cc}}>{f.id}</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{title}</div>
+                      <div style={{display:"flex",justifyContent:"center"}}>
+                        <span style={{fontSize:8,background:cc+"18",color:cc,borderRadius:3,padding:"2px 5px",fontWeight:600,textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:52}}>{f.cat}</span>
+                      </div>
+                      <div style={{display:"flex",justifyContent:"center"}}>
+                        <span style={{fontSize:8,background:cxc+"18",color:cxc,borderRadius:3,padding:"2px 5px",fontWeight:600}}>{f.cx}</span>
                       </div>
                     </div>
-                    <div style={{fontWeight:700,fontSize:13,marginBottom:4,color:"#fff"}}>{uc.t}</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.5}}>{uc.d.substring(0,110)}{uc.d.length>110?"…":""}</div>
-                    {uc.st.length>0&&<div style={{display:"flex",gap:4,marginTop:8,flexWrap:"wrap"}}>{uc.st.map(s=><span key={s} style={{fontSize:9,background:(ILC.find(x=>x.code===s)?.c||"#888")+"20",color:ILC.find(x=>x.code===s)?.c||"#888",borderRadius:4,padding:"1px 5px"}}>{s}</span>)}</div>}
-                    {selUC?.id===uc.id&&(
-                      <div style={{marginTop:12,borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:12}}>
-                        <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.6,marginBottom:10}}>{uc.d}</div>
-                        <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>Flux de messages</div>
-                        {uc.flow.map((fl,i)=>(
-                          <div key={i} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(0,0,0,0.3)",borderRadius:5,padding:"5px 9px",marginBottom:4}}>
-                            <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:cc,minWidth:90,flexShrink:0}}>{fl.f}</span>
-                            <span style={{color:"rgba(255,255,255,0.2)",flexShrink:0}}>→</span>
-                            <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#A5B4FC",minWidth:85,flexShrink:0}}>{fl.to}</span>
-                            <span style={{fontSize:10,color:"rgba(255,255,255,0.5)"}}>{fl.m}</span>
+                  );});
+                })()}
+              </div>
+            </div>
+
+            {/* RIGHT — detail */}
+            <div key={selUC?.id} style={{overflow:"auto",padding:22,background:"rgba(0,0,0,0.12)"}}>
+              {selUC?(()=>{
+                const CAT_C={"nominal":"#3B82F6","expenses":"#F59E0B","tiers":"#8B5CF6","intermediaire":"#06B6D4","soustrait":"#10B981","mandat":"#EC4899","acompte":"#F97316","escompte":"#84CC16","tva":"#EF4444","juridique":"#A78BFA","international":"#34D399","correction":"#94A3B8"};
+                const CX_C={"basic":"#22C55E","medium":"#F59E0B","complex":"#EF4444"};
+                const cc=CAT_C[selUC.cat]||"#6366F1";
+                const cxc=CX_C[selUC.cx]||"#6366F1";
+                return(
+                <div>
+                  {/* Title block */}
+                  <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:18}}>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:20,color:cc,fontWeight:900,background:cc+"12",border:"1px solid "+cc+"35",borderRadius:8,padding:"8px 14px",flexShrink:0}}>{selUC.id}</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:15,fontWeight:700,marginBottom:4,lineHeight:1.4}}>{selUC.t}</div>
+                      {selUC.en&&<div style={{fontSize:12,color:"rgba(255,255,255,0.4)",fontStyle:"italic"}}>{selUC.en}</div>}
+                    </div>
+                    <div style={{display:"flex",gap:5,flexShrink:0}}>
+                      <span style={{fontSize:10,background:cc+"18",color:cc,border:"1px solid "+cc+"35",borderRadius:5,padding:"3px 10px",fontWeight:700,textTransform:"uppercase"}}>{selUC.cat}</span>
+                      <span style={{fontSize:10,background:cxc+"18",color:cxc,border:"1px solid "+cxc+"35",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{selUC.cx}</span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.75}}>{selUC.d}</div>
+
+                  {/* Flow */}
+                  {selUC.flow&&selUC.flow.length>0&&(
+                    <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
+                      <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:10,fontWeight:700}}>🔄 Flux de messages</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                        {selUC.flow.map((step,i)=>(
+                          <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
+                            <span style={{fontSize:11,color:cc,fontWeight:700,background:cc+"15",borderRadius:4,padding:"2px 8px",flexShrink:0,minWidth:60,textAlign:"center"}}>{step.f}</span>
+                            <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>→</span>
+                            <span style={{fontSize:11,color:cc,fontWeight:700,background:cc+"15",borderRadius:4,padding:"2px 8px",flexShrink:0,minWidth:60,textAlign:"center"}}>{step.to}</span>
+                            <span style={{fontSize:11,color:"rgba(255,255,255,0.6)",flex:1}}>{step.m}</span>
                           </div>
                         ))}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+                    </div>
+                  )}
 
-      {/* ── VALIDATOR ── */}
-      {tab==="val"&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 400px",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
-          <div style={{display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",flexShrink:0}}>
-              <span style={{fontSize:12,fontWeight:700}}>PA Simulator — XML Validator</span>
-              <div style={{display:"flex",gap:3,marginLeft:"auto"}}>
-                <button onClick={()=>{setXml(SXML);setRes(null);}} style={{fontSize:11,padding:"4px 10px",borderRadius:5,cursor:"pointer",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",color:"#A5B4FC"}}>Sample UBL</button>
-              </div>
-              <button onClick={()=>fileRef.current.click()} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:5,padding:"4px 10px",color:"rgba(255,255,255,0.5)",cursor:"pointer",fontSize:11}}>📂 Load</button>
-              <input ref={fileRef} type="file" accept=".xml" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{setXml(ev.target.result);setRes(null);};r.readAsText(f);}}} style={{display:"none"}}/>
-              <button onClick={doVal} disabled={validating||!xml.trim()} style={{background:validating?"rgba(99,102,241,0.1)":"linear-gradient(135deg,#6366F1,#3B82F6)",border:"none",borderRadius:6,padding:"5px 16px",color:"#fff",cursor:"pointer",fontWeight:700,fontSize:12}}>
-                {validating?"⏳":"▶ Valider"}
-              </button>
-            </div>
-            <textarea value={xml} onChange={e=>{setXml(e.target.value);setRes(null);}} style={{flex:1,background:"#050810",color:"#A5B4FC",fontFamily:"JetBrains Mono,monospace",fontSize:11,border:"none",outline:"none",padding:14,resize:"none",lineHeight:1.7}}/>
-          </div>
-          <div style={{overflow:"auto",padding:14,display:"flex",flexDirection:"column",gap:10}}>
-            {!res&&<div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,0.2)",gap:8}}><span style={{fontSize:40}}>🔬</span><div style={{fontSize:13,fontWeight:600}}>PA Simulator</div><div style={{fontSize:11,textAlign:"center"}}>UBL 2.1 · CII/Factur-X · E-Reporting XML</div></div>}
-            {res&&<>
-              <div style={{background:res.valid?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",border:"1.5px solid "+(res.valid?"#22C55E":"#EF4444"),borderRadius:9,padding:12,display:"flex",gap:10,alignItems:"center"}}>
-                <span style={{fontSize:24}}>{res.valid?"✅":"❌"}</span>
-                <div><div style={{fontWeight:800,fontSize:14,color:res.valid?"#22C55E":"#EF4444"}}>{res.valid?"CONFORME":"NON CONFORME"}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:2}}>{res.fmt} · {res.stats.e} erreur(s) · {res.stats.w} warning(s) · {res.stats.p} OK</div></div>
-              </div>
-              {[["error","🔴 Erreurs",res.errs],["warning","🟡 Warnings",res.warns],["info","🟢 OK",res.infos]].map(([lvl,title,items])=>
-                items.length>0&&(
-                  <div key={lvl}>
-                    <div style={{fontSize:11,color:lvl==="error"?"#EF4444":lvl==="warning"?"#F59E0B":"#22C55E",fontWeight:700,marginBottom:5,textTransform:"uppercase",letterSpacing:0.8}}>{title} ({items.length})</div>
-                    {items.map((it,i)=>(
-                      <div key={i} style={{background:lvl==="error"?"rgba(239,68,68,0.06)":lvl==="warning"?"rgba(245,158,11,0.06)":"rgba(34,197,94,0.04)",border:"1px solid "+(lvl==="error"?"rgba(239,68,68,0.2)":lvl==="warning"?"rgba(245,158,11,0.2)":"rgba(34,197,94,0.15)"),borderRadius:6,padding:"7px 10px",marginBottom:4}}>
-                        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:it.m?3:0}}>
-                          {it.r&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:lvl==="error"?"rgba(239,68,68,0.2)":lvl==="warning"?"rgba(245,158,11,0.2)":"rgba(34,197,94,0.2)",color:lvl==="error"?"#EF4444":lvl==="warning"?"#F59E0B":"#22C55E",borderRadius:4,padding:"1px 5px"}}>{it.r}</span>}
-                          {it.f&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:4,padding:"1px 5px"}}>{it.f}</span>}
-                        </div>
-                        <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",lineHeight:1.5}}>{it.m}</div>
+                  {/* Statuts ILC */}
+                  {selUC.st&&selUC.st.length>0&&(
+                    <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.18)",borderRadius:10,padding:"12px 16px"}}>
+                      <div style={{fontSize:9,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>📋 Statuts ILC</div>
+                      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                        {selUC.st.map(s=>(
+                          <span key={s} style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,background:"rgba(16,185,129,0.1)",color:"#6EE7B7",borderRadius:5,padding:"3px 8px",fontWeight:600}}>{s}</span>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )
-              )}
-            </>}
+                    </div>
+                  )}
+                </div>
+              );})():
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
+                <div style={{fontSize:40}}>📋</div>
+                <div style={{fontSize:13}}>Sélectionnez un cas d'usage</div>
+              </div>}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── RULES ── */}
-      {tab==="rules"&&(
-        <div style={{overflow:"auto",padding:"20px 24px",flex:1}}>
-          <div style={{maxWidth:860,margin:"0 auto"}}>
-            <div style={{marginBottom:16}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Règles <span style={{color:"#6366F1"}}>BR-FR · EN16931 · LF2026</span></h2></div>
-            {[["error","🔴 Erreurs — facture rejetée"],["warning","🟡 Warnings — risque non-conformité"],["info","ℹ️ Info — contexte"]].map(([lvl,title])=>{
-              const items=RULES.filter(r=>r.lvl===lvl);if(!items.length)return null;
-              const lc={error:"#EF4444",warning:"#F59E0B",info:"#3B82F6"}[lvl];
-              return<div key={lvl} style={{marginBottom:22}}>
-                <div style={{fontSize:11,color:lc,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>{title}</div>
-                {items.map(r=>(
-                  <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+lc+"20",borderRadius:10,padding:14,marginBottom:7,display:"flex",gap:12,alignItems:"flex-start"}}>
-                    <div style={{minWidth:100,flexShrink:0}}>
-                      <div style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:11,color:lc}}>{r.id}</div>
-                      <span style={{fontSize:9,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:4,padding:"1px 5px"}}>{r.std}</span>
-                    </div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:4}}>{r.t}</div>
-                      <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.55,marginBottom:r.fields.length?7:0}}>{r.d}</div>
-                      {r.fields.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.fields.map(f=><span key={f} onClick={()=>{const field=BT.find(b=>b.id===f);if(field){setSelBT(field);setTab("bt");}}} style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",border:"1px solid rgba(99,102,241,0.3)",borderRadius:4,padding:"1px 7px",cursor:"pointer"}}>{f}</span>)}</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>;
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── FLUX DE DONNEES ── */}
       {tab==="flux"&&(
         <div style={{overflow:"auto",padding:"18px 22px",flex:1}}>
           <div style={{maxWidth:980,margin:"0 auto"}}>
-            <div style={{marginBottom:20}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Flux <span style={{color:"#06B6D4"}}>Architecture Y-Model</span></h2><p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4}}>Qui envoie quoi a qui — E-Invoicing vs E-Reporting — Acteurs — Identifiants CDAR</p></div>
+            <div style={{marginBottom:20}}><h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Flux <span style={{color:"#06B6D4"}}>Architecture Y-Model</span></h2><p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4}}>Qui envoie quoi à qui — E-Invoicing vs E-Reporting — Acteurs — Identifiants CDAR · <span style={{color:"rgba(255,255,255,0.25)"}}>Who sends what to whom — E-Invoicing vs E-Reporting — Actors — CDAR identifiers</span></p></div>
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:22}}>
               {[
-                {title:"🔵 E-INVOICING (Flux 2)",color:"#3B82F6",desc:"Format: UBL 2.1 / CII / Factur-X (norme EN16931)\nDestinataire: L'acheteur via PA/PPF\nContenu: Facture complete avec toutes les lignes\nFrequence: A chaque facture emise\nRetour: Statuts ILC CDAR 200 -> 212",
+                {title:"🔵 E-INVOICING (Flux 2)",en:"Structured invoice sent to buyer via PA/PPF",color:"#3B82F6",desc:"Format: UBL 2.1 / CII / Factur-X (norme EN16931)\nDestinataire: L'acheteur via PA/PPF\nContenu: Facture complete avec toutes les lignes\nFrequence: A chaque facture emise\nRetour: Statuts ILC CDAR 200 -> 212",
                  steps:[{f:"Vendeur",t:"PA Vendeur",m:"Facture XML BT-1..BT-153"},{f:"PA Vendeur",t:"PPF",m:"Routage via Annuaire BT-49"},{f:"PPF",t:"PA Acheteur",m:"Livraison + CDAR 200"},{f:"Acheteur",t:"PA",m:"CDAR 203/204/210/212"}]},
-                {title:"🟠 E-REPORTING (Flux 7)",color:"#F59E0B",desc:"Format: XML proprietaire DGFiP (pas EN16931)\nDestinataire: DGFiP uniquement (pas l'acheteur)\nContenu: Montants agreges par taux TVA\nFrequence: Tous les 10 jours\nRetour: Accuse reception DGFiP",
+                {title:"🟠 E-REPORTING (Flux 7)",en:"Aggregated VAT data sent to DGFiP only",color:"#F59E0B",desc:"Format: XML proprietaire DGFiP (pas EN16931)\nDestinataire: DGFiP uniquement (pas l'acheteur)\nContenu: Montants agreges par taux TVA\nFrequence: Tous les 10 jours\nRetour: Accuse reception DGFiP",
                  steps:[{f:"Vendeur",t:"PA Vendeur",m:"Donnees agreges ER-01..ER-22"},{f:"PA Vendeur",t:"PPF",m:"XML e-reporting DGFiP"},{f:"PPF",t:"DGFiP",m:"Donnees TVA declaration"},{f:"DGFiP",t:"PPF",m:"Accuse de reception"}]}
-              ].map(({title,color,desc,steps})=>(
+              ].map(({title,en,color,desc,steps})=>(
                 <div key={title} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+color+"30",borderRadius:12,padding:16}}>
-                  <div style={{fontSize:13,fontWeight:800,color,marginBottom:10}}>{title}</div>
+                  <div style={{fontSize:13,fontWeight:800,color,marginBottom:en?4:10}}>{title}</div>
+                  {en&&<div style={{fontSize:10,color:"rgba(255,255,255,0.35)",fontStyle:"italic",marginBottom:10}}>{en}</div>}
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.8,whiteSpace:"pre-line",background:"rgba(0,0,0,0.2)",borderRadius:7,padding:10,marginBottom:12}}>{desc}</div>
                   {steps.map((s,i)=>(
                     <div key={i} style={{display:"flex",alignItems:"center",gap:5,background:"rgba(0,0,0,0.25)",borderRadius:5,padding:"4px 8px",marginBottom:3}}>
