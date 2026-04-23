@@ -936,7 +936,7 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 72px 1fr 54px 62px 68px 88px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 72px 300px 54px 80px 80px 88px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["a","ACTEUR"],["tt","TT/TG"],["sap","SAP S/4H"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
@@ -956,7 +956,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 72px 1fr 54px 62px 68px 88px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 72px 300px 54px 80px 80px 88px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -964,7 +964,7 @@ function App(){
                     <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:SC,minHeight:18}}></div>
                     {/* Code ER + TT ref */}
                     <div>
-                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,fontWeight:700,color:SC}}>{f.id}</div>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,fontWeight:700,color:SC,letterSpacing:0.3}}>{f.id}</div>
                       {f.tt&&<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:SC+"90",marginTop:2}}>{f.tt}</div>}
                     </div>
                     {/* Désignation FR */}
@@ -977,14 +977,14 @@ function App(){
                     </div>
                     {/* Acteur PA ou Business */}
                     <div style={{display:"flex",justifyContent:"center"}}>
-                      <span style={{fontSize:9,background:AC+"18",color:AC,borderRadius:4,padding:"3px 6px",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>
+                      <span style={{fontSize:11,background:AC+"18",color:AC,borderRadius:4,padding:"3px 8px",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>
                         {f.a==="PA"?"🔧 PA":"📋 Biz"}
                       </span>
                     </div>
                     {/* TT/TG XML ref */}
                     <div style={{overflow:"hidden"}}>
                       {f.tt
-                        ?<code style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#6366F1",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block"}}>{f.tt}</code>
+                        ?<code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#6366F1",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block",fontWeight:700}}>{f.tt}</code>
                         :<div style={{fontSize:9,color:"rgba(255,255,255,0.15)",textAlign:"center"}}>—</div>}
                     </div>
                     {/* SAP S/4H mapping */}
@@ -1090,7 +1090,7 @@ function App(){
           </div>
 
           {/* Two-column layout */}
-          <div style={{display:"grid",gridTemplateColumns:"600px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"780px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
