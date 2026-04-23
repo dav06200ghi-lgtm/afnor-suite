@@ -215,7 +215,7 @@ const ER=[
    tt:"TT-34",path:"/TransactionsReport/Invoice/Seller/TaxRegistrationId",ex:"FR12345678900",sap:"T001-STCEG / ADRC-STCEG\nOu: LFA1-STCEG (vendeur)\nTable J_1ATAX (n° TVA)",alert:"⚠️ Groupes TVA (assujetti unique art. 256C CGI) : identifier le bon numéro TVA déclarant par entité."},
   {id:"ER-07",l:"Transaction type code",fr:"Catégorie de transactions",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Code",a:"PA",
    d:"Champ pilote déterminant le scope e-reporting ET la direction AR/AP. Valeurs : B2B-INT (ventes B2B int. → AR), B2C (ventes particuliers France → AR), B2C-INT (ventes particuliers étranger → AR). Important : B2B DOMESTIC France n'est PAS dans e-reporting → e-invoicing Flux 2 obligatoire. Ce champ détermine aussi EU vs non-EU et TVA collectée vs autoliquidation.",
-   tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1 | TPS1 | TNT1 | TMA1",sap:"",alert:"🔴 Champ critique : pilote e-invoicing vs e-reporting, AR vs AP, EU vs non-EU. B2B domestic FR → e-invoicing uniquement."},
+   tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1 | TPS1 | TNT1 | TMA1",sap:"",alert:"🔴 Champ critique : pilote e-invoicing vs e-reporting, AR vs AP, EU vs non-EU. B2B domestic FR → e-invoicing uniquement.",sap_table:"AR: FR+B2B=e-invoicing | FR+B2C=B2C | non-FR+B2B=B2B-INT | non-FR+B2C=B2C-INT. AP: FR=hors ER | UE=B2B-INT | non-UE+svc=B2B-INT | non-UE+goods=hors scope"},
   {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Date",a:"Business",
    d:"Date de l'opération économique réelle — PAS nécessairement la date de facture. Biens : date de livraison. Services : date de prestation. Point de vigilance SAP AP : BKPF-BUDAT = date comptabilisation, souvent différente de la date réelle. Risque élevé en OCR/EDI.",
    tt:"TT-77",path:"/TransactionsReport/Transactions/Date",ex:"20260905",sap:"BKPF-BUDAT (date comptabilisation)\nOu BKPF-BLDAT (date document)\nVBRK-FKDAT (SD billing date)",alert:"⚠️ SAP AP : BKPF-BUDAT ≠ date livraison réelle. Risque OCR/EDI élevé. Aligner avec date exigibilité TVA (BT-7/BT-8)."},
@@ -662,6 +662,9 @@ const RULES=[
   {id:"MEDIA-01",lvl:"open",std:"TR/AFNOR",fields:["BT-23","BT-49","BT-21"],
    t:"Cas Média — 3 types de documents (Publicis / Edgar Palau 21/04/2026)",
    d:"3 types de documents dans l'achat d'espace publicitaire. (1) Appels de fonds (Agence → Annonceur/Coty): HORS périmètre e-invoicing — aucun changement attendu. (2) Factures honoraires agence (Agence → Coty): soumises à la réforme mais ne relèvent PAS du UC-15 — transmises via PA de l'agence vers PA générale Coty comme toute facture fournisseur. (3) Factures régies / Media Owners (Media Owner → Coty, mandat agence): soumises à la réforme et ENTIÈREMENT sous UC-15 — l'agence apparaît comme tiers payeur et/ou tiers commandeur. Recommandation AFNOR + industrie: créer une adresse électronique dédiée SIREN_ACHATMEDIAS sur la PA de l'agence (pivot PA). Avantages: ségrégation des flux, intégration dans SI Coty via API AFNOR XP Z12-013 ou API Generix. Accès agence: Basic (UI) ou Technical (API). L'agence pourra poster les statuts ILC au nom de Coty selon son mandat."},
+    {id:"ER-07-DERIVE",lvl:"warning",std:"TR/AFNOR",fields:["ER-07"],
+   t:"ER-07 — Champ dérivé, pas source SAP (audit David/Laurent)",
+   d:"ER-07 doit être calculé à partir de 3 dimensions indépendantes — NE PAS mapper directement depuis un champ SAP unique. Dimension 1: Type client B2B vs B2C (AR: KNA1-STCEG/KTOKD; AP: B2B par défaut). Dimension 2: Géographie FR/EU/non-EU (AR: KNA1-LAND1; AP: LFA1-LAND1). Dimension 3: Nature goods/services (VBRP-PSTYV / EKPO-PSTYP). Table de décision AR: FR+B2B→e-invoicing, FR+B2C→B2C, non-FR+B2B→B2B-INT, non-FR+B2C→B2C-INT. Table AP: FR→hors ER, UE→B2B-INT, non-UE+svc→B2B-INT, non-UE+goods import→hors scope. B2C AP quasi inexistant sauf T&E non structurés."},
     {id:"AP-ER-AGG-01",lvl:"open",std:"TR/AFNOR",fields:["ER-09","ER-10","ER-12"],
    t:"AP E-Reporting: Agrégation des lignes par code TVA",
    d:"Question escaladée aux Affaires Réglementaires (mail Laurent Malzac 17/04/2026). Les lignes facture ayant le même taux/code TVA sur une même facture peuvent-elles être agrégées en une seule ligne dans le e-reporting ? Laurent (Coty): oui, probable jusqu'en 2027. Thomson Reuters: feasible techniquement — rien dans le schéma n'interdit l'agrégation. Flux 10.1 : 1 bloc TaxSubTotal par taux TVA. Recommandation: consulter conseiller fiscal avant implémentation."},
@@ -1356,7 +1359,33 @@ function App(){
                       </div>}
                     </div>
                   )}
-                  {selER.sap&&(
+                  {selER.sap_table&&(
+                    <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:9,padding:"10px 14px",marginBottom:10}}>
+                      <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>📊 Table de décision SAP → ER-07</div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                        <div>
+                          <div style={{fontSize:9,color:"#22C55E",fontWeight:700,marginBottom:4}}>🔼 AR — KNA1-LAND1 · KNA1-STCEG</div>
+                          {[["FR + B2B","e-invoicing (hors ER)","#94A3B8"],["FR + B2C","B2C","#F59E0B"],["non-FR + B2B","B2B-INT","#3B82F6"],["non-FR + B2C","B2C-INT","#8B5CF6"]].map(([c,r,col])=>(
+                            <div key={c} style={{display:"flex",gap:6,marginBottom:2,alignItems:"center"}}>
+                              <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:col,minWidth:105,flexShrink:0}}>{c}</code>
+                              <span style={{fontSize:9,color:"rgba(255,255,255,0.6)"}}>→ {r}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <div style={{fontSize:9,color:"#F59E0B",fontWeight:700,marginBottom:4}}>🔽 AP — LFA1-LAND1 · EKPO-PSTYP</div>
+                          {[["Fourn. FR","hors ER","#94A3B8"],["Fourn. UE","B2B-INT","#3B82F6"],["non-UE + svc","B2B-INT","#06B6D4"],["non-UE + goods","hors scope","#EF4444"]].map(([c,r,col])=>(
+                            <div key={c} style={{display:"flex",gap:6,marginBottom:2,alignItems:"center"}}>
+                              <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:col,minWidth:105,flexShrink:0}}>{c}</code>
+                              <span style={{fontSize:9,color:"rgba(255,255,255,0.6)"}}>→ {r}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{fontSize:11,color:"#FCA5A5",background:"rgba(239,68,68,0.06)",borderRadius:6,padding:"6px 10px"}}>⚡ ER-07 = champ dérivé. 3 dimensions: B2B/B2C + géographie + goods/services. Ne pas calculer depuis 1 seul champ SAP.</div>
+                    </div>
+                  )}
+                  selER.sap&&(
                     <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.18)",borderRadius:8,padding:"12px 14px",marginBottom:12}}>
                       <div style={{fontSize:9,color:"#34D399",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700,display:"flex",alignItems:"center",gap:6}}>
                         <span>⚙️</span> Mapping SAP S/4HANA
