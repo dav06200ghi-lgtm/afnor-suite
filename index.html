@@ -957,7 +957,7 @@ function App(){
               </div>
               {/* List */}
               <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
-                {[...ER].filter(f=>erSc==="all"||f.s===erSc||f.s.includes(erSc)).sort((a,b)=>{
+                {[...ER].filter(f=>(erSc==="all"||f.dir===erSc)&&(erSc2==="all"||f.s===erSc2||f.s.includes(erSc2))).sort((a,b)=>{
                   const av=erSort==="m"?(a.m?0:1):erSort==="a"?(a.a||""):(a[erSort]||"");
                   const bv=erSort==="m"?(b.m?0:1):erSort==="a"?(b.a||""):(b[erSort]||"");
                   return erSortDir==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
