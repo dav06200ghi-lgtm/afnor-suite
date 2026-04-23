@@ -854,14 +854,14 @@ function App(){
           </div>
 
           {/* Two-column layout — list left, detail right */}
-          <div style={{display:"grid",gridTemplateColumns:"260px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"300px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — scrollable list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 70px 260px 1fr 68px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:6}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 1fr 60px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:6}}>
                 <div></div>
-                {[["id","CHAMP ER"],["fr","DÉSIG. FR"],["l","DÉSIG. EN"],["m","STATUT"]].map(([k,lbl])=>(
+                {[["id","CHAMP ER / DÉSIGNATION"],["m","STATUT"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k){setErSortDir(d=>d==="asc"?"desc":"asc");}else{setErSort(k);setErSortDir("asc");}}} style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:3}}>
                     {lbl}{erSort===k&&<span>{erSortDir==="asc"?" ▲":" ▼"}</span>}
                   </div>
@@ -877,19 +877,22 @@ function App(){
                   const SC_COLOR={"B2C/B2B-INT":"#F59E0B","B2B-INT":"#3B82F6","PAIEMENT":"#10B981","B2C":"#8B5CF6"}[f.s]||"#F59E0B";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 70px 260px 1fr 68px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 1fr 60px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC_COLOR+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
                     <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:SC_COLOR,minHeight:16,flexShrink:0}}></div>
-                    <div>
-                      <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:SC_COLOR}}>{f.id}</span>
-                      {f.tt&&<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:8,color:SC_COLOR+"99",marginTop:1}}>{f.tt}</div>}
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                        <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:SC_COLOR,flexShrink:0}}>{f.id}</span>
+                        {f.tt&&<span style={{fontFamily:"JetBrains Mono,monospace",fontSize:8,color:SC_COLOR+"99"}}>{f.tt}</span>}
+                      </div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.82)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontStyle:"italic"}}>{f.l}</div>
                     </div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.82)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.55)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
-                    <div style={{display:"flex",gap:2,justifyContent:"flex-end"}}>
+                    <div style={{display:"flex",flexDirection:"column",gap:2,alignItems:"flex-end",flexShrink:0}}>
                       {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
+                      <span style={{fontSize:8,background:SC_COLOR+"15",color:SC_COLOR,borderRadius:3,padding:"1px 4px"}}>{f.s}</span>
                     </div>
                   </div>
                 );})}
