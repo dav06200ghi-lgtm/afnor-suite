@@ -656,7 +656,7 @@ function App(){
   const [sortBy,setSortBy]=useState("id");
   const [sortDir,setSortDir]=useState("asc");
   const [selBT,setSelBT]=useState(BT[0]);
-  const [selER,setSelER]=useState(null);
+  const [selER,setSelER]=useState(ER[0]);
   const [erSc,setErSc]=useState('all');
   const [erSort,setErSort]=useState('id');
   const [erSortDir,setErSortDir]=useState('asc');
@@ -783,7 +783,7 @@ function App(){
                     <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:GC[f.g]||"#6366F1",flexShrink:0}}>{f.id}</span>
                     <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontStyle:"italic"}}>{f.fr}</span>
                   </div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
                   <div style={{display:"flex",gap:3,justifyContent:"flex-end"}}>
                     {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
                     
@@ -854,12 +854,12 @@ function App(){
           </div>
 
           {/* Two-column layout */}
-          <div style={{display:"grid",gridTemplateColumns:"320px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"420px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 72px 1fr 46px 54px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 72px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 {[["id","CODE"],["fr","DÉSIGNATION"],["m","STATUT"],["a","ACTEUR"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
@@ -879,7 +879,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 72px 1fr 46px 54px",padding:"6px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -887,20 +887,20 @@ function App(){
                     <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:SC,minHeight:18}}></div>
                     {/* Code ER + TT ref */}
                     <div>
-                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:SC}}>{f.id}</div>
-                      {f.tt&&<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:8,color:SC+"90",marginTop:1}}>{f.tt}</div>}
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,fontWeight:700,color:SC}}>{f.id}</div>
+                      {f.tt&&<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:SC+"90",marginTop:2}}>{f.tt}</div>}
                     </div>
                     {/* Désignation FR */}
                     <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
                     {/* Statut REQ/OPT */}
                     <div style={{display:"flex",justifyContent:"center"}}>
                       {f.m
-                        ?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"2px 5px",fontWeight:700}}>REQ</span>
-                        :<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.35)",borderRadius:4,padding:"2px 5px"}}>OPT</span>}
+                        ?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"3px 7px",fontWeight:700}}>REQ</span>
+                        :<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.35)",borderRadius:4,padding:"3px 7px"}}>OPT</span>}
                     </div>
                     {/* Acteur PA ou Business */}
                     <div style={{display:"flex",justifyContent:"center"}}>
-                      <span style={{fontSize:8,background:AC+"18",color:AC,borderRadius:4,padding:"2px 5px",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>
+                      <span style={{fontSize:9,background:AC+"18",color:AC,borderRadius:4,padding:"3px 6px",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>
                         {f.a==="PA"?"🔧 PA":"📋 Biz"}
                       </span>
                     </div>
