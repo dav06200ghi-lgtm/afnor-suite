@@ -423,12 +423,12 @@ const UC=[
    flow:[{f:"Cotraitant A",to:"PA",m:"Facture part A (BT-44=MO)",coty:"Y"},{f:"Cotraitant B",to:"PA",m:"Facture part B (BT-44=MO)"},{f:"MO",to:"PA",m:"CDAR 204 par cotraitant"},{f:"Chaque cotraitant",to:"PA",m:"CDAR 212"}],
    st:["200","201","203","204","212"],coty:"Y"},
   // ── MANDATS / SELF-BILLING ───────────────────────────────────────────────
-  {id:"UC-15",cat:"mandat",
+  {id:"Cas Media / Publicis (mail Edgar Palau 21/04/2026). 3 types de documents impliqués dans l'achat d'espace publicitaire: (1) Appels de fonds (Media Agency → Coty): HORS périmètre e-invoicing. (2) Factures honoraires agence (Media Agency → Coty): soumises à la réforme, MAIS ne relèvent PAS du UC-15. (3) Factures régies (Media Owners → Coty): soumises à la réforme ET relèvent entièrement du UC-15. Adresse électronique dédiée recommandée: YOUR_SIREN_ACHATMEDIAS. Recommandation AFNOR et industrie: enregistrer l'adresse SIREN_MEDIABUYING sur la PA de l'agence (pivot PA).",cat:"mandat",
    en:"Invoice for Third-Party Order/Payment on Buyer's Behalf",cx:"medium",
    t:"Cas 15 — Facture suite commande/paiement par tiers pour compte acheteur",
    d:"Le tiers (agence média, centrale) passe la commande ET paie pour le compte de l'acheteur. Adresse électronique confiée à une PA-TR choisie par l'acheteur.",
    flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=tiers",coty:"Y"},{f:"Tiers",to:"PA Acheteur",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"Vendeur",m:"CDAR 204 + paiement"}],
-   st:["200","201","204","212"],coty:"Y"},
+   st:["200","201","204","212"],coty:"Y",media_note:"3 documents média: (1) Appels de fonds → hors réforme. (2) Honoraires agence → e-invoicing standard, pas UC-15. (3) Factures régies (mandate agence) → UC-15 obligatoire. Adresse dédiée: SIREN_ACHATMEDIAS. Source: email Publicis/Edgar 21/04/2026."},
   {id:"UC-16",cat:"mandat",
    en:"Rebilling of Costs Advanced by Third Party",cx:"medium",
    t:"Cas 16 — Facture de refacturation des frais avancés par le tiers",
@@ -659,7 +659,10 @@ const RULES=[
    t:"Art. 289 bis CGI — Données obligatoires transmission DGFiP",
    d:"Art. 41 septies D annexe IV CGI, version V1.0 du 25/11/2024. ⚠️ 6 champs OPTIONNELS en EN16931 deviennent OBLIGATOIRES en droit français à partir du 1/09/2026 : BT-9 (date échéance), BT-23 (cadre facturation B/S/M), BT-30 (SIREN fournisseur), BT-47 (SIREN client), BT-110 (montant TVA), BT-119 (taux TVA). Ces champs s'affichent avec le badge ⚠️ OPT→OBL.🇫🇷 dans l'onglet BT Fields. Les autres champs du document (BT-1/2/3/5/27/44/55/109/112/115/116/117/118/126/131/151/153) sont déjà obligatoires EN16931."},
     {id:"PENALTY-2",lvl:"info",std:"LF2026",fields:[],t:"Pénalité: 500€/e-reporting",d:"500€ per e-reporting transmission not sent. Annual cap. 30-day grace period."},
-  {id:"AP-ER-AGG-01",lvl:"open",std:"TR/AFNOR",fields:["ER-09","ER-10","ER-12"],
+  {id:"MEDIA-01",lvl:"open",std:"TR/AFNOR",fields:["BT-23","BT-49","BT-21"],
+   t:"Cas Média — 3 types de documents (Publicis / Edgar Palau 21/04/2026)",
+   d:"3 types de documents dans l'achat d'espace publicitaire. (1) Appels de fonds (Agence → Annonceur/Coty): HORS périmètre e-invoicing — aucun changement attendu. (2) Factures honoraires agence (Agence → Coty): soumises à la réforme mais ne relèvent PAS du UC-15 — transmises via PA de l'agence vers PA générale Coty comme toute facture fournisseur. (3) Factures régies / Media Owners (Media Owner → Coty, mandat agence): soumises à la réforme et ENTIÈREMENT sous UC-15 — l'agence apparaît comme tiers payeur et/ou tiers commandeur. Recommandation AFNOR + industrie: créer une adresse électronique dédiée SIREN_ACHATMEDIAS sur la PA de l'agence (pivot PA). Avantages: ségrégation des flux, intégration dans SI Coty via API AFNOR XP Z12-013 ou API Generix. Accès agence: Basic (UI) ou Technical (API). L'agence pourra poster les statuts ILC au nom de Coty selon son mandat."},
+    {id:"AP-ER-AGG-01",lvl:"open",std:"TR/AFNOR",fields:["ER-09","ER-10","ER-12"],
    t:"AP E-Reporting: Agrégation des lignes par code TVA",
    d:"Question escaladée aux Affaires Réglementaires (mail Laurent Malzac 17/04/2026). Les lignes facture ayant le même taux/code TVA sur une même facture peuvent-elles être agrégées en une seule ligne dans le e-reporting ? Laurent (Coty): oui, probable jusqu'en 2027. Thomson Reuters: feasible techniquement — rien dans le schéma n'interdit l'agrégation. Flux 10.1 : 1 bloc TaxSubTotal par taux TVA. Recommandation: consulter conseiller fiscal avant implémentation."},
   {id:"AP-ER-BULK-01",lvl:"open",std:"TR/AFNOR",fields:["ER-01","ER-03","ER-04"],
@@ -1646,6 +1649,13 @@ function App(){
                   {/* Description */}
                   <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.75}}>{selUC.d}</div>
 
+                  {/* Media note */}
+                  {selUC.media_note&&(
+                    <div style={{background:"rgba(236,72,153,0.05)",border:"1px solid rgba(236,72,153,0.25)",borderRadius:10,padding:"12px 16px",marginBottom:14}}>
+                      <div style={{fontSize:9,color:"#F9A8D4",textTransform:"uppercase",letterSpacing:1,marginBottom:6,fontWeight:700}}>📺 Précision Média (Publicis · 21/04/2026)</div>
+                      <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",lineHeight:1.7}}>{selUC.media_note}</div>
+                    </div>
+                  )}
                   {/* Flow */}
                   {selUC.flow&&selUC.flow.length>0&&(
                     <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
@@ -1856,7 +1866,30 @@ function App(){
 
             {/* Routing code */}
             <div style={{background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,padding:"14px 16px"}}>
-              <div style={{fontSize:12,fontWeight:700,color:"#A5B4FC",marginBottom:8}}>🔀 Routing Code Logic</div>
+
+            {/* Media / Publicis */}
+            <div style={{marginBottom:20,background:"rgba(236,72,153,0.04)",border:"1px solid rgba(236,72,153,0.2)",borderRadius:10,padding:"14px 16px"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#F9A8D4",marginBottom:10}}>📺 Cas Média — Publicis (mail Edgar 21/04/2026)</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:12}}>
+                {[
+                  {type:"Appels de fonds",from:"Agence → Coty",scope:"❌ Hors réforme",color:"#94A3B8",note:"Aucun changement. Flux existant maintenu."},
+                  {type:"Honoraires agence",from:"Agence → Coty",scope:"✅ E-invoicing standard",color:"#F59E0B",note:"Ne relève PAS du UC-15. Transmis via PA agence → PA Coty."},
+                  {type:"Factures régies",from:"Media Owner → Coty",scope:"✅ UC-15 obligatoire",color:"#22C55E",note:"Mandat agence. Agence = tiers commandeur/payeur. Adresse dédiée recommandée."},
+                ].map(doc=>(
+                  <div key={doc.type} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:12}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#fff",marginBottom:4}}>{doc.type}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginBottom:6}}>{doc.from}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:doc.color,marginBottom:6}}>{doc.scope}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.6}}>{doc.note}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:7,padding:"8px 12px",fontSize:12,color:"#FCD34D",lineHeight:1.7}}>
+                💡 <strong>Recommandation AFNOR + industrie :</strong> Créer l'adresse dédiée <code style={{fontFamily:"JetBrains Mono,monospace",background:"rgba(245,158,11,0.1)",padding:"1px 6px",borderRadius:3}}>YOUR_SIREN_ACHATMEDIAS</code> sur la PA de l'agence (<em>pivot PA</em>). Accès Coty : Basic (UI) ou Technical (API AFNOR XP Z12-013 / Generix).
+              </div>
+            </div>
+
+                            <div style={{fontSize:12,fontWeight:700,color:"#A5B4FC",marginBottom:8}}>🔀 Routing Code Logic</div>
               <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.75,marginBottom:8}}>
                 Répliquer la logique de routing code existante depuis la <strong>Pologne</strong>.
               </div>
