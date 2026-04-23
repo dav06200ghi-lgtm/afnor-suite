@@ -1000,7 +1000,8 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 70px 300px 52px 72px 72px 72px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 22px 70px 300px 52px 72px 72px 72px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+                <div></div>
                 <div></div>
                 {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["tt","TT/TG"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
@@ -1020,12 +1021,22 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 70px 300px 52px 72px 72px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 22px 70px 300px 52px 72px 72px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
                     {/* Bar */}
                     <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:SC,minHeight:18}}></div>
+                    {/* Priority dot */}
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      {f.alert
+                        ?f.alert.startsWith("🔴")
+                          ?<div title={f.alert} style={{width:10,height:10,borderRadius:"50%",background:"#EF4444",flexShrink:0,cursor:"help",boxShadow:"0 0 5px #EF4444"}}></div>
+                          :f.alert.startsWith("⚠️")
+                          ?<div title={f.alert} style={{width:10,height:10,borderRadius:"50%",background:"#F59E0B",flexShrink:0,cursor:"help",boxShadow:"0 0 5px #F59E0B"}}></div>
+                          :<div title={f.alert} style={{width:8,height:8,borderRadius:"50%",background:"#3B82F6",flexShrink:0,cursor:"help"}}></div>
+                        :<div style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,0.08)"}}></div>}
+                    </div>
                     {/* Code ER + TT ref */}
                     <div>
                       <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,fontWeight:700,color:SC,letterSpacing:0.3}}>{f.id}</div>
