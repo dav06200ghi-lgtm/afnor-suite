@@ -251,43 +251,87 @@ const ER=[
    tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1",sap:""},
 ];
 const ILC=[
-  {code:"200",famille:"technique",l:"Déposée",en:"Submitted",m:true,actor:"Supplier PA",d:"Entry point for ALL e-invoices. PPF and buyer PA notified.",c:"#3B82F6",next:["201","211"],fix:null,cdarCodes:null},
-  {code:"201",famille:"technique",l:"Reçue",en:"Received by buyer PA",m:false,actor:"Buyer PA",d:"Invoice reached buyer PA and passed initial technical checks.",c:"#06B6D4",next:["202","203","211"],fix:null,cdarCodes:null},
-  {code:"202",famille:"technique",l:"Mise à disposition",en:"Made available",m:false,actor:"Buyer PA",d:"Invoice available in buyer portal.",c:"#6366F1",next:["203","210"],fix:null,cdarCodes:null},
-  {code:"203",famille:"business",l:"Prise en charge",en:"Acknowledged",m:false,actor:"Buyer",d:"Buyer confirms receipt and starts review process.",c:"#8B5CF6",next:["204","206","210"],fix:null,cdarCodes:null},
-  {code:"204",famille:"business",l:"Approuvée",en:"Approved",m:false,actor:"Buyer",d:"Buyer formally approved the invoice. Queued for payment.",c:"#22C55E",next:["205","212"],fix:null,cdarCodes:null},
-  {code:"205",famille:"business",l:"Mise en paiement",en:"Payment initiated",m:false,actor:"Buyer",d:"Payment instruction created.",c:"#84CC16",next:["212"],fix:null,cdarCodes:null},
-  {code:"206",famille:"business",l:"En litige",en:"In dispute",m:false,actor:"Both",d:"Dispute opened. On hold until resolved.",c:"#F97316",next:["204","210"],fix:null,cdarCodes:null},
-  {code:"207",famille:"technique",l:"Suspendue",en:"Suspended",m:false,actor:"Buyer PA",d:"Processing suspended pending additional info.",c:"#FB923C",next:["203","210","211"],fix:null,cdarCodes:null},
-  {code:"208",famille:"business",l:"Abandonnée",en:"Abandoned",m:false,actor:"Supplier",d:"Supplier abandons before full processing. New BT-1 required.",c:"#6B7280",next:[],fix:null,cdarCodes:null},
-  {code:"209",famille:"business",l:"Annulée",en:"Cancelled",m:false,actor:"Supplier",d:"Cancelled by mutual agreement. Credit note required.",c:"#DC2626",next:[],fix:null,cdarCodes:null},
-  {code:"210",famille:"business",l:"Refusée",en:"Refused (business)",m:true,actor:"Buyer",d:"MANDATORY: Invoice refused at business level. DGFiP notified.",c:"#EF4444",next:[],fix:"Émettre un avoir (BT-3=381) + nouvelle facture avec NOUVEAU BT-1.",
-   cdarCodes:[
-     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrige selon bon de commande."},
-     {code:"REF-02",l:"Quantite incorrecte",fix:"Avoir + nouvelle facture avec quantite exacte selon bon de livraison."},
-     {code:"REF-03",l:"Facture en double",fix:"Verifier si deja payee. Si oui: aucune action. Sinon: annuler le doublon."},
-     {code:"REF-04",l:"Bon de commande inconnu",fix:"Verifier reference commande en BT-13. Corriger et remettre avec bon numero."},
-     {code:"REF-05",l:"Destinataire incorrect",fix:"Verifier BT-44 (nom acheteur) et BT-47 (SIRET). Corriger entite juridique."},
-     {code:"REF-06",l:"Prestation non realisee",fix:"Verifier avec equipe operationnelle. Si contestation ouvrir litige 206."},
-     {code:"REF-07",l:"Mentions legales manquantes",fix:"Verifier BT-33 et mentions obligatoires art. L441-9 C.com."},
-     {code:"ZZZ",l:"Autre motif texte libre",fix:"Lire texte libre dans CDAR. Contacter acheteur pour detail du motif."},
-   ]},
-  {code:"211",famille:"technique",l:"Rejetée",en:"Rejected (technical)",m:true,actor:"PA or PPF",d:"MANDATORY: Technical rejection. Seller must resubmit with a NEW BT-1.",c:"#DC2626",next:[],fix:null,
-    cdarCodes:[
-      {code:"AB",l:"Destinataire introuvable dans l'Annuaire",fix:"Client doit s'enregistrer via sa PA dans l'Annuaire PPF. Vérifier BT-49. Resoumettre avec NOUVEAU BT-1."},
-      {code:"RE",l:"Format XML invalide / erreur syntaxe",fix:"Corriger schéma XSD, encodage UTF-8, namespaces. NOUVEAU BT-1 obligatoire."},
-      {code:"CA",l:"Règle métier non respectée (BR-xx)",fix:"Identifier la règle violée. Corriger le champ. NOUVEAU BT-1."},
-      {code:"AP",l:"Facture en double (BT-1 déjà utilisé)",fix:"Nouveau numéro unique obligatoire. Le dupliqué ne peut jamais être réutilisé."},
-      {code:"BV",l:"Signature ou certificat invalide",fix:"Renouveler le certificat de la PA. Re-signer et resoumettre."},
-      {code:"UQ",l:"Date de facture hors plage valide",fix:"Vérifier BT-2, ne peut pas être dans le futur. Corriger et NOUVEAU BT-1."},
-      {code:"PD",l:"PA émettrice non agréée",fix:"Vérifier statut agrément DGFiP. Changer de PA si nécessaire."},
-      {code:"ZZZ",l:"Autre motif technique (texte libre)",fix:"Lire le texte libre dans le CDAR. Contacter PA et/ou support DGFiP."},
-    ]
-  },
-  {code:"212",famille:"paiement",l:"Encaissée",en:"Payment received",m:true,actor:"Seller",d:"MANDATORY only for TVA sur les encaissements. Triggers VAT exigibility reporting to DGFiP.",c:"#16A34A",next:[],fix:null,cdarCodes:null},
-  {code:"213",famille:"technique",l:"Rejetée à réception",en:"Rejected on receipt",m:false,actor:"Buyer PA",d:"Immediate rejection. Typically buyer not in Annuaire.",c:"#B91C1C",next:[],fix:null,cdarCodes:null},
+  {code:"200",famille:"technique",l:"Déposée",en:"Submitted",m:true,actor:"PA Supplier",
+   ts:"Sending",modif:"Automatique",coty:"Y",
+   d:"Le fournisseur dépose sa facture ou son avoir sur sa plateforme. Statut généré après les contrôles. Point d'entrée obligatoire pour toutes les e-factures.",
+   c:"#3B82F6",next:["201","213"],fix:null,cdarCodes:null},
+  {code:"201",famille:"technique",l:"Émise par la plateforme",en:"Sent",m:false,actor:"PA Supplier",
+   ts:"Sent",modif:"Automatique",coty:"Y",
+   d:"La facture a été prise en charge par la plateforme du fournisseur et est émise à destination de l'acheteur.",
+   c:"#06B6D4",next:["202","213"],fix:null,cdarCodes:null},
+  {code:"202",famille:"technique",l:"Reçue par la plateforme",en:"Received",m:false,actor:"PA Customer AP",
+   ts:"Received",modif:"Automatique",coty:"Y",
+   d:"La facture est reçue par la plateforme de l'acheteur (ou du destinataire) mais n'est pas encore mise à disposition de son client.",
+   c:"#6366F1",next:["203","213"],fix:null,cdarCodes:null},
+  {code:"203",famille:"technique",l:"Mise à disposition",en:"Received",m:false,actor:"PA Customer AP",
+   ts:"Received",modif:"Automatique",coty:"Y",
+   d:"La facture est mise à disposition de l'acheteur sur sa plateforme.",
+   c:"#8B5CF6",next:["204","207","213"],fix:null,cdarCodes:null},
+  {code:"204",famille:"business",l:"Prise en charge",en:"Business Delivered",m:false,actor:"PA Customer AP",
+   ts:"Business Delivered",modif:"Manuelle",coty:"Y",
+   d:"La facture est prise en charge par l'acheteur pour procéder à son traitement.",
+   c:"#10B981",next:["205","206","207","210"],fix:null,cdarCodes:[
+     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrigé selon bon de commande."},
+     {code:"REF-02",l:"Quantité incorrecte",fix:"Avoir + nouvelle facture avec quantité correcte."},
+     {code:"REF-03",l:"Destinataire incorrect",fix:"Vérifier BT-44 / BT-49 dans l'Annuaire PPF."},
+     {code:"REF-04",l:"Adresse de livraison incorrecte",fix:"Vérifier BT-75..BT-80."},
+     {code:"REF-05",l:"Bon de commande incorrect",fix:"Vérifier BT-13."},
+     {code:"REF-06",l:"TVA incorrecte",fix:"Vérifier BT-118/BT-119."},
+     {code:"REF-07",l:"Autre motif",fix:"Contacter le fournisseur pour correction."},
+     {code:"ZZZ",l:"Motif non standard",fix:"Texte libre."}]},
+  {code:"205",famille:"business",l:"Approuvée",en:"Accepted",m:false,actor:"PA Customer AP",
+   ts:"Accepted",modif:"Manuelle",coty:"Y",
+   d:"La facture est acceptée dans son intégralité par l'acheteur mandataire (co-traitance) ou le titulaire (sous-traitance).",
+   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null},
+  {code:"206",famille:"business",l:"Approuvée partiellement",en:"Partially approved",m:false,actor:"PA Customer AP",
+   ts:"To be added",modif:"Manuelle",coty:"N",
+   d:"La facture est acceptée partiellement par l'acheteur. Ce traitement peut donner lieu à un avoir.",
+   c:"#84CC16",next:["211","210"],fix:null,cdarCodes:null},
+  {code:"207",famille:"business",l:"En litige",en:"Disputed",m:false,actor:"PA Customer AP",
+   ts:"Disputed",modif:"Manuelle",coty:"N",
+   d:"Un différend est constaté sur la facture. Ce désaccord peut se solder par un refus ou par une approbation de l'acheteur.",
+   c:"#F59E0B",next:["210","205"],fix:null,cdarCodes:[
+     {code:"AB",l:"Destinataire introuvable dans l'Annuaire",fix:"Client doit s'enregistrer via sa PA."},
+     {code:"RE",l:"Règles métier non respectées",fix:"Corriger les champs BT signalés."},
+     {code:"CA",l:"Annulation demandée",fix:"Émettre un avoir BT-3=381."},
+     {code:"AP",l:"Approbation partielle",fix:"Émettre un avoir pour la partie contestée."},
+     {code:"BV",l:"Bon à viser",fix:"Viser selon procédure interne."},
+     {code:"UQ",l:"Quantité non conforme",fix:"Vérifier BT-129."},
+     {code:"PD",l:"Litige prix/quantité",fix:"Émettre avoir + nouvelle facture corrigée."},
+     {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}]},
+  {code:"208",famille:"technique",l:"Suspendue",en:"Suspended",m:false,actor:"PA Customer AP",
+   ts:"TBD",modif:"Manuelle",coty:"N",
+   d:"Le traitement de la facture peut être suspendu lorsqu'une ou plusieurs pièces justificatives sont manquantes. Les données restent inchangées.",
+   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:null},
+  {code:"209",famille:"business",l:"Complétée",en:"Completed",m:false,actor:"PA Customer AP",
+   ts:"TBD",modif:"Manuelle",coty:"N",
+   d:"La facture est complétée lorsque le fournisseur ajoute une pièce jointe ou un commentaire à une facture au statut suspendue.",
+   c:"#A78BFA",next:["204","205"],fix:null,cdarCodes:null},
+  {code:"210",famille:"business",l:"Refusée (business reject)",en:"Rejected",m:true,actor:"PA Customer AP",
+   ts:"Rejected",modif:"Manuelle",coty:"Y",
+   d:"La facture est refusée par le destinataire pour des raisons métiers.",
+   c:"#EF4444",next:[],fix:null,cdarCodes:[
+     {code:"AB",l:"Destinataire introuvable",fix:"Vérifier BT-49 dans l'Annuaire PPF."},
+     {code:"RE",l:"Règles métier non respectées",fix:"Corriger selon les règles BR-FR signalées."},
+     {code:"CA",l:"Annulation demandée",fix:"Émettre un avoir BT-3=381 référençant la facture originale BT-25."},
+     {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}]},
+  {code:"211",famille:"business",l:"Paiement transmis",en:"Marked as paid",m:false,actor:"PA Customer AP",
+   ts:"Marked as paid",modif:"Manuelle",coty:"Y",
+   d:"Le flux de virement a été envoyé au fournisseur.",
+   c:"#10B981",next:["212"],fix:null,cdarCodes:null},
+  {code:"212",famille:"paiement",l:"Encaissée",en:"Paid",m:true,actor:"PA Supplier",
+   ts:"Paid",modif:"Manuelle",coty:"Y",
+   d:"Le fournisseur a reçu le paiement de la facture. Statut obligatoire pour les prestations de services (hors TVA sur les débits et hors opérations auto-liquidées).",
+   c:"#16A34A",next:[],fix:null,cdarCodes:null},
+  {code:"213",famille:"technique",l:"Rejetée (technical reject)",en:"Rejected (technical)",m:true,actor:"TS PA / PPF",
+   ts:"Rejected",modif:"Automatique",coty:"Y",
+   d:"La facture pourra être rejetée automatiquement pour des raisons techniques (ex : format non conforme à la norme).",
+   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:null},
+  {code:"214",famille:"business",l:"Visée",en:"Stamped / Approved (B2G)",m:false,actor:"PA Supplier / Mandataire Gouvernement",
+   ts:"TBD",modif:"Manuelle",coty:"N",
+   d:"Statut utilisé uniquement dans le cadre de la co-traitance B2U ou B2G (hors marchés de travaux) pour viser une facture. Joint contracting not subcontracting.",
+   c:"#EC4899",next:["205"],fix:null,cdarCodes:null},
 ];
-
 const UC=[
   // ── NOMINAL FLOWS ────────────────────────────────────────────────────────
   {id:"UC-01",cat:"nominal",
@@ -1111,7 +1155,7 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 68px 180px 140px 56px 90px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 68px 180px 140px 56px 90px 90px 52px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>CODE</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>DÉSIGNATION FR</div>
@@ -1119,6 +1163,7 @@ function App(){
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>STATUT</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>FAMILLE</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>ACTEUR</div>
+                <div style={{fontSize:9,fontWeight:700,color:"#22C55E",textTransform:"uppercase",letterSpacing:0.7}}>COTY AP</div>
               </div>
               {/* List */}
               <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
@@ -1126,7 +1171,7 @@ function App(){
                   const FC={"technique":"#3B82F6","business":"#8B5CF6","paiement":"#16A34A"}[f.famille]||"#6366F1";
                   return(
                   <div key={f.code} onClick={()=>setSelILC(selILC?.code===f.code?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 68px 180px 140px 56px 90px 90px",padding:"7px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 68px 180px 140px 56px 90px 90px 52px",padding:"7px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
                       background:selILC?.code===f.code?FC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selILC?.code!==f.code)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selILC?.code!==f.code)e.currentTarget.style.background="transparent";}}>
@@ -1153,6 +1198,10 @@ function App(){
                     <div style={{overflow:"hidden"}}>
                       <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.actor}</div>
                     </div>
+                    {/* Coty AP use */}
+                    <div style={{display:"flex",justifyContent:"center"}}>
+                      <span style={{fontSize:11,fontWeight:700,color:f.coty==="Y"?"#22C55E":"rgba(255,255,255,0.2)"}}>{f.coty||"—"}</span>
+                    </div>
                   </div>
                 );})}
               </div>
@@ -1175,6 +1224,9 @@ function App(){
                         <span style={{fontSize:10,background:FC+"18",color:FC,border:"1px solid "+FC+"35",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{FL}</span>
                         {selILC.m&&<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#EF4444",border:"1px solid rgba(239,68,68,0.35)",borderRadius:5,padding:"3px 10px",fontWeight:700}}>OBLIGATOIRE</span>}
                         <span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.actor}</span>
+                        {selILC.modif&&<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.modif}</span>}
+                        {selILC.coty&&<span style={{fontSize:10,background:selILC.coty==="Y"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",color:selILC.coty==="Y"?"#22C55E":"rgba(255,255,255,0.3)",border:"1px solid "+(selILC.coty==="Y"?"rgba(34,197,94,0.3)":"rgba(255,255,255,0.1)"),borderRadius:5,padding:"3px 10px",fontWeight:700}}>Coty AP: {selILC.coty}</span>}
+                        {selILC.ts&&<span style={{fontSize:10,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px"}}>TS: {selILC.ts}</span>}
                       </div>
                     </div>
                   </div>
@@ -1252,7 +1304,7 @@ function App(){
           </div>
 
           {/* Two-column layout: list left, detail right */}
-          <div style={{display:"grid",gridTemplateColumns:"640px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"700px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — sortable list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
