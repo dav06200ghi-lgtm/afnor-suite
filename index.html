@@ -271,7 +271,7 @@ const ILC=[
    ts:"Business Delivered",modif:"Manuelle",coty:"Y",
    d:"La facture est prise en charge par l'acheteur pour procéder à son traitement.",
    c:"#10B981",next:["205","206","207","210"],fix:null,cdarCodes:[
-     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrigé selon bon de commande."},
+     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrigé selon bon de commande.",vim:"00",vim_label:"Created",coty_ap_val:"BusinessDelivered",coty_note:"Coty AP to send BusinessDelivered. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF."},
      {code:"REF-02",l:"Quantité incorrecte",fix:"Avoir + nouvelle facture avec quantité correcte."},
      {code:"REF-03",l:"Destinataire incorrect",fix:"Vérifier BT-44 / BT-49 dans l'Annuaire PPF."},
      {code:"REF-04",l:"Adresse de livraison incorrecte",fix:"Vérifier BT-75..BT-80."},
@@ -282,7 +282,7 @@ const ILC=[
   {code:"205",famille:"business",l:"Approuvée",en:"Accepted",m:false,actor:"PA Customer AP",
    ts:"Accepted",modif:"Manuelle",coty:"Y",
    d:"La facture est acceptée dans son intégralité par l'acheteur mandataire (co-traitance) ou le titulaire (sous-traitance).",
-   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null},
+   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null,vim:"15",vim_label:"Posted",coty_ap_val:"BusinessAccept",coty_note:"Coty AP to send BusinessAccept. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF."},
   {code:"206",famille:"business",l:"Approuvée partiellement",en:"Partially approved",m:false,actor:"PA Customer AP",
    ts:"To be added",modif:"Manuelle",coty:"N",
    d:"La facture est acceptée partiellement par l'acheteur. Ce traitement peut donner lieu à un avoir.",
@@ -302,7 +302,7 @@ const ILC=[
   {code:"208",famille:"technique",l:"Suspendue",en:"Suspended",m:false,actor:"PA Customer AP",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Le traitement de la facture peut être suspendu lorsqu'une ou plusieurs pièces justificatives sont manquantes. Les données restent inchangées.",
-   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:null},
+   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:[{code:"JUSTIF_ABS",l:"Justificatif absent",en:"Missing attachment"},{code:"COORD_BANC_ERR",l:"Erreur coordonnées bancaires",en:"Incorrect bank details",vim:"21"},{code:"CMD_ERR",l:"N° de commande incorrect",en:"Incorrect PO number",vim:"12,13"},{code:"SIRET_ERR",l:"SIRET erroné ou absent",en:"Incorrect/missing SIRET",vim:"09"},{code:"CODE_ROUTAGE_ERR",l:"Code routage erroné",en:"Incorrect routing code"},{code:"REF_CT_ABSENT",l:"Référence contractuelle manquante",en:"Missing contract reference",vim:"07"}]},
   {code:"209",famille:"business",l:"Complétée",en:"Completed",m:false,actor:"PA Customer AP",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"La facture est complétée lorsque le fournisseur ajoute une pièce jointe ou un commentaire à une facture au statut suspendue.",
@@ -311,14 +311,14 @@ const ILC=[
    ts:"Rejected",modif:"Manuelle",coty:"Y",
    d:"La facture est refusée par le destinataire pour des raisons métiers.",
    c:"#EF4444",next:[],fix:null,cdarCodes:[
-     {code:"AB",l:"Destinataire introuvable",fix:"Vérifier BT-49 dans l'Annuaire PPF."},
+     {code:"AB",l:"Destinataire introuvable",fix:"Vérifier BT-49 dans l'Annuaire PPF.",vim:"95",vim_label:"BusinessReject",coty_ap_val:"BusinessReject",coty_note:"Coty to send BusinessReject + provide Reject reason code. PS team retrieves + reason from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF."},
      {code:"RE",l:"Règles métier non respectées",fix:"Corriger selon les règles BR-FR signalées."},
      {code:"CA",l:"Annulation demandée",fix:"Émettre un avoir BT-3=381 référençant la facture originale BT-25."},
      {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}]},
   {code:"211",famille:"business",l:"Paiement transmis",en:"Marked as paid",m:false,actor:"PA Customer AP",
    ts:"Marked as paid",modif:"Manuelle",coty:"Y",
    d:"Le flux de virement a été envoyé au fournisseur.",
-   c:"#10B981",next:["212"],fix:null,cdarCodes:null},
+   c:"#10B981",next:["212"],fix:null,cdarCodes:null,vim:"Z3",vim_label:"BusinessPaid",coty_ap_val:"BusinessPaid",coty_note:"Coty to send BusinessPaid. PS team retrieves from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF."},
   {code:"212",famille:"paiement",l:"Encaissée",en:"Paid",m:true,actor:"PA Supplier",
    ts:"Paid",modif:"Manuelle",coty:"Y",
    d:"Le fournisseur a reçu le paiement de la facture. Statut obligatoire pour les prestations de services (hors TVA sur les débits et hors opérations auto-liquidées).",
@@ -326,7 +326,7 @@ const ILC=[
   {code:"213",famille:"technique",l:"Rejetée (technical reject)",en:"Rejected (technical)",m:true,actor:"TS PA / PPF",
    ts:"Rejected",modif:"Automatique",coty:"Y",
    d:"La facture pourra être rejetée automatiquement pour des raisons techniques (ex : format non conforme à la norme).",
-   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:null},
+   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:[{code:"REJ_SEMAN",l:"Erreur sémantique",en:"Semantic error"},{code:"REJ_UNI",l:"Contrôle unicité",en:"Uniqueness check"},{code:"REJ_COH",l:"Cohérence de données",en:"Data consistency"},{code:"REJ_ADR",l:"Contrôle adressage",en:"Addressing control"},{code:"MONTANTTOTAL_ERR",l:"Montant Total Erroné",en:"Incorrect total amount",vim:"16,17,19"},{code:"CALCUL_ERR",l:"Erreur de calcul",en:"Calculation error"},{code:"DOUBLON",l:"Facture en doublon",en:"Duplicate invoice",vim:"05"}]},
   {code:"214",famille:"business",l:"Visée",en:"Stamped / Approved (B2G)",m:false,actor:"PA Supplier / Mandataire Gouvernement",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Statut utilisé uniquement dans le cadre de la co-traitance B2U ou B2G (hors marchés de travaux) pour viser une facture. Joint contracting not subcontracting.",
@@ -678,6 +678,22 @@ const GC={header:"#6366F1",notes:"#6366F1",seller:"#3B82F6",seller_addr:"#3B82F6
 const GL={header:"Header",notes:"Notes",seller:"Vendeur",seller_addr:"Adresse Vendeur",seller_contact:"Contact Vendeur",buyer:"Acheteur",buyer_addr:"Adresse Acheteur",buyer_contact:"Contact Acheteur",beneficiary:"Bénéficiaire",fiscal_rep:"Rep. Fiscal",delivery:"Livraison",period:"Période",payment:"Paiement",allowcharges:"Remises/Charges doc.",charges:"Charges doc.",amounts:"Montants",vat:"TVA",docs:"Documents",lines:"Lignes",line_allow:"Remises ligne",line_charge:"Charges ligne",line_allowcharges:"Remises/Charges ligne",line_price:"Prix article",line_vat:"TVA ligne",line_items:"Article",line_item:"Article",extended:"Étendu"};
 const FC={technique:"#3B82F6",business:"#8B5CF6",paiement:"#16A34A"};
 const FL={technique:"🔵 Technique",business:"🟣 Business",paiement:"🟢 Paiement"};
+const TAX_MATRIX=[
+  {sap:"VU",rate:20,cat:"S",category:"Standard",vatex:"",bt23:"S",bt8:35,from:"FR",acct:"*",label:"TVA 20% services encaissement"},
+  {sap:"VP",rate:20,cat:"S",category:"Standard",vatex:"",bt23:"B",bt8:"*",from:"FR",acct:"Z",label:"TVA 20% biens débit"},
+  {sap:"VT",rate:20,cat:"S",category:"Standard",vatex:"",bt23:"B",bt8:"*",from:"FR",acct:"*",label:"TVA 20% biens"},
+  {sap:"VV",rate:20,cat:"S",category:"Standard",vatex:"",bt23:"S",bt8:432,from:"FR",acct:"*",label:"TVA 20% services débit"},
+  {sap:"VO",rate:20,cat:"S",category:"Standard",vatex:"",bt23:"S",bt8:35,from:"FR",acct:"Z",label:"TVA 20% services encaissement Z"},
+  {sap:"VQ",rate:0,cat:"E",category:"AEG",vatex:"VATEX-EU-AE",bt23:"B",bt8:"*",from:"NOT FR",acct:"*",label:"Autoliquidation biens UE"},
+  {sap:"VR",rate:0,cat:"E",category:"AES",vatex:"VATEX-EU-AE",bt23:"S",bt8:"*",from:"*",acct:"*",label:"Autoliquidation services UE"},
+  {sap:"IH",rate:0,cat:"E",category:"AE",vatex:"VATEX-EU-AE",bt23:"*",bt8:"*",from:"FR",acct:"*",label:"Autoliquidation FR (reverse charge)"},
+  {sap:"II",rate:0,cat:"O",category:"Z",vatex:"VATEX-FR-298SEXDECIESA",bt23:"*",bt8:"*",from:"FR",acct:"*",label:"Hors champ TVA art.298 sexdecies"},
+  {sap:"O4",rate:0,cat:"E",category:"E",vatex:"VATEX-FR-CGI275",bt23:"*",bt8:"*",from:"FR",acct:"*",label:"Exonération art.275 CGI"},
+  {sap:"IG",rate:2.1,cat:"S",category:"Standard",vatex:"",bt23:"B",bt8:"*",from:"FR",acct:"*",label:"TVA 2,1% biens"},
+  {sap:"IF",rate:5.5,cat:"S",category:"Standard",vatex:"",bt23:"*",bt8:"*",from:"FR",acct:"*",label:"TVA 5,5%"},
+  {sap:"F2",rate:7,cat:"S",category:"Standard",vatex:"",bt23:"*",bt8:"*",from:"FR",acct:"*",label:"TVA 7% (Corse/DOM)"},
+  {sap:"J2",rate:10,cat:"S",category:"Standard",vatex:"",bt23:"B",bt8:"*",from:"FR",acct:"*",label:"TVA 10% biens"},
+];
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
@@ -1254,6 +1270,8 @@ function App(){
                         <span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.actor}</span>
                         {selILC.modif&&<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.modif}</span>}
                         {selILC.coty&&<span style={{fontSize:10,background:selILC.coty==="Y"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",color:selILC.coty==="Y"?"#22C55E":"rgba(255,255,255,0.3)",border:"1px solid "+(selILC.coty==="Y"?"rgba(34,197,94,0.3)":"rgba(255,255,255,0.1)"),borderRadius:5,padding:"3px 10px",fontWeight:700}}>Coty AP: {selILC.coty}</span>}
+                        {selILC.coty_ap_val&&<span style={{fontSize:10,background:"rgba(245,158,11,0.1)",color:"#FCD34D",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>TS→SAP: {selILC.coty_ap_val}</span>}
+                        {selILC.vim&&<span style={{fontSize:10,background:"rgba(139,92,246,0.1)",color:"#C4B5FD",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace"}}>VIM: {selILC.vim} ({selILC.vim_label})</span>}
                         {selILC.ts&&<span style={{fontSize:10,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px"}}>TS: {selILC.ts}</span>}
                       </div>
                     </div>
@@ -1520,6 +1538,36 @@ function App(){
                 ))}
               </div>;
             })}
+          </div>
+
+          {/* Tax Matrix */}
+          <div style={{marginTop:28,borderTop:"1px solid rgba(255,255,255,0.07)",paddingTop:22}}>
+            <div style={{fontSize:13,fontWeight:700,marginBottom:4}}>🔢 Matrice codes TVA SAP ↔ UNTDID <span style={{color:"#34D399",fontSize:11,fontWeight:400,marginLeft:8}}>Source: Coty FR tracker 22/04/2026</span></div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:12}}>Correspondance BT-102/103/118/119/VATEX → code taxe SAP S/4H (Coty France)</div>
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                <thead><tr style={{background:"rgba(0,0,0,0.3)"}}>
+                  {["CODE SAP","TAUX","CATÉGORIE","BT-102","VATEX","BT-23","BT-8","ORIGINE","DESCRIPTION"].map(h=>(
+                    <th key={h} style={{padding:"6px 10px",textAlign:"left",fontSize:9,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,borderBottom:"1px solid rgba(255,255,255,0.1)",whiteSpace:"nowrap"}}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {TAX_MATRIX.map((r,i)=>(
+                    <tr key={r.sap+i} style={{borderBottom:"1px solid rgba(255,255,255,0.04)",background:i%2===0?"transparent":"rgba(255,255,255,0.01)"}}>
+                      <td style={{padding:"5px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700,color:"#34D399"}}>{r.sap}</td>
+                      <td style={{padding:"5px 10px",fontFamily:"JetBrains Mono,monospace",color:"#FCD34D"}}>{r.rate}%</td>
+                      <td style={{padding:"5px 10px"}}><span style={{fontSize:9,background:"rgba(99,102,241,0.12)",color:"#A5B4FC",borderRadius:3,padding:"2px 6px",fontWeight:600}}>{r.category}</span></td>
+                      <td style={{padding:"5px 10px",fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#60A5FA"}}>{r.cat}</td>
+                      <td style={{padding:"5px 10px",fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"rgba(255,255,255,0.45)"}}>{r.vatex||"—"}</td>
+                      <td style={{padding:"5px 10px",fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#C4B5FD"}}>{r.bt23}</td>
+                      <td style={{padding:"5px 10px",fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"rgba(255,255,255,0.45)"}}>{r.bt8||"—"}</td>
+                      <td style={{padding:"5px 10px",fontSize:9,color:"rgba(255,255,255,0.45)"}}>{r.from}</td>
+                      <td style={{padding:"5px 10px",color:"rgba(255,255,255,0.7)"}}>{r.label}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
