@@ -1156,7 +1156,12 @@ const ER13_MATRIX=[
   {rate:"0,00",cat:"AE",vatex:"VATEX-EU-AE",bt23:"S",bt8:"*",from:"*",acct:"*",sap:"VR",er13:"AE",note:"Reverse charge svc"},
 ];
 
-const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const PUF_EXAMPLES={
+  pos_b2c: {label:"POS / B2C Transactions (Flux 10.3)",desc:"Déclaration agrégée quotidienne B2C — RECEIPTTRANSACTION. Vendeur FR, acheteur B2C. Catégories TLB1 (biens) et TSP1 (services).",type:"RECEIPTTRANSACTION",flux:"10.3",dir:"AR (Ventes)",fields:[{f:"entryType",v:"RECEIPTTRANSACTION",d:"Type de reporting PUF — RECEIPTTRANSACTION pour B2C agrégé"},{f:"reportPeriodStart",v:"2025-02-01",d:"Début de la période de déclaration"},{f:"reportPeriodEnd",v:"2025-02-10",d:"Fin de la période de déclaration"},{f:"BT-24",v:"urn:pagero.com:puf:billing:2.0",d:"Specification identifier"},{f:"BT-23 / ProfileID",v:"urn:pagero.com:puf:billing:1.0",d:"Type de profil — billing"},{f:"BT-1",v:"POS123456",d:"Numéro de transmission agrégée"},{f:"BT-2",v:"2026-01-02",d:"Date d'émission"},{f:"BT-40",v:"FR",d:"Code pays vendeur"},{f:"BT-31",v:"FR00123456789",d:"N° TVA vendeur"},{f:"BT-30",v:"123456789 (0002)",d:"SIREN vendeur"},{f:"categoryCode line",v:"TLB1 / TSP1",d:"Catégorie de transaction B2C (via puf:LineExtension)"}]},
+  sales_b2bi: {label:"Ventes B2Bi Cross-border (Flux 10.1)",desc:"Facture B2B international — vendeur FR, acheteur IT. INVOICE. Exonération VATEX-EU-151.",type:"INVOICE",flux:"10.1",dir:"AR (Ventes)",fields:[{f:"entryType",v:"INVOICE",d:"Type de reporting PUF"},{f:"reportPeriodStart/End",v:"2025-02-01 / 2025-02-28",d:"Période de déclaration"},{f:"BT-23 / InvoiceTypeCode @name",v:"S1",d:"Cadre de facturation — S1 Services"},{f:"BT-3 / InvoiceTypeCode",v:"380",d:"Code type facture commerciale"},{f:"BT-8",v:"3",d:"Code date exigibilité TVA (UNTDID 2475)"},{f:"BT-40",v:"FR",d:"Pays vendeur — France"},{f:"BT-55",v:"IT",d:"Pays acheteur — Italie"},{f:"BT-47",v:"0223",d:"Identifiant acheteur étranger (ISO 6523 code UE hors France)"},{f:"BT-118",v:"E",d:"Code catégorie TVA — Exonéré"},{f:"BT-119",v:"0",d:"Taux TVA 0%"},{f:"BT-121",v:"VATEX-EU-151",d:"Code motif exonération"},{f:"BT-120",v:"Exonération Art 262 CGI",d:"Motif exonération texte"},{f:"BT-116 / BT-117",v:"100.00 / 0.00",d:"Base HT / Montant TVA"}]},
+  purchase_b2bi: {label:"Achats B2Bi Cross-border (Flux 10.1 AP)",desc:"Facture achat B2B international — acheteur FR, vendeur DE. INVOICE. Autoliquidation 20%.",type:"INVOICE",flux:"10.1",dir:"AP (Achats)",fields:[{f:"entryType",v:"INVOICE",d:"Type de reporting PUF"},{f:"BT-23 / ProfileID",v:"urn:pagero.com:puf:purchase:1.0",d:"Profil purchase (AP)"},{f:"BT-23 / InvoiceTypeCode @name",v:"B1",d:"Cadre de facturation — B1 Biens"},{f:"BT-40",v:"DE",d:"Pays vendeur — Allemagne"},{f:"BT-55",v:"FR",d:"Pays acheteur — France (déclarant)"},{f:"BT-47",v:"0002",d:"SIREN acheteur FR"},{f:"BT-118",v:"S",d:"Code catégorie TVA — Standard (autoliquidation)"},{f:"BT-119",v:"20",d:"Taux TVA 20%"},{f:"BT-116 / BT-117",v:"2000.00 / 400.00",d:"Base HT / Montant TVA"},{f:"BT-153",v:"Livraison de modules",d:"Description article"},{f:"BT-146",v:"20.00",d:"Prix unitaire HT"}]}
+};
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -1233,6 +1238,7 @@ function App(){
   const [selBT,setSelBT]=useState(BT[0]);
   const [selER,setSelER]=useState(ER[0]);
   const [erSc,setErSc]=useState('all');
+  const [erQ,setErQ]=useState('');
   const [erSc2,setErSc2]=useState('all');
   const [erSort,setErSort]=useState('id');
   const [erSortDir,setErSortDir]=useState('asc');
@@ -1244,6 +1250,7 @@ function App(){
   const [bfrDoc,setBfrDoc]=useState('all');
   const [bfrCat,setBfrCat]=useState('all');
   const [bfrQ,setBfrQ]=useState('');
+  const [pufType,setPufType]=useState('sales_b2bi');
   const [ilcFam,setIlcFam]=useState('all');
   const [selUC,setSelUC]=useState(UC[0]);
   const [ucCat,setUcCat]=useState("all");
@@ -1498,6 +1505,11 @@ function App(){
                 </div>
               </div>
             </div>
+            <div style={{marginTop:6}}>
+              <input value={erQ} onChange={e=>setErQ(e.target.value)}
+                placeholder="🔍  Rechercher un champ TT… (ex: BT-23, date, cadre, taux)"
+                style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:7,padding:"7px 14px",color:"#fff",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+            </div>
           </div>
 
           {/* Two-column layout */}
@@ -1518,7 +1530,7 @@ function App(){
               </div>
               {/* List */}
               <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
-                {[...ER].filter(f=>(erSc==="all"||(erSc==="AP"?(f.dir==="AP"||f.dir==="AR + AP"):erSc==="AR"?(f.dir==="AR"||f.dir==="AR + AP"):erSc==="PAIEMENT"?f.s==="PAIEMENT":f.dir===erSc))&&(erSc2==="all"||f.flux===erSc2||f.flux.includes(erSc2))).sort((a,b)=>{
+                {[...ER].filter(f=>(erSc==="all"||(erSc==="AP"?(f.dir==="AP"||f.dir==="AR + AP"):erSc==="AR"?(f.dir==="AR"||f.dir==="AR + AP"):erSc==="PAIEMENT"?f.s==="PAIEMENT":f.dir===erSc))&&(erSc2==="all"||f.flux===erSc2||f.flux.includes(erSc2))&&(!erQ||f.id.toLowerCase().includes(erQ.toLowerCase())||f.fr.toLowerCase().includes(erQ.toLowerCase())||f.bt.toLowerCase().includes(erQ.toLowerCase())||(f.d&&f.d.toLowerCase().includes(erQ.toLowerCase())))).sort((a,b)=>{
                   const av=erSort==="m"?(a.m?0:1):erSort==="a"?(a.a||""):(a[erSort]||"");
                   const bv=erSort==="m"?(b.m?0:1):erSort==="a"?(b.a||""):(b[erSort]||"");
                   return erSortDir==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
@@ -2442,6 +2454,90 @@ function App(){
                   );})}
                 </div>);
               });
+            })()}
+          </div>
+        </div>
+      )}
+      {tab==="puf"&&(
+        <div style={{overflow:"auto",padding:"18px 24px",flex:1}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+            <div style={{marginBottom:18}}>
+              <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Format <span style={{color:"#F59E0B"}}>PUF Pagero</span> <span style={{fontSize:13,color:"rgba(255,255,255,0.4)",fontWeight:400,marginLeft:8}}>Pagero Universal Format — e-reporting France 2026</span></h2>
+              <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:4}}>3 exemples de fichiers PUF transmis par Pagero (PA-R côté AR + e-reporting). Source: fichiers DRAFT Pagero 2025.</p>
+            </div>
+
+            {/* Selector */}
+            <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+              {Object.entries(PUF_EXAMPLES).map(([key,ex])=>{
+                const active = pufType===key;
+                const c = key==="pos_b2c"?"#8B5CF6":key==="sales_b2bi"?"#22C55E":"#F59E0B";
+                return(
+                <button key={key} onClick={()=>setPufType(key)}
+                  style={{padding:"8px 16px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:active?700:400,
+                    border:"1px solid "+(active?c:"rgba(255,255,255,0.12)"),
+                    background:active?c+"18":"rgba(255,255,255,0.02)",color:active?c:"rgba(255,255,255,0.5)"}}>
+                  {ex.label}
+                </button>
+              );})}
+            </div>
+
+            {/* Example detail */}
+            {(()=>{
+              const ex = PUF_EXAMPLES[pufType];
+              const c = pufType==="pos_b2c"?"#8B5CF6":pufType==="sales_b2bi"?"#22C55E":"#F59E0B";
+              return(
+              <div>
+                <div style={{background:c+"08",border:"1px solid "+c+"30",borderRadius:10,padding:"14px 18px",marginBottom:18,display:"flex",gap:16,flexWrap:"wrap",alignItems:"flex-start"}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:4}}>{ex.label}</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.7}}>{ex.desc}</div>
+                  </div>
+                  <div style={{display:"flex",gap:8,flexShrink:0,flexWrap:"wrap"}}>
+                    <span style={{fontSize:11,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{ex.type}</span>
+                    <span style={{fontSize:11,background:c+"15",color:c,borderRadius:5,padding:"3px 10px",fontWeight:700}}>Flux {ex.flux}</span>
+                    <span style={{fontSize:11,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{ex.dir}</span>
+                  </div>
+                </div>
+
+                {/* Fields table */}
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                  <thead><tr style={{background:"rgba(0,0,0,0.3)"}}>
+                    {["CHAMP BT / PUF KEY","VALEUR EXEMPLE","DESCRIPTION"].map(h=>(
+                      <th key={h} style={{padding:"8px 12px",textAlign:"left",fontSize:10,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,borderBottom:"1px solid rgba(255,255,255,0.1)"}}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {ex.fields.map((row,i)=>(
+                      <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,0.05)",background:i%2===0?"transparent":"rgba(255,255,255,0.015)"}}>
+                        <td style={{padding:"8px 12px"}}><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:c,fontWeight:700}}>{row.f}</code></td>
+                        <td style={{padding:"8px 12px"}}><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:"#FCD34D",background:"rgba(245,158,11,0.08)",borderRadius:4,padding:"2px 8px"}}>{row.v}</code></td>
+                        <td style={{padding:"8px 12px",color:"rgba(255,255,255,0.75)",lineHeight:1.6}}>{row.d}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* PUF key points */}
+                <div style={{marginTop:20,background:"rgba(6,182,212,0.04)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:10,padding:"14px 18px"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"#67E8F9",marginBottom:10,textTransform:"uppercase",letterSpacing:0.8}}>📌 Points clés PUF Pagero vs Flux 10 DGFiP</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,fontSize:12}}>
+                    {[
+                      ["puf:entryType","INVOICE ou RECEIPTTRANSACTION — discrimine e-reporting facture (B2B-INT) vs transaction agrégée (B2C)"],
+                      ["puf:reportPeriodStart/End","Période de déclaration — obligatoire dans l'extension Pagero. Correspond à TT-17/TT-18."],
+                      ["InvoiceTypeCode @name","Cadre de facturation BT-23 (S1, B1, M1...) passé en attribut @name — spécificité PUF Pagero."],
+                      ["ProfileID achat","urn:pagero.com:puf:purchase:1.0 pour les achats (AP) — distingue AR vs AP côté Pagero."],
+                      ["BT-47 schemeID","0002=SIREN FR, 0223=UE hors France, 0227=hors UE — crucial pour identifier le type d'acheteur."],
+                      ["Catégorie ligne (B2C)","puf:LineExtension categoryCode — TLB1/TSP1/etc. pour les transactions B2C agrégées (flux 10.3)."],
+                    ].map(([k,v])=>(
+                      <div key={k} style={{background:"rgba(0,0,0,0.2)",borderRadius:7,padding:"8px 12px"}}>
+                        <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#67E8F9",display:"block",marginBottom:3}}>{k}</code>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.65)",lineHeight:1.6}}>{v}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>);
             })()}
           </div>
         </div>
