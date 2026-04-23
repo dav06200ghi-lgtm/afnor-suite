@@ -658,6 +658,8 @@ function App(){
   const [selBT,setSelBT]=useState(BT[0]);
   const [selER,setSelER]=useState(null);
   const [erSc,setErSc]=useState('all');
+  const [erSort,setErSort]=useState('id');
+  const [erSortDir,setErSortDir]=useState('asc');
   const [selILC,setSelILC]=useState(null);
   const [ilcFam,setIlcFam]=useState('all');
   const [selUC,setSelUC]=useState(null);
@@ -857,20 +859,25 @@ function App(){
             {/* LEFT — scrollable list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 70px 250px 1fr 56px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:6}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 70px 260px 1fr 68px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:6}}>
                 <div></div>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>CHAMP ER</div>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>DÉSIGNATION FR</div>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>DÉSIGNATION EN</div>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8}}>STATUT</div>
+                {[["id","CHAMP ER"],["fr","DÉSIG. FR"],["l","DÉSIG. EN"],["m","STATUT"]].map(([k,lbl])=>(
+                  <div key={k} onClick={()=>{if(erSort===k){setErSortDir(d=>d==="asc"?"desc":"asc");}else{setErSort(k);setErSortDir("asc");}}} style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:3}}>
+                    {lbl}{erSort===k&&<span>{erSortDir==="asc"?" ▲":" ▼"}</span>}
+                  </div>
+                ))}
               </div>
               {/* List */}
               <div style={{flex:1,overflow:"auto",padding:"3px 6px"}}>
-                {ER.filter(f=>erSc==="all"||f.s===erSc||f.s.includes(erSc)).map(f=>{
+                {[...ER].filter(f=>erSc==="all"||f.s===erSc||f.s.includes(erSc)).sort((a,b)=>{
+                  const av = erSort==="m"?(a.m?0:1):(a[erSort]||"");
+                  const bv = erSort==="m"?(b.m?0:1):(b[erSort]||"");
+                  return erSortDir==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
+                }).map(f=>{
                   const SC_COLOR={"B2C/B2B-INT":"#F59E0B","B2B-INT":"#3B82F6","PAIEMENT":"#10B981","B2C":"#8B5CF6"}[f.s]||"#F59E0B";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 70px 250px 1fr 56px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 70px 260px 1fr 68px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC_COLOR+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
