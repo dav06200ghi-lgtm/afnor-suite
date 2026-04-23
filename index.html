@@ -912,7 +912,7 @@ function App(){
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
               <div>
                 <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Champs <span style={{color:"#F59E0B"}}>E-Reporting</span></h2>
-                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>Format XML propriétaire DGFiP · B2C · B2B-INT · Paiements</p>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>Format XML propriétaire DGFiP · B2C · B2B-INT · Paiements · Champs TT/TG = Flux 10 uniquement (≠ BT e-invoicing)</p>
               </div>
               <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
                 {[["all","Tous","#6366F1"],["B2C/B2B-INT","B2C/B2B-INT","#F59E0B"],["B2B-INT","B2B-INT","#3B82F6"],["PAIEMENT","Paiement","#10B981"],["B2C","B2C","#8B5CF6"]].map(([v,l,c])=>(
@@ -928,9 +928,9 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 70px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
-                {[["id","CODE"],["fr","DÉSIGNATION"],["m","STATUT"],["a","ACTEUR"],["sap","SAP S/4H"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DÉSIGNATION"],["m","STATUT"],["a","ACTEUR"],["tt","TT/TG"],["sap","SAP S/4H"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
@@ -948,7 +948,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 90px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 70px 90px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -972,6 +972,12 @@ function App(){
                       <span style={{fontSize:9,background:AC+"18",color:AC,borderRadius:4,padding:"3px 6px",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>
                         {f.a==="PA"?"🔧 PA":"📋 Biz"}
                       </span>
+                    </div>
+                    {/* TT/TG XML ref */}
+                    <div style={{overflow:"hidden"}}>
+                      {f.tt
+                        ?<code style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#6366F1",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block"}}>{f.tt}</code>
+                        :<div style={{fontSize:9,color:"rgba(255,255,255,0.15)",textAlign:"center"}}>—</div>}
                     </div>
                     {/* SAP S/4H mapping */}
                     <div style={{overflow:"hidden"}}>
