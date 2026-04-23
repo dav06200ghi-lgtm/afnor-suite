@@ -708,9 +708,11 @@ function App(){
     setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
     try{
       const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:SYS,messages:nm})});
-      if(!r.ok){const e=await r.json();throw new Error(e?.error?.message||"HTTP "+r.status);}
-      const d=await r.json();
-      const reply=d.content?.map(b=>b.type==="text"?b.text:"").join("")||"";
+      const raw=await r.text();
+      if(!r.ok){let msg="HTTP "+r.status;try{const e=JSON.parse(raw);msg=e?.error?.message||e?.error||msg;}catch(x){}throw new Error(msg);}
+      let d;try{d=JSON.parse(raw);}catch(x){throw new Error("Invalid JSON: "+raw.substring(0,100));}
+      if(d.error){throw new Error(d.error?.message||JSON.stringify(d.error));}
+      const reply=(d.content?.filter(b=>b.type==="text").map(b=>b.text).join(""))||d.completion||"(réponse vide)";
       setMsgs(p=>[...p,{role:"assistant",content:reply}]);
     }catch(e){setAiErr(e.message);}
     finally{setAiLoading(false);setTimeout(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});inputRef.current?.focus();},80);}
@@ -1374,7 +1376,7 @@ function App(){
                   </div>
                 </div>
               )}
-              {aiErr&&<div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,color:"#FCA5A5"}}>Erreur: {aiErr}</div>}
+              {aiErr&&<div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,color:"#FCA5A5",whiteSpace:"pre-wrap",wordBreak:"break-all"}}>⚠️ {aiErr}</div>}
               <div ref={bottomRef}/>
             </div>
             <div style={{padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,0.07)",background:"rgba(0,0,0,0.2)",flexShrink:0}}>
