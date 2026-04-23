@@ -774,7 +774,109 @@ const ICO_FLOWS=[
   {buyer:"HFC Prestige Hldg",seller:"Fragrance Production SAS",bvat:"FR04819801770",svat:"FR54409935012"},
   {buyer:"HFC Prestige Hldg",seller:"Coty France SAS",bvat:"FR04819801770",svat:"FR68552019291"},
 ];
-const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const BFR=[
+  {no:1,grp:"France country rules invoices 1.4",msg:"Tradeshift require the invoice to have a payment due date.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:2,grp:"France country rules invoices 1.4",msg:"For French sellers an invoice must contain the seller share capital (Capital Social) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:3,grp:"France country rules invoices 1.4",msg:"For French sellers an invoice must contain the seller company legal structure (Forme juridique) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:4,grp:"France country rules invoices 1.4",msg:"For French sellers an invoice must contain the seller registration number (Registre du commerce et des societes) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:5,grp:"France country rules invoices 1.4",msg:"For French sellers an invoice must contain the seller legal id (SIRET) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:6,grp:"France country rules invoices 1.4",msg:"For foreign sellers an invoice must contain the seller company id to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:7,grp:"France country rules invoices 1.4",msg:"Sender's country must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:8,grp:"France country rules invoices 1.4",msg:"Sender's company name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:9,grp:"France country rules invoices 1.4",msg:"Sender's street name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:10,grp:"France country rules invoices 1.4",msg:"Sender's city name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:11,grp:"France country rules invoices 1.4",msg:"Sender's postal code must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:12,grp:"France country rules invoices 1.4",msg:"Recipients's VAT number must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:13,grp:"France country rules invoices 1.4",msg:"An invoice must contain the buyer company identifier (SIRET) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:14,grp:"France country rules invoices 1.4",msg:"Recipient's country must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:15,grp:"France country rules invoices 1.4",msg:"Recipient's company name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:16,grp:"France country rules invoices 1.4",msg:"Recipient's street name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:17,grp:"France country rules invoices 1.4",msg:"Recipient's city name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:18,grp:"France country rules invoices 1.4",msg:"Recipient's postal code must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:19,grp:"France country rules invoices 1.4",msg:"Total taxable amount (excluding tax) must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:20,grp:"France country rules invoices 1.4",msg:"Total taxable amount must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:21,grp:"France country rules invoices 1.4",msg:"Taxable amount must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:22,grp:"France country rules invoices 1.4",msg:"Tax amount must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:23,grp:"France country rules invoices 1.4",msg:"Tax scheme must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:24,grp:"France country rules invoices 1.4",msg:"Line item description must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:25,grp:"France country rules invoices 1.4",msg:"Line item quantity must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:26,grp:"France country rules invoices 1.4",msg:"Unit price must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:27,grp:"France country rules invoices 1.4",msg:"Line item with 0% tax must be given tax exemption reason.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:28,grp:"France country rules invoices 1.4",msg:"Tax categories Exempt and Zerorated are only accepted for lines with a 0% tax.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:29,grp:"France country rules invoices 1.4",msg:"At least one of the tax category schemes must be VAT on each line.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:30,grp:"France country rules invoices 1.4",msg:"Target currency must be indicated in EUR. (required)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:31,grp:"France country rules invoices 1.4",msg:"Target currency must be indicated in EUR. (pattern ^EUR$)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:32,grp:"France country rules invoices 1.4",msg:"Total tax amount must be indicated in EUR.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:33,grp:"France country rules invoices 1.4",msg:"An invoice in another currency than EUR must contain the conversion rate applied to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:34,grp:"France country rules invoices 1.4",msg:"An invoice must contain a payment terms note on penalty on late payment to be compliant in France. For example: indemnite forfaitaire pour frais de recouvrement en cas de retad de paiement de 40 euros. Add the note under payment terms.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:35,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Purchase Order on line does not exists",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:36,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Invoice number cannot exceed 16 characters, cannot contain special characters (.,_,-,*‚Ä¶.) and not required '0' before the invoice number",doc:"",active:["PO","Mixed"],del:["PO_SA","Mixed_SA"]},
+  {no:37,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Please indicate a valid PO line item number (1-99999)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:38,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Please indicate a valid Coty e-mail from the reference person, e.g: firstname_lastname@cotyinc.com",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:39,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Please select a Coty Legal Entity",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:40,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Please type a valid Coty Material code value (max. 18 characters)",doc:"",active:[],del:["PO","PO_SA","Mixed","Mixed_SA"]},
+  {no:41,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"It is not possible to invoice lines amounting 0.00. Please remove all your lines amounting 0.00.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:42,grp:"Invoice - PO & Mixed Suppliers (PO 33 and PO Non 33)",msg:"Please checkif the Purchase number is correct - is created for this Company Code and it has 10 digits. Otherwise contact with the goods/services requestor (line)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:43,grp:"Invoice - PO & Mixed Suppliers (PO 33 )",msg:"Purchase Order does not exists",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:44,grp:"Invoice - PO & Mixed Suppliers (PO 33 )",msg:"An order reference at line level should also be provided in the header",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:45,grp:"Invoice - PO & Mixed Suppliers (PO 33 )",msg:"Please check if the Purchase number is correct - is created for this Company Code and it has 10 digits. Otherwise contact with the goods/services requestor (header)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:46,grp:"Invoice - PO & Mixed Suppliers (PO 33 )",msg:"Please check if the Purchase number is correct - is created for this Company Code and it has 10 digits. Otherwise contact with the goods/services requestor (header)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:47,grp:"Invoice - Mixed Suppliers",msg:"Please indicate a Purchase Order number or a valid Person of reference email address.",doc:"",active:["Mixed","Mixed_Clearance"],del:["Mixed_SA"]},
+  {no:48,grp:"Invoice - Mixed Suppliers",msg:"Discounts, Charges and Fixed Tax at header level not allowed. Please apply your discount and tax to each invoice line item proportionally. Please add your charges i.e. Freight costs as an additional invoice line.",doc:"",active:["Mixed","Mixed_Clearance"],del:["Mixed_SA"]},
+  {no:49,grp:"Invoice - PO Suppliers (PO 33)",msg:"Please indicate a Purchase Order",doc:"",active:["PO","PO_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:50,grp:"Invoice - PO Suppliers (PO Non 33)",msg:"Please check if the Purchase number is correct - is created for this Company Code and it has 10 digits. Otherwise contact with the goods/services requestor (header)",doc:"",active:["PO","PO_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:51,grp:"Invoice - PO Suppliers (PO 33 and PO Non 33) & Mixed (PO 33)",msg:"Please indicate a line Purchase Order",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA"]},
+  {no:52,grp:"France country rules credit notes 1.4",msg:"For French sellers a credit note must contain the seller share capital (Capital Social) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:53,grp:"France country rules credit notes 1.4",msg:"For French sellers a credit note must contain the seller company legal structure (Forme juridique) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:54,grp:"France country rules credit notes 1.4",msg:"For French sellers a credit note must contain the seller registration number (Registre du commerce et des societes) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:55,grp:"France country rules credit notes 1.4",msg:"For French sellers a credit note must contain the seller legal id (SIRET) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:56,grp:"France country rules credit notes 1.4",msg:"For foreign sellers a credit note must contain the seller company id to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:57,grp:"France country rules credit notes 1.4",msg:"Sender's country must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:58,grp:"France country rules credit notes 1.4",msg:"Sender's company name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:59,grp:"France country rules credit notes 1.4",msg:"Sender's street name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:60,grp:"France country rules credit notes 1.4",msg:"Sender's city name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:61,grp:"France country rules credit notes 1.4",msg:"Sender's postal code must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:62,grp:"France country rules credit notes 1.4",msg:"Recipients's VAT number must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:63,grp:"France country rules credit notes 1.4",msg:"A credit note must contain the buyer company identifier (SIRET) to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:64,grp:"France country rules credit notes 1.4",msg:"Recipient's country must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:65,grp:"France country rules credit notes 1.4",msg:"Recipient's company name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:66,grp:"France country rules credit notes 1.4",msg:"Recipient's street name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:67,grp:"France country rules credit notes 1.4",msg:"Recipient's city name must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:68,grp:"France country rules credit notes 1.4",msg:"Recipient's postal code must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:69,grp:"France country rules credit notes 1.4",msg:"Total taxable amount (excluding tax) must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:70,grp:"France country rules credit notes 1.4",msg:"Total taxable amount must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:71,grp:"France country rules credit notes 1.4",msg:"Taxable amount must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:72,grp:"France country rules credit notes 1.4",msg:"Tax amount must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:73,grp:"France country rules credit notes 1.4",msg:"Tax scheme must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:74,grp:"France country rules credit notes 1.4",msg:"Line item description must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:75,grp:"France country rules credit notes 1.4",msg:"Line item quantity must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:76,grp:"France country rules credit notes 1.4",msg:"Unit price must be filled in.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:77,grp:"France country rules credit notes 1.4",msg:"Line item with 0% tax must be given tax exemption reason.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:78,grp:"France country rules credit notes 1.4",msg:"Tax categories Exempt and Zerorated are only accepted for lines with a 0% tax.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:79,grp:"France country rules credit notes 1.4",msg:"At least one of the tax category schemes must be VAT on each line.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:80,grp:"France country rules credit notes 1.4",msg:"Target currency must be indicated in EUR. (required)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:81,grp:"France country rules credit notes 1.4",msg:"Target currency must be indicated in EUR. (pattern ^EUR$)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:82,grp:"France country rules credit notes 1.4",msg:"Total tax amount must be indicated in EUR.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:83,grp:"France country rules credit notes 1.4",msg:"A credit note in another currency than EUR must contain the conversion rate applied to be compliant in France.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:84,grp:"France country rules credit notes 1.4",msg:"A credit note must provide reference to an invoice, or, if impossible, reference to a series of invoices, a contract or period, to be compliant in France. Provide data in the designed header fields, or in the note.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:85,grp:"Credit Note PO & Mixed Supplier",msg:"Credit note number cannot exceed 16 characters, cannot contain special characters (.,_,-,*‚Ä¶.) and not required '0' before the credit note number",doc:"",active:["PO","Mixed"],del:["PO_SA","Mixed_SA"]},
+  {no:86,grp:"Credit Note PO & Mixed Supplier",msg:"Purchase Order does not exists",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:87,grp:"Credit Note PO & Mixed Supplier",msg:"Purchase Order on line does not exists",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:88,grp:"Credit Note PO & Mixed Supplier",msg:"Invoice number cannot exceed 16 characters, cannot contain special characters (.,_,-,*‚Ä¶.) and not required '0' before the invoice number",doc:"",active:["PO"],del:["PO_SA","Mixed_SA"]},
+  {no:89,grp:"Credit Note PO",msg:"Please indicate a Purchase Order",doc:"",active:["Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:90,grp:"Credit Note Mixed Supplier",msg:"Please indicate a Purchase Order number or a valid Person of reference email address.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:91,grp:"Credit Note PO & Mixed Supplier",msg:"Please indicate a line Purchase Order",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:92,grp:"Credit Note PO & Mixed Supplier",msg:"An order reference at line level should also be provided in the header",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:93,grp:"Credit Note PO & Mixed Supplier",msg:"Please checkif the Purchase number is correct - is created for this Company Code and it has 10 digits. Otherwise contact with the goods/services requestor (header)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:94,grp:"Credit Note PO & Mixed Supplier",msg:"Please checkif the Purchase number is correct - is created for this Company Code and it has 10 digits. Otherwise contact with the goods/services requestor (line)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:95,grp:"Credit Note PO & Mixed Supplier",msg:"Please indicate a valid PO line item number (1-99999)",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:96,grp:"Credit Note PO & Mixed Supplier",msg:"Please indicate a valid Coty e-mail from the reference person, e.g: firstname_lastname@cotyinc.com",doc:"",active:["PO","Mixed"],del:["PO_SA","Mixed_SA"]},
+  {no:97,grp:"Credit Note PO & Mixed Supplier",msg:"Discounts, Charges and Fixed Tax at header level not allowed. Please apply your discount and tax to each credit note line item proportionally. Please add your charges i.e. Freight costs as an additional credit note line.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:98,grp:"Credit Note PO & Mixed Supplier",msg:"Please select a Coty Legal Entity",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]},
+  {no:99,grp:"Credit Note PO & Mixed Supplier",msg:"Please type a valid Coty Material code value (max. 18 characters)",doc:"",active:[],del:["PO","PO_SA","Mixed","Mixed_SA"]},
+  {no:100,grp:"Credit Note PO & Mixed Supplier",msg:"It is not possible to invoice lines amounting 0.00. Please remove all your lines amounting 0.00.",doc:"",active:["PO","Mixed","PO_Clearance","Mixed_Clearance","PO_Managed"],del:["PO_SA","Mixed_SA"]}
+];
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -859,6 +961,9 @@ function App(){
   const [motifSt,setMotifSt]=useState('all');
   const [selMotif,setSelMotif]=useState(CODES_MOTIF[0]);
   const [selEntity,setSelEntity]=useState(COTY_ENTITIES[0]);
+  const [bfrDoc,setBfrDoc]=useState('all');
+  const [bfrCat,setBfrCat]=useState('all');
+  const [bfrQ,setBfrQ]=useState('');
   const [ilcFam,setIlcFam]=useState('all');
   const [selUC,setSelUC]=useState(UC[0]);
   const [ucCat,setUcCat]=useState("all");
@@ -1838,6 +1943,59 @@ function App(){
                 <div style={{fontSize:13}}>Sélectionnez un code motif</div>
               </div>}
             </div>
+          </div>
+        </div>
+      )}
+      {tab==="bfr"&&(
+        <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
+              <div>
+                <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>BFR Rules <span style={{color:"#F59E0B"}}>Tradeshift</span></h2>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>{BFR.length} règles · Coty FR Tracker 22/04/2026 · Catégories fournisseurs</p>
+              </div>
+              <input value={bfrQ} onChange={e=>setBfrQ(e.target.value)} placeholder="Rechercher..." style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,padding:"5px 12px",color:"#fff",fontSize:12,width:200,outline:"none"}}/>
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center"}}>DOCUMENT:</span>
+              {[["all","Tous","#6366F1"],["invoice","Invoice","#3B82F6"],["credit","Credit Note","#8B5CF6"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setBfrDoc(v)} style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",border:"1px solid "+(bfrDoc===v?c:"rgba(255,255,255,0.1)"),background:bfrDoc===v?c+"20":"transparent",color:bfrDoc===v?c:"rgba(255,255,255,0.35)",fontWeight:bfrDoc===v?700:400}}>{l}</button>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center"}}>CATÉGORIE:</span>
+              {[["all","Tous","#6366F1"],["PO","PO","#22C55E"],["Mixed","Mixed","#06B6D4"],["PO_Clearance","PO-Clearance","#F59E0B"],["Mixed_Clearance","Mixed-Clearance","#EC4899"],["PO_Managed","PO-Managed","#A78BFA"],["PO_SA","PO SA (DELETE)","#EF4444"],["Mixed_SA","Mixed SA (DELETE)","#EF4444"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setBfrCat(v)} style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",border:"1px solid "+(bfrCat===v?c:"rgba(255,255,255,0.1)"),background:bfrCat===v?c+"20":"transparent",color:bfrCat===v?c:"rgba(255,255,255,0.35)",fontWeight:bfrCat===v?700:400}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{flex:1,overflow:"auto",padding:"4px 0"}}>
+            {(()=>{
+              const filtered=BFR.filter(r=>(bfrDoc==="all"||r.doc===bfrDoc)&&(bfrCat==="all"||(r.active.includes(bfrCat)||r.del.includes(bfrCat)))&&(!bfrQ||r.msg.toLowerCase().includes(bfrQ.toLowerCase())||r.grp.toLowerCase().includes(bfrQ.toLowerCase())));
+              const groups=[...new Set(filtered.map(r=>r.grp))];
+              return groups.map(grp=>{
+                const grpRules=filtered.filter(r=>r.grp===grp);
+                return(
+                <div key={grp} style={{marginBottom:16,padding:"0 12px"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{grp||"General"}</div>
+                  {grpRules.map(r=>{
+                    const isDelete=bfrCat!=="all"&&r.del.includes(bfrCat);
+                    return(
+                    <div key={r.no} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"6px 8px",borderRadius:6,marginBottom:3,background:isDelete?"rgba(239,68,68,0.05)":"transparent",border:isDelete?"1px solid rgba(239,68,68,0.15)":"1px solid transparent"}}>
+                      <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,fontWeight:700,color:isDelete?"#EF4444":"#6366F1",minWidth:28,flexShrink:0}}>{r.no}</span>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:12,color:isDelete?"rgba(239,68,68,0.7)":"rgba(255,255,255,0.85)",textDecoration:isDelete?"line-through":"none",lineHeight:1.5}}>{r.msg}</div>
+                        <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:4}}>
+                          {r.active.map(c=><span key={c} style={{fontSize:8,background:"rgba(34,197,94,0.1)",color:"#86EFAC",borderRadius:3,padding:"1px 5px",fontWeight:600}}>{c}</span>)}
+                          {r.del.map(c=><span key={c} style={{fontSize:8,background:"rgba(239,68,68,0.1)",color:"#FCA5A5",borderRadius:3,padding:"1px 5px",fontWeight:600,textDecoration:"line-through"}}>{c}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                  );})}
+                </div>);
+              });
+            })()}
           </div>
         </div>
       )}
