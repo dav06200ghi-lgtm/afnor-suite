@@ -1501,15 +1501,15 @@ function App(){
           </div>
 
           {/* Two-column layout */}
-          <div style={{display:"grid",gridTemplateColumns:"800px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"1050px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 18px 68px 1fr 46px 60px 70px 70px 70px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 18px 75px 1fr 48px 68px 85px 85px 85px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 <div></div>
-                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["flux","FLUX"],["bt","BT"],["sap","SAP S/4H"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["flux","FLUX"],["bt","BT"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
@@ -1518,7 +1518,7 @@ function App(){
               </div>
               {/* List */}
               <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
-                {[...ER].filter(f=>(erSc==="all"||(erSc==="AP"?(f.dir==="AP"||f.dir==="AR + AP"):erSc==="AR"?(f.dir==="AR"||f.dir==="AR + AP"):f.dir===erSc))&&(erSc2==="all"||f.flux===erSc2||f.flux.includes(erSc2))).sort((a,b)=>{
+                {[...ER].filter(f=>(erSc==="all"||(erSc==="AP"?(f.dir==="AP"||f.dir==="AR + AP"):erSc==="AR"?(f.dir==="AR"||f.dir==="AR + AP"):erSc==="PAIEMENT"?f.s==="PAIEMENT":f.dir===erSc))&&(erSc2==="all"||f.flux===erSc2||f.flux.includes(erSc2))).sort((a,b)=>{
                   const av=erSort==="m"?(a.m?0:1):erSort==="a"?(a.a||""):(a[erSort]||"");
                   const bv=erSort==="m"?(b.m?0:1):erSort==="a"?(b.a||""):(b[erSort]||"");
                   return erSortDir==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
@@ -1527,7 +1527,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 18px 68px 1fr 46px 60px 70px 70px 70px 90px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 18px 75px 1fr 48px 68px 85px 85px 85px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -1580,13 +1580,7 @@ function App(){
                       {f.bt?<code style={{fontSize:11,color:"#67E8F9",background:"rgba(6,182,212,0.1)",borderRadius:4,padding:"2px 7px",fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",display:"block"}}>{f.bt}</code>
                       :<span style={{fontSize:9,color:"rgba(255,255,255,0.15)"}}>—</span>}
                     </div>
-                    {/* SAP S/4H */}
-                    <div style={{overflow:"hidden"}}>
-                      {f.sap&&f.sap.trim()
-                        ?<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#34D399",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",lineHeight:1.4}}>{f.sap.split("\n")[0]}</div>
-                        :<div style={{fontSize:9,color:"rgba(255,255,255,0.15)",textAlign:"center"}}>—</div>}
-                    </div>
-
+                    
                   </div>
                 );})}
               </div>
@@ -1753,13 +1747,13 @@ function App(){
                       {selER.vals&&selER.vals.trim()&&(
                         <div style={{marginBottom:selER.rules?8:0}}>
                           <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",fontWeight:600,marginBottom:3}}>Valeurs / Nomenclatures</div>
-                          <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",lineHeight:1.8,fontFamily:"JetBrains Mono,monospace",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{selER.vals}</div>
+                          <div style={{fontSize:14,color:"rgba(255,255,255,0.9)",lineHeight:1.9,fontFamily:"JetBrains Mono,monospace",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{selER.vals}</div>
                         </div>
                       )}
                       {selER.rules&&selER.rules.trim()&&(
                         <div>
                           <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",fontWeight:600,marginBottom:3}}>Règles de gestion</div>
-                          <div style={{fontSize:12,color:"rgba(255,255,255,0.85)",lineHeight:1.85,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{selER.rules}</div>
+                          <div style={{fontSize:15,color:"rgba(255,255,255,0.9)",lineHeight:2,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{selER.rules}</div>
                         </div>
                       )}
                     </div>
