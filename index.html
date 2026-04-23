@@ -195,58 +195,58 @@ const BT=[
   {id:"BT-161",g:"line_items",l:"Valeur d'attribut d'article",fr:"Valeur d'attribut d'article",m:true,s:["ei"],t:"TEXTE",d:"Valeur de l'attribut ou de la propriété de l'article. Exemple : Rouge. BR-FR : BR-FR-28.",r:"BR-54",ex:"Rouge",ubl:"/Invoice/cac:InvoiceLine /CreditNote/cac:CreditNoteLine",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct"},
 ];
 const ER=[
-  {id:"ER-01",l:"Transmission identifier",fr:"Identifiant de transmission",m:true,s:"B2C/B2B-INT",t:"Identifiant",a:"PA",
+  {id:"ER-01",l:"Transmission identifier",fr:"Identifiant de transmission",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Identifiant",a:"PA",
    d:"Identifiant unique de la transmission généré par la PA ou par le PPF. Non renseigné par l'entreprise.",
    tt:"TT-1",path:"/ReportDocument/Id",ex:"TRANS-2026-09-001",sap:""},
-  {id:"ER-02",l:"Transmission date",fr:"Date de transmission",m:true,s:"B2C/B2B-INT",t:"Date",a:"PA",
+  {id:"ER-02",l:"Transmission date",fr:"Date de transmission",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Date",a:"PA",
    d:"Date et heure de création de la transmission. Format AAAAMMJJHHMMSS. Généré automatiquement par la PA à l'envoi.",
    tt:"TT-3",path:"/ReportDocument/IssueDateTime/DateTimeString",ex:"20260901120000",sap:""},
-  {id:"ER-03",l:"Reporting period start",fr:"Début de période",m:true,s:"B2C/B2B-INT",t:"Date",a:"PA",
+  {id:"ER-03",l:"Reporting period start",fr:"Début de période",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Date",a:"PA",
    d:"Date de début de la période de transmission. Format AAAAMMJJ. Calculé par la PA selon les règles G6.24/G6.25.",
    tt:"TT-17",path:"/TransactionsReport/ReportPeriod/StartDate",ex:"20260901",sap:""},
-  {id:"ER-04",l:"Reporting period end",fr:"Fin de période",m:true,s:"B2C/B2B-INT",t:"Date",a:"PA",
+  {id:"ER-04",l:"Reporting period end",fr:"Fin de période",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Date",a:"PA",
    d:"Date de fin de la période. Format AAAAMMJJ. Max 10 jours. Calculé par la PA.",
    tt:"TT-18",path:"/TransactionsReport/ReportPeriod/EndDate",ex:"20260910",sap:""},
-  {id:"ER-05",l:"Transmitter SIRET",fr:"SIRET déclarant",m:true,s:"B2C/B2B-INT",t:"Identifiant",a:"Business",
+  {id:"ER-05",l:"Transmitter SIRET",fr:"SIRET déclarant",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Identifiant",a:"Business",
    d:"SIREN (9 chiffres) du déclarant. Fourni par l'entreprise à la PA lors de l'inscription. Schème ICD 0002.",
    tt:"TT-13",path:"/ReportDocument/Issuer/Id",ex:"123456789 (SIREN)",sap:"T001 (BUKRS→SIREN) / J_1AFISC / ADRC→STCD3\nBUKRS→Customizing OAD fiche société"},
-  {id:"ER-06",l:"Transmitter VAT number",fr:"N° TVA déclarant",m:true,s:"B2C/B2B-INT",t:"Identifiant",a:"Business",
+  {id:"ER-06",l:"Transmitter VAT number",fr:"N° TVA déclarant",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Identifiant",a:"Business",
    d:"Numéro TVA français du déclarant. Format FR + clé + SIREN. Fourni par l'entreprise à la PA. TT-34-0 qualifiant = VAT.",
    tt:"TT-34",path:"/TransactionsReport/Invoice/Seller/TaxRegistrationId",ex:"FR12345678900",sap:"T001-STCEG / ADRC-STCEG\nOu: LFA1-STCEG (vendeur)\nTable J_1ATAX (n° TVA)"},
-  {id:"ER-07",l:"Transaction type code",fr:"Catégorie de transactions",m:true,s:"B2C/B2B-INT",t:"Code",a:"PA",
+  {id:"ER-07",l:"Transaction type code",fr:"Catégorie de transactions",m:true,s:"B2C/B2B-INT",dir:"AR + AP",t:"Code",a:"PA",
    d:"Catégorie calculée par la PA selon le type d'opération. TT-81. Valeurs : TLB1=B2C domestique, TPS1=B2B-INT services, TNT1=B2B-INT biens, TMA1=Marge.",
    tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1 | TPS1 | TNT1 | TMA1",sap:""},
-  {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",t:"Date",a:"Business",
+  {id:"ER-08",l:"Transaction date",fr:"Date de l'opération",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Date",a:"Business",
    d:"Date à laquelle les transactions ont été comptabilisées. Format AAAAMMJJ. Issue des données facture de l'entreprise.",
    tt:"TT-77",path:"/TransactionsReport/Transactions/Date",ex:"20260905",sap:"BKPF-BUDAT (date comptabilisation)\nOu BKPF-BLDAT (date document)\nVBRK-FKDAT (SD billing date)"},
-  {id:"ER-09",l:"Taxable amount excl. VAT",fr:"Base d'imposition HT",m:true,s:"B2C/B2B-INT",t:"Montant",a:"Business",
+  {id:"ER-09",l:"Taxable amount excl. VAT",fr:"Base d'imposition HT",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Montant",a:"Business",
    d:"Somme HT agrégée par taux TVA sur la période. B2C : agrégat quotidien. B2B-INT : par facture individuelle. Format 19.2. Issu de BT-116.",
    tt:"TT-87",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxableAmount",ex:"1500.00",sap:"BSET-HWBAS (base imposable en devise société)\nOu BSET-FWBAS (devise document)\nT-code: FB03, S_ALR_87012357"},
-  {id:"ER-10",l:"VAT amount",fr:"Montant TVA",m:true,s:"B2C/B2B-INT",t:"Montant",a:"Business",
+  {id:"ER-10",l:"VAT amount",fr:"Montant TVA",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Montant",a:"Business",
    d:"Montant TVA = ER-09 × ER-12/100. Toujours en EUR. Issu de BT-117. TT-88.",
    tt:"TT-88",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxTotal",ex:"300.00",sap:"BSET-HWSTE (montant TVA devise société)\nOu BSET-FWSTE (devise document)\nJoint à BSET-MWSKZ (code TVA)"},
-  {id:"ER-11",l:"Total incl. VAT",fr:"Montant TTC",m:true,s:"B2C/B2B-INT",t:"Montant",a:"Business",
+  {id:"ER-11",l:"Total incl. VAT",fr:"Montant TTC",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Montant",a:"Business",
    d:"Total TTC = ER-09 + ER-10. Issu de BT-109 (HT) + BT-110 (TVA). Déclaré pour contrôle cohérence DGFiP. TT-82 + TT-83.",
    tt:"TT-82+TT-83",path:"/TransactionsReport/Transactions/TaxExclusiveAmount",ex:"1800.00",sap:"BKPF-HWBAS+BSET-HWSTE\nOu VBRK-NETWR+VBRK-MWSBP (SD)\nBSEG-DMBTR (montant total)"},
-  {id:"ER-12",l:"VAT rate",fr:"Taux de TVA",m:true,s:"B2C/B2B-INT",t:"Pourcentage",a:"Business",
+  {id:"ER-12",l:"VAT rate",fr:"Taux de TVA",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Pourcentage",a:"Business",
    d:"Taux TVA applicable. Valeurs BR-FR-16 : 0, 2.1, 5.5, 7, 8.5, 10, 13, 20. Un bloc TT-86/87/88 par taux. Issu de BT-119.",
    tt:"TT-86",path:"/TransactionsReport/Transactions/TaxSubtotal/TaxPercent",ex:"20 | 10 | 5.5 | 2.1 | 0",sap:"BSET-MWSKZ → T007A-MWSTZ (taux)\nOu KONP-KBETR (condition pricing SD)\nT-code: FTXP pour paramétrage taux"},
-  {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",t:"Code",a:"Business",
+  {id:"ER-13",l:"VAT category code",fr:"Catégorie TVA",m:true,s:"B2C/B2B-INT",dir:"AR",t:"Code",a:"Business",
    d:"Code UNTDID 5305. Mêmes valeurs que BT-118 : S, E, AE, K, G, O, Z. L/M exclus France (BR-FR-15). Issu de BT-118. TT-56.",
    tt:"TT-56",path:"/TransactionsReport/Invoice/TaxSubTotal/TaxCategory/Code",ex:"S | AE | E | K | G | Z",sap:"BSET-MWSKZ → T007A\nChamp AFNOR: Tax category (S/E/AE/K…)\nMapping code TVA SAP → catégorie UNTDID 5305\nVoir matrice TVA projet"},
-  {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",t:"Code",a:"Business",
+  {id:"ER-14",l:"Buyer country code",fr:"Pays de l'acheteur",m:false,s:"B2B-INT",dir:"AR",t:"Code",a:"Business",
    d:"Code pays ISO 3166-1 alpha-2 de l'acheteur. Requis uniquement pour B2B-INT. Issu de BT-55. TT-39.",
    tt:"TT-39",path:"/TransactionsReport/Invoice/Buyer/PostalAddress/CountryId",ex:"DE | GB | US | CN",sap:"KNA1-LAND1 (pays client AR)\nOu LFA1-LAND1 (pays fournisseur AP)\nADRC-COUNTRY (adresse)"},
-  {id:"ER-15",l:"Buyer VAT number",fr:"N° TVA acheteur",m:false,s:"B2B-INT",t:"Identifiant",a:"Business",
+  {id:"ER-15",l:"Buyer VAT number",fr:"N° TVA acheteur",m:false,s:"B2B-INT",dir:"AR",t:"Identifiant",a:"Business",
    d:"N° TVA acheteur étranger. Requis pour autoliquidation intra-UE (ER-13=AE/K). Issu de BT-48. TT-38, qualifiant TT-38-0=VAT.",
    tt:"TT-38",path:"/TransactionsReport/Invoice/Buyer/TaxRegistrationId",ex:"DE123456789 | GB123456789",sap:"KNA1-STCEG (TVA client AR)\nOu LFA1-STCEG (TVA fournisseur AP)\nTable J_1ATAX"},
-  {id:"ER-17",l:"Payment date",fr:"Date d'encaissement",m:true,s:"PAIEMENT",t:"Date",a:"Business",
+  {id:"ER-17",l:"Payment date",fr:"Date d'encaissement",m:true,s:"PAIEMENT",dir:"PAIEMENT",t:"Date",a:"Business",
    d:"Date d'encaissement du paiement. Format AAAAMMJJ. Déclenche l'exigibilité TVA pour assujettis TVA sur encaissements (BT-8=432). TT-92.",
    tt:"TT-92",path:"/PaymentsReport/Invoice/Payment/Date",ex:"20260915",sap:"BKPF-BUDAT (date paiement clearing)\nOu REGUH-ZALDT (date paiement proposé)\nBSEG-AUGDT (date lettrage/clearing)"},
-  {id:"ER-19",l:"Original invoice reference",fr:"Référence facture originale",m:true,s:"PAIEMENT",t:"Identifiant",a:"Business",
+  {id:"ER-19",l:"Original invoice reference",fr:"Référence facture originale",m:true,s:"PAIEMENT",dir:"PAIEMENT",t:"Identifiant",a:"Business",
    d:"Numéro BT-1 de la facture originale à laquelle se rapporte ce paiement. Permet le rapprochement DGFiP. TT-91.",
    tt:"TT-91",path:"/PaymentsReport/Invoice/InvoiceID",ex:"FA-2026-00123",sap:"BKPF-XBLNR (référence externe document)\nOu VBRK-VBELN (numéro facture SD)\nBSEG-ZUONR (champ affectation)\nOu champ personnalisé BT-1 mapping"},
-  {id:"ER-21",l:"B2C simplification flag",fr:"Simplification B2C (août 2025)",m:false,s:"B2C",t:"Code",a:"PA",
+  {id:"ER-21",l:"B2C simplification flag",fr:"Simplification B2C (août 2025)",m:false,s:"B2C",dir:"AR",t:"Code",a:"PA",
    d:"Depuis BOI-RES-RVA-000209 du 05/06/2025 : indicateur non obligatoire pour déclarations B2C agrégées. Géré par la PA. TT-81.",
    tt:"TT-81",path:"/TransactionsReport/Transactions/CategoryCode",ex:"TLB1",sap:""},
 ];
@@ -708,6 +708,7 @@ function App(){
   const [selBT,setSelBT]=useState(BT[0]);
   const [selER,setSelER]=useState(ER[0]);
   const [erSc,setErSc]=useState('all');
+  const [erSc2,setErSc2]=useState('all');
   const [erSort,setErSort]=useState('id');
   const [erSortDir,setErSortDir]=useState('asc');
   const [selILC,setSelILC]=useState(ILC[0]);
@@ -923,9 +924,18 @@ function App(){
                 <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>Format XML propriétaire DGFiP · B2C · B2B-INT · Paiements · Champs TT/TG = Flux 10 uniquement (≠ BT e-invoicing)</p>
               </div>
               <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                {[["all","Tous","#6366F1"],["B2C/B2B-INT","B2C/B2B-INT","#F59E0B"],["B2B-INT","B2B-INT","#3B82F6"],["PAIEMENT","Paiement","#10B981"],["B2C","B2C","#8B5CF6"]].map(([v,l,c])=>(
-                  <button key={v} onClick={()=>setErSc(v)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(erSc===v?c:"rgba(255,255,255,0.1)"),background:erSc===v?c+"20":"transparent",color:erSc===v?c:"rgba(255,255,255,0.4)",fontWeight:erSc===v?700:400}}>{l}</button>
-                ))}
+                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center",marginRight:2}}>FLUX:</div>
+                  {[["all","Tous","#6366F1"],["AR","🔼 AR (ventes)","#F59E0B"],["AP","🔽 AP (achats)","#3B82F6"],["AR + AP","AR + AP","#8B5CF6"],["PAIEMENT","💳 Paiement","#10B981"]].map(([v,l,c])=>(
+                    <button key={v} onClick={()=>setErSc(v)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(erSc===v?c:"rgba(255,255,255,0.1)"),background:erSc===v?c+"20":"transparent",color:erSc===v?c:"rgba(255,255,255,0.4)",fontWeight:erSc===v?700:400}}>{l}</button>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:4}}>
+                  <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center",marginRight:2}}>NATURE:</div>
+                  {[["all","Tous","#6366F1"],["B2C/B2B-INT","B2C/B2B-INT","#F59E0B"],["B2B-INT","B2B-INT","#3B82F6"],["PAIEMENT","Paiement","#10B981"],["B2C","B2C","#8B5CF6"]].map(([v,l,c])=>(
+                    <button key={v} onClick={()=>setErSc2(v)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(erSc2===v?c:"rgba(255,255,255,0.1)"),background:erSc2===v?c+"20":"transparent",color:erSc2===v?c:"rgba(255,255,255,0.4)",fontWeight:erSc2===v?700:400}}>{l}</button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -936,9 +946,9 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 70px 300px 52px 78px 78px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 70px 300px 52px 72px 72px 72px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
-                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["a","ACTEUR"],["tt","TT/TG"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["tt","TT/TG"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
@@ -956,7 +966,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 70px 300px 52px 78px 78px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 70px 300px 52px 72px 72px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -974,6 +984,13 @@ function App(){
                       {f.m
                         ?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"3px 7px",fontWeight:700}}>REQ</span>
                         :<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.35)",borderRadius:4,padding:"3px 7px"}}>OPT</span>}
+                    </div>
+                    {/* AR/AP direction */}
+                    <div style={{display:"flex",justifyContent:"center"}}>
+                      {(()=>{
+                        const DC={"AR":"#F59E0B","AP":"#3B82F6","AR + AP":"#8B5CF6","PAIEMENT":"#10B981"}[f.dir]||"#6366F1";
+                        return <span style={{fontSize:9,background:DC+"18",color:DC,borderRadius:4,padding:"2px 5px",fontWeight:700,whiteSpace:"nowrap"}}>{f.dir}</span>;
+                      })()}
                     </div>
                     {/* Acteur PA ou Business */}
                     <div style={{display:"flex",justifyContent:"center"}}>
@@ -1016,14 +1033,18 @@ function App(){
                     </div>
                   </div>
                   <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.75}}>{selER.d}</div>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
                     <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 14px"}}>
                       <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>TYPE</div>
                       <div style={{fontSize:13,fontWeight:700,color:SC}}>{selER.t}</div>
                     </div>
                     <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 14px"}}>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>SCOPE</div>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>NATURE</div>
                       <div style={{fontSize:13,fontWeight:700,color:SC}}>{selER.s}</div>
+                    </div>
+                    <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 14px"}}>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:5,fontWeight:700}}>FLUX</div>
+                      <div style={{fontSize:13,fontWeight:700,color:({"AR":"#F59E0B","AP":"#3B82F6","AR + AP":"#8B5CF6","PAIEMENT":"#10B981"}[selER.dir]||"#6366F1")}}>{selER.dir}</div>
                     </div>
                   </div>
                   {selER.tt&&(
