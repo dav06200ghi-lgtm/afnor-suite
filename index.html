@@ -2551,8 +2551,8 @@ function App(){
               {[
                 {title:"🔵 E-INVOICING (Flux 2)",en:"Structured invoice sent to buyer via PA/PPF",color:"#3B82F6",desc:"Format: UBL 2.1 / CII / Factur-X (norme EN16931)\nDestinataire: L'acheteur via PA/PPF\nContenu: Facture complete avec toutes les lignes\nFrequence: A chaque facture emise\nRetour: Statuts ILC CDAR 200 -> 212",
                  steps:[{f:"Vendeur",t:"PA Vendeur",m:"Facture XML BT-1..BT-153"},{f:"PA Vendeur",t:"PPF",m:"Routage via Annuaire BT-49"},{f:"PPF",t:"PA Acheteur",m:"Livraison + CDAR 200"},{f:"Acheteur",t:"PA",m:"CDAR 203/204/210/212"}]},
-                {title:"🟠 E-REPORTING (Flux 7)",en:"Aggregated VAT data sent to DGFiP only",color:"#F59E0B",desc:"Format: XML proprietaire DGFiP (pas EN16931)\nDestinataire: DGFiP uniquement (pas l'acheteur)\nContenu: Montants agreges par taux TVA\nFrequence: Tous les 10 jours\nRetour: Accuse reception DGFiP",
-                 steps:[{f:"Vendeur",t:"PA Vendeur",m:"Donnees agreges ER-01..ER-22"},{f:"PA Vendeur",t:"PPF",m:"XML e-reporting DGFiP"},{f:"PPF",t:"DGFiP",m:"Donnees TVA declaration"},{f:"DGFiP",t:"PPF",m:"Accuse de reception"}]}
+                {title:"🟠 E-REPORTING (Flux 10)",en:"Aggregated VAT data sent to DGFiP only",color:"#F59E0B",desc:"Format: XML proprietaire DGFiP (pas EN16931)\nDestinataire: DGFiP uniquement (pas l'acheteur)\nContenu: Montants agreges par taux TVA\nFrequence: Tous les 10 jours\nRetour: Accuse reception DGFiP",
+                 steps:[{f:"Vendeur",t:"PA Vendeur",m:"Données agrégées TT-19..TT-88 (Flux 10.1/10.3)"},{f:"PA Vendeur",t:"PPF",m:"XML e-reporting DGFiP"},{f:"PPF",t:"DGFiP",m:"Donnees TVA declaration"},{f:"DGFiP",t:"PPF",m:"Accuse de reception"}]}
               ].map(({title,en,color,desc,steps})=>(
                 <div key={title} style={{background:"rgba(255,255,255,0.02)",border:"1px solid "+color+"30",borderRadius:12,padding:16}}>
                   <div style={{fontSize:13,fontWeight:800,color,marginBottom:en?4:10}}>{title}</div>
