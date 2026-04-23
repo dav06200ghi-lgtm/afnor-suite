@@ -796,7 +796,7 @@ function App(){
               <div style={{display:"flex",gap:3,marginTop:7,flexWrap:"wrap"}}>
                 {[["all","Tous","#6366F1"],["ei","E-Invoice","#3B82F6"]].map(([v,l,c])=><P key={v} label={l} active={sc===v} onClick={()=>setSc(v)} color={c}/>)}
                 <span style={{width:1,background:"rgba(255,255,255,0.1)",margin:"0 2px"}}/>
-                {[["all","Requis+Opt","#6366F1"],["req","Requis","#EF4444"],["opt","Optionnel","rgba(255,255,255,0.4)"]].map(([v,l,c])=><P key={v} label={l} active={req===v} onClick={()=>setReq(v)} color={c}/>)}
+                {[["all","Req+Opt","#6366F1"],["req","Required","#EF4444"],["opt","Optional","rgba(255,255,255,0.4)"]].map(([v,l,c])=><P key={v} label={l} active={req===v} onClick={()=>setReq(v)} color={c}/>)}
               </div>
               <div style={{display:"flex",gap:3,marginTop:5,flexWrap:"wrap"}}>
                 {[["all","Tous","#6366F1"],["header","Header","#6366F1"],["seller","Vendeur","#3B82F6"],["buyer","Acheteur","#8B5CF6"],["delivery","Livraison","#06B6D4"],["payment","Paiement","#10B981"],["allowcharges","Rem./Charges doc.","#F59E0B"],["amounts","Montants","#EF4444"],["vat","TVA","#84CC16"],["lines","Lignes","#14B8A6"],["line_allowcharges","Rem./Charges ligne","#F59E0B"],["line_items","Article","#A78BFA"]].map(([v,l,c])=>
@@ -806,9 +806,9 @@ function App(){
             </div>
 
             {/* Sortable column header */}
-            <div style={{display:"grid",gridTemplateColumns:"3px 250px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0}}>
+            <div style={{display:"grid",gridTemplateColumns:"3px 150px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0}}>
               <div></div>
-              {[["id","CHAMP BT"],["l","DÉSIGNATION"],["m","STATUT"]].map(([k,lbl])=>(
+              {[["id","CHAMP BT"],["l","DESIGNATION"],["m","STATUS"]].map(([k,lbl])=>(
                 <div key={k} onClick={()=>{setSortBy(k);setSortDir(d=>d==="asc"?"desc":"asc");}} style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8,cursor:"pointer",userSelect:"none"}}>
                   {lbl}{sortBy===k&&(sortDir==="asc"?" ▲":" ▼")}
                 </div>
@@ -820,16 +820,15 @@ function App(){
               <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",padding:"4px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>{filtBT.length} champs</div>
               {filtBT.map(f=>(
                 <div key={f.id} onClick={()=>setSelBT(selBT?.id===f.id?null:f)}
-                  style={{display:"grid",gridTemplateColumns:"3px 250px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                  style={{display:"grid",gridTemplateColumns:"3px 150px 1fr 72px",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                     background:selBT?.id===f.id?(GC[f.g]||"#6366F1")+"18":"transparent",transition:"background 0.1s"}}
                   onMouseEnter={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                   onMouseLeave={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="transparent";}}>
                   <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:GC[f.g]||"#6366F1",flexShrink:0,minHeight:16}}></div>
                   <div style={{display:"flex",gap:6,alignItems:"center",minWidth:0}}>
-                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:GC[f.g]||"#6366F1",flexShrink:0}}>{f.id}</span>
-                    <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontStyle:"italic"}}>{f.fr}</span>
+                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,color:GC[f.g]||"#6366F1",flexShrink:0}}>{f.id}</span>
                   </div>
-                  <div style={{fontSize:12,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
+                  <div style={{fontSize:13,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
                   <div style={{display:"flex",gap:3,justifyContent:"flex-end"}}>
                     {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>:<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
                     
@@ -845,7 +844,7 @@ function App(){
               <div style={{padding:22}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
                   <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:24,fontWeight:900,color:"#6366F1"}}>{selBT.id}</span>
-                  {selBT.m&&<span style={{fontSize:10,background:"rgba(239,68,68,0.2)",color:"#FCA5A5",borderRadius:5,padding:"2px 8px",fontWeight:700}}>REQUIS</span>}
+                  {selBT.m&&<span style={{fontSize:10,background:"rgba(239,68,68,0.2)",color:"#FCA5A5",borderRadius:5,padding:"2px 8px",fontWeight:700}}>REQUIRED</span>}
                   <span style={{fontSize:10,background:"rgba(99,102,241,0.15)",color:"#A5B4FC",borderRadius:5,padding:"2px 8px"}}>{selBT.t}</span>
                   <span style={{fontSize:10,background:"rgba(59,130,246,0.15)",color:"#60A5FA",borderRadius:5,padding:"2px 8px"}}>E-Invoicing (Flux 2)</span>
                 </div>
@@ -860,7 +859,7 @@ function App(){
                 </div>)}
                 {(selBT.ubl||selBT.cii)&&(
                 <div style={{background:"rgba(6,182,212,0.04)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:9,padding:"10px 14px",marginBottom:10}}>
-                  <div style={{fontSize:9,color:"#67E8F9",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>🏷️ Balises XML</div>
+                  <div style={{fontSize:9,color:"#67E8F9",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>🏷️ XML Tags</div>
                   {selBT.ubl&&<div style={{marginBottom:selBT.cii?8:0}}>
                     <span style={{fontSize:9,color:"rgba(255,255,255,0.35)",fontWeight:600,display:"block",marginBottom:2}}>UBL 2.1</span>
                     <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#67E8F9",wordBreak:"break-all",lineHeight:1.6,display:"block"}}>{selBT.ubl}</code>
@@ -872,7 +871,7 @@ function App(){
                 </div>
               )}
               {selBT.r&&selBT.r.trim()&&(<div style={{background:"rgba(139,92,246,0.06)",border:"1px solid rgba(139,92,246,0.2)",borderRadius:9,padding:"8px 12px",marginBottom:10}}>
-                  <div style={{fontSize:9,color:"#A78BFA",textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontWeight:700}}>Règles applicables</div>
+                  <div style={{fontSize:9,color:"#A78BFA",textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontWeight:700}}>Applicable rules</div>
                   <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
                     {selBT.r.split(/[,\s]+/).filter(Boolean).map(r=>(
                       <span key={r} style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(139,92,246,0.12)",color:"#A78BFA",borderRadius:4,padding:"2px 6px"}}>{r.trim()}</span>
@@ -881,7 +880,7 @@ function App(){
                 </div>)}
                 {selBT.ex&&(
                 <div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:"10px 14px"}}>
-                  <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>Valeurs normatives</div>
+                  <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>Normative values</div>
                   {selBT.ex.includes(" | ")?(
                     <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
                       {selBT.ex.split(" | ").map((v,i)=>(
@@ -928,9 +927,9 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 70px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 72px 1fr 54px 62px 68px 88px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
-                {[["id","CODE"],["fr","DÉSIGNATION"],["m","STATUT"],["a","ACTEUR"],["tt","TT/TG"],["sap","SAP S/4H"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["a","ACTEUR"],["tt","TT/TG"],["sap","SAP S/4H"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
@@ -948,7 +947,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 88px 1fr 54px 66px 70px 90px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 72px 1fr 54px 62px 68px 88px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -960,7 +959,7 @@ function App(){
                       {f.tt&&<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:SC+"90",marginTop:2}}>{f.tt}</div>}
                     </div>
                     {/* Désignation FR */}
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
+                    <div style={{fontSize:13,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
                     {/* Statut REQ/OPT */}
                     <div style={{display:"flex",justifyContent:"center"}}>
                       {f.m
@@ -1082,7 +1081,7 @@ function App(){
           </div>
 
           {/* Two-column layout */}
-          <div style={{display:"grid",gridTemplateColumns:"500px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"600px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -1090,7 +1089,7 @@ function App(){
               <div style={{display:"grid",gridTemplateColumns:"3px 60px 1fr 100px 100px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>CODE</div>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>DÉSIGNATION</div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>DESIGNATION</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>FAMILLE</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>ACTEUR</div>
               </div>
