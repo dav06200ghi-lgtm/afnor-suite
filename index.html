@@ -338,102 +338,102 @@ const UC=[
    en:"Multiple PO / Multiple Delivery",cx:"basic",
    t:"Cas 1 — Commande multiple / Livraison multiple",
    d:"Une facture peut faire référence à plusieurs bons de commande (BT-13) et plusieurs bons de livraison. Utiliser les groupes BG-16 (référence document précédent) pour chaque référence de commande. Flux standard EI.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec multi BT-13 (bons de commande)"},{f:"PA",to:"PPF",m:"Routage Annuaire"},{f:"Acheteur",to:"PA",m:"CDAR 203/204/212"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec multi BT-13 (bons de commande)",coty:"Y"},{f:"PA",to:"PPF",m:"Routage Annuaire"},{f:"Acheteur",to:"PA",m:"CDAR 203/204/212"}],
    st:["200","201","203","204","212"]},
   {id:"UC-02",cat:"nominal",
    en:"Invoice Already Paid (buyer or third party)",cx:"basic",
    t:"Cas 2 — Facture déjà payée (acheteur ou tiers payeur)",
    d:"Facture émise après paiement déjà reçu. BT-113 (montant déjà réglé) = BT-112 (TTC). BT-115 (net à payer) = 0. Statut 212 non nécessaire si paiement déjà reçu avant émission.",
-   flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement préalable"},{f:"Vendeur",to:"PA",m:"Facture BT-113=TTC, BT-115=0"},{f:"Acheteur",to:"PA",m:"CDAR 204 (approbation)"}],
+   flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement préalable",coty:"Y"},{f:"Vendeur",to:"PA",m:"Facture BT-113=TTC, BT-115=0"},{f:"Acheteur",to:"PA",m:"CDAR 204 (approbation)"}],
    st:["200","201","204"]},
   {id:"UC-03",cat:"nominal",
    en:"Invoice Payable by Known Third Party",cx:"basic",
    t:"Cas 3 — Facture payable par un tiers payeur connu",
    d:"Tiers payeur identifié au moment de la facturation (ex: assurance, caisse de solidarité). BT-49 du tiers payeur dans l'Annuaire. Le SELLER indique le tiers dans les instructions de paiement.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec coordonnées tiers payeur"},{f:"PA Tiers",to:"PPF",m:"Statut 204 + paiement"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement tiers"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec coordonnées tiers payeur",coty:"Y"},{f:"PA Tiers",to:"PPF",m:"Statut 204 + paiement"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement tiers"}],
    st:["200","201","204","212"]},
   {id:"UC-04",cat:"nominal",
    en:"Invoice Partially Covered by Third Party (subsidy, insurance)",cx:"medium",
    t:"Cas 4 — Facture partiellement couverte par un tiers (subvention, assurance)",
    d:"L'acheteur paie une partie, un tiers (organisme, assurance, subvention) paie l'autre. Deux flux de paiement distincts. Deux statuts 212 possibles : un pour chaque paiement partiel.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115 = montant total"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Tiers",to:"PA",m:"CDAR 204 + paiement complément"},{f:"Vendeur",to:"PA",m:"2x CDAR 212 (paiements partiels)"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115 = montant total",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Tiers",to:"PA",m:"CDAR 204 + paiement complément"},{f:"Vendeur",to:"PA",m:"2x CDAR 212 (paiements partiels)"}],
    st:["200","201","204","212"]},
   // ── EMPLOYEE EXPENSES ────────────────────────────────────────────────────
   {id:"UC-05",cat:"expenses",
    en:"Expense Reports — Company Invoice",cx:"basic",
    t:"Cas 5 — Notes de frais avec factures au nom de la société",
    d:"Employé paie pour le compte de la société. La facture est au nom de la société (BT-44). Flux EI standard. L'employé est transparent — seule la société est acheteur.",
-   flow:[{f:"Fournisseur",to:"PA",m:"Facture au nom de la société (BT-44)"},{f:"Société",to:"PA",m:"CDAR 203/204 (validation note de frais)"},{f:"Société",to:"Employé",m:"Remboursement note de frais"}],
+   flow:[{f:"Fournisseur",to:"PA",m:"Facture au nom de la société (BT-44)",coty:"Y"},{f:"Société",to:"PA",m:"CDAR 203/204 (validation note de frais)"},{f:"Société",to:"Employé",m:"Remboursement note de frais"}],
    st:["200","201","203","204"]},
   {id:"UC-06",cat:"expenses",
    en:"Expense Reports — No Company Invoice (receipt)",cx:"basic",
    t:"Cas 6 — Notes de frais sans facture société (ticket, reçu)",
    d:"Facture au nom de l'employé ou simple reçu. Hors périmètre EI. Traitement interne uniquement, pas de flux e-invoicing ni e-reporting.",
-   flow:[{f:"Fournisseur",to:"Employé",m:"Reçu ou facture nominative employé"},{f:"Employé",to:"Société",m:"Note de frais interne"},{f:"Société",to:"Employé",m:"Remboursement"}],
+   flow:[{f:"Fournisseur",to:"Employé",m:"Reçu ou facture nominative employé",coty:"Y"},{f:"Employé",to:"Société",m:"Note de frais interne"},{f:"Société",to:"Employé",m:"Remboursement"}],
    st:[]},
   {id:"UC-07",cat:"expenses",
    en:"Corporate Card Purchase",cx:"basic",
    t:"Cas 7 — Achat par carte achat (corporate card)",
    d:"Facture suite à achat avec carte achat (purchasing card). La facture peut être consolidée (plusieurs achats) ou individuelle. Flux EI si facture au nom de la société.",
-   flow:[{f:"Fournisseur",to:"Réseau carte",m:"Transaction carte"},{f:"Réseau carte",to:"Société",m:"Facture consolidée"},{f:"Société",to:"PA",m:"Flux EI si périmètre B2B"}],
+   flow:[{f:"Fournisseur",to:"Réseau carte",m:"Transaction carte",coty:"Y"},{f:"Réseau carte",to:"Société",m:"Facture consolidée"},{f:"Société",to:"PA",m:"Flux EI si périmètre B2B"}],
    st:["200","201","204"]},
   // ── THIRD-PARTY PAYMENT ──────────────────────────────────────────────────
   {id:"UC-08",cat:"tiers",
    en:"Factoring / Cash Pooling (third party at invoicing)",cx:"medium",
    t:"Cas 8 — Affacturage / Cash pooling (tiers payeur identifié à la facturation)",
    d:"Factor ou gestionnaire cash pooling identifié à la facturation. Note BAR (BT-21=ACC) pour affacturage. Identifiant supplémentaire factor (BT-29 avec schème spécifique). Statuts ILC dédiés pour le suivi.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-21=ACC, identifiant factor"},{f:"Factor",to:"PPF",m:"Notification prise en charge"},{f:"Acheteur",to:"Factor",m:"Paiement à l'échéance"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement factor"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-21=ACC, identifiant factor",coty:"Y"},{f:"Factor",to:"PPF",m:"Notification prise en charge"},{f:"Acheteur",to:"Factor",m:"Paiement à l'échéance"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur réception paiement factor"}],
    st:["200","201","204","212"]},
   {id:"UC-09",cat:"tiers",
    en:"Known Third Party Managing Order & Payment (distributor)",cx:"medium",
    t:"Cas 9 — Tiers payeur connu gérant aussi la commande (distributeur/dépositaire)",
    d:"Le tiers gère la commande ET le paiement. Cas distributeur/dépositaire. Adresse électronique du tiers dans l'Annuaire. Flux entre vendeur et tiers, pas directement l'acheteur final.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 du distributeur"},{f:"Distributeur",to:"PA",m:"CDAR 203/204 (approbation)"},{f:"Distributeur",to:"Vendeur",m:"CDAR 212 paiement"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 du distributeur",coty:"Y"},{f:"Distributeur",to:"PA",m:"CDAR 203/204 (approbation)"},{f:"Distributeur",to:"Vendeur",m:"CDAR 212 paiement"}],
    st:["200","201","203","204","212"]},
   {id:"UC-10",cat:"tiers",
    en:"Unknown Third Party at Issuance (subrogation, factoring)",cx:"complex",
    t:"Cas 10 — Tiers payeur inconnu à l'émission (subrogation, affacturage)",
    d:"Le factor n'est pas connu à la date d'émission. Subrogation postérieure. BT-49 de l'acheteur initial dans l'Annuaire. Modification des instructions de paiement après émission par notification complémentaire.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 acheteur"},{f:"Factor",to:"Vendeur",m:"Notification subrogation (hors réseau EI)"},{f:"Acheteur",to:"Factor",m:"Paiement redirigé"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement factor"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec BT-49 acheteur",coty:"Y"},{f:"Factor",to:"Vendeur",m:"Notification subrogation (hors réseau EI)"},{f:"Acheteur",to:"Factor",m:"Paiement redirigé"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement factor"}],
    st:["200","201","204","212"]},
   // ── INTERMEDIAIRES ───────────────────────────────────────────────────────
   {id:"UC-11",cat:"intermediaire",
    en:"Reception & Processing by Third Party for Buyer",cx:"medium",
    t:"Cas 11 — Réception et traitement par un tiers pour le compte de l'acheteur",
    d:"Un tiers (PA-TR) reçoit et traite les factures pour le compte de l'acheteur. Le tiers a accès à l'adresse électronique de l'acheteur dans l'Annuaire. L'acheteur délègue le traitement complet.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=adresse tiers"},{f:"PA Tiers",to:"Tiers",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"PA",m:"CDAR 203/204 au nom acheteur"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=adresse tiers",coty:"N"},{f:"PA Tiers",to:"Tiers",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"PA",m:"CDAR 203/204 au nom acheteur"}],
    st:["200","201","203","204","212"]},
   {id:"UC-12",cat:"intermediaire",
    en:"Transparent Intermediary Managing Invoices for Buyer",cx:"medium",
    t:"Cas 12 — Intermédiaire transparent gérant les factures pour son mandant acheteur",
    d:"Intermédiaire transparent (agent achat, centrale d'achat). Factures au nom de l'acheteur final. L'intermédiaire gère le flux mais l'acheteur reste le destinataire légal.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture au nom acheteur final"},{f:"Intermédiaire",to:"PA",m:"Traitement pour compte mandant"},{f:"Acheteur",to:"Intermédiaire",m:"Remboursement frais"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture au nom acheteur final",coty:"Y"},{f:"Intermédiaire",to:"PA",m:"Traitement pour compte mandant"},{f:"Acheteur",to:"Intermédiaire",m:"Remboursement frais"}],
    st:["200","201","203","204"]},
   // ── SOUS-TRAITANCE ───────────────────────────────────────────────────────
   {id:"UC-13",cat:"soustrait",
    en:"Subcontracting with Direct Payment or Payment Delegation",cx:"complex",
    t:"Cas 13 — Sous-traitance avec paiement direct ou délégation de paiement (B2B)",
    d:"Sous-traitant facture le titulaire (BT-44=titulaire). Titulaire peut déléguer paiement direct au maître d'ouvrage. Autoliquidation TVA possible (BT-118=AE). SELLER=SOUS-TRAITANT dans BG-4.",
-   flow:[{f:"Sous-traitant",to:"PA",m:"Facture au titulaire (BT-44)"},{f:"Titulaire",to:"PA",m:"Accord paiement direct"},{f:"Maître d'ouvrage",to:"Sous-traitant",m:"Paiement direct (si accepté)"},{f:"Sous-traitant",to:"PA",m:"CDAR 212"}],
+   flow:[{f:"Sous-traitant",to:"PA",m:"Facture au titulaire (BT-44)",coty:"Y"},{f:"Titulaire",to:"PA",m:"Accord paiement direct"},{f:"Maître d'ouvrage",to:"Sous-traitant",m:"Paiement direct (si accepté)"},{f:"Sous-traitant",to:"PA",m:"CDAR 212"}],
    st:["200","201","203","204","212"]},
   {id:"UC-14",cat:"soustrait",
    en:"Joint Venture (B2B Group)",cx:"complex",
    t:"Cas 14 — Cotraitance (groupement B2B)",
    d:"Groupement momentané d'entreprises (GME). Chaque cotraitant facture le maître d'ouvrage directement. BG-4 SELLER=COTRAITANT, BG-7 BUYER=Maître d'ouvrage. Mandataire du groupement coordonne.",
-   flow:[{f:"Cotraitant A",to:"PA",m:"Facture part A (BT-44=MO)"},{f:"Cotraitant B",to:"PA",m:"Facture part B (BT-44=MO)"},{f:"MO",to:"PA",m:"CDAR 204 par cotraitant"},{f:"Chaque cotraitant",to:"PA",m:"CDAR 212"}],
+   flow:[{f:"Cotraitant A",to:"PA",m:"Facture part A (BT-44=MO)",coty:"Y"},{f:"Cotraitant B",to:"PA",m:"Facture part B (BT-44=MO)"},{f:"MO",to:"PA",m:"CDAR 204 par cotraitant"},{f:"Chaque cotraitant",to:"PA",m:"CDAR 212"}],
    st:["200","201","203","204","212"]},
   // ── MANDATS / SELF-BILLING ───────────────────────────────────────────────
   {id:"UC-15",cat:"mandat",
    en:"Invoice for Third-Party Order/Payment on Buyer's Behalf",cx:"medium",
    t:"Cas 15 — Facture suite commande/paiement par tiers pour compte acheteur",
    d:"Le tiers (agence média, centrale) passe la commande ET paie pour le compte de l'acheteur. Adresse électronique confiée à une PA-TR choisie par l'acheteur.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=tiers"},{f:"Tiers",to:"PA Acheteur",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"Vendeur",m:"CDAR 204 + paiement"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-49=tiers",coty:"Y"},{f:"Tiers",to:"PA Acheteur",m:"Traitement pour compte acheteur"},{f:"Tiers",to:"Vendeur",m:"CDAR 204 + paiement"}],
    st:["200","201","204","212"]},
   {id:"UC-16",cat:"mandat",
    en:"Rebilling of Costs Advanced by Third Party",cx:"medium",
    t:"Cas 16 — Facture de refacturation des frais avancés par le tiers",
    d:"Le tiers refacture à l'acheteur les montants avancés. Deux flux distincts : facture vendeur->tiers, puis facture tiers->acheteur. BT-3=380 pour les deux.",
-   flow:[{f:"Vendeur",to:"Tiers",m:"Facture initiale (EI)"},{f:"Tiers",to:"Acheteur",m:"Refacturation (EI)"},{f:"Acheteur",to:"Tiers",m:"CDAR 204 + paiement"}],
+   flow:[{f:"Vendeur",to:"Tiers",m:"Facture initiale (EI)",coty:"Y"},{f:"Tiers",to:"Acheteur",m:"Refacturation (EI)"},{f:"Acheteur",to:"Tiers",m:"CDAR 204 + paiement"}],
    st:["200","201","204","212"]},
   {id:"UC-17a",cat:"mandat",cx:"medium",
    t:"Cas 17a — Facture payable à un tiers intermédiaire de paiement (Marketplace)",
@@ -449,7 +449,7 @@ const UC=[
    en:"Debit Note Management",cx:"medium",
    t:"Cas 18 — Gestion des notes de débit",
    d:"Note de débit émise par l'acheteur pour facturer des frais au vendeur. BT-3=383 (note de débit). Flux inverse : acheteur devient vendeur dans la facture. Rare en B2B France.",
-   flow:[{f:"Acheteur",to:"PA",m:"Note de débit BT-3=383"},{f:"Vendeur",to:"PA",m:"CDAR 203/204 (approbation note débit)"}],
+   flow:[{f:"Acheteur",to:"PA",m:"Note de débit BT-3=383",coty:"Y"},{f:"Vendeur",to:"PA",m:"CDAR 203/204 (approbation note débit)"}],
    st:["200","201","204"]},
   {id:"UC-19a",cat:"mandat",cx:"medium",
    t:"Cas 19a — Facture émise par un tiers mandataire (mandat de facturation)",
@@ -466,13 +466,13 @@ const UC=[
    en:"Deposit Invoice (before delivery)",cx:"medium",
    t:"Cas 20 — Facture d'acompte (avant prestation)",
    d:"Facture d'acompte émise avant réalisation complète de la prestation. BT-3=380. BT-113=0 (pas encore de paiement antérieur). La facture de solde (UC-21) référencera cet acompte.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture acompte BT-3=380"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement acompte"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement acompte"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture acompte BT-3=380",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement acompte"},{f:"Vendeur",to:"PA",m:"CDAR 212 sur paiement acompte"}],
    st:["200","201","204","212"]},
   {id:"UC-21",cat:"acompte",
    en:"Balance Invoice (after deposit)",cx:"medium",
    t:"Cas 21 — Facture de solde (après acompte)",
    d:"Facture finale déduisant les acomptes versés. BT-113 = somme des acomptes. BT-115 = solde restant dû. Référence aux factures d'acompte via BG-16 (billing reference).",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture solde BT-113=acomptes, BT-115=solde"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"},{f:"Vendeur",to:"PA",m:"CDAR 212 solde"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture solde BT-113=acomptes, BT-115=solde",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"},{f:"Vendeur",to:"PA",m:"CDAR 212 solde"}],
    st:["200","201","204","212"]},
   // ── ESCOMPTES / REMISES ──────────────────────────────────────────────────
   {id:"UC-22a",cat:"escompte",cx:"medium",
@@ -490,129 +490,129 @@ const UC=[
    en:"Self-Billing — Individual to Professional",cx:"medium",
    t:"Cas 23 — Autofacturation particulier vers professionnel",
    d:"Un particulier exerçant une activité régulière facturée par un professionnel (ex: agriculteur vendant à une coopérative). BT-3=389. L'acheteur professionnel émet la facture au nom du particulier.",
-   flow:[{f:"Acheteur professionnel",to:"PA",m:"Autofacture BT-3=389 au nom particulier"},{f:"Particulier",to:"Acheteur",m:"Validation"}],
+   flow:[{f:"Acheteur professionnel",to:"PA",m:"Autofacture BT-3=389 au nom particulier",coty:"N"},{f:"Particulier",to:"Acheteur",m:"Validation"}],
    st:["200","201","204"]},
   {id:"UC-24",cat:"special",
    en:"Earnest Money / Security Deposit",cx:"medium",
    t:"Cas 24 — Gestion des arrhes (dépôt de garantie)",
    d:"Arrhes versées = engagement contractuel (≠ acompte). Si annulation acheteur : arrhes conservées. Si annulation vendeur : double des arrhes rendues. Traitement spécifique TVA selon CGI.",
-   flow:[{f:"Acheteur",to:"Vendeur",m:"Versement arrhes (hors périmètre EI)"},{f:"Vendeur",to:"PA",m:"Facture définitive avec déduction arrhes"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"}],
+   flow:[{f:"Acheteur",to:"Vendeur",m:"Versement arrhes (hors périmètre EI)",coty:"Y"},{f:"Vendeur",to:"PA",m:"Facture définitive avec déduction arrhes"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement solde"}],
    st:["200","201","204","212"]},
   {id:"UC-25",cat:"special",
    en:"Gift Cards and Vouchers",cx:"medium",
    t:"Cas 25 — Gestion des bons d'achat et cartes cadeaux",
    d:"Bon à usage unique (BUU) : TVA exigible à la délivrance. Bon multi-usages (BUM) : TVA exigible à l'utilisation. Traitement différent selon type pour l'e-reporting.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture vente bon (BUU: TVA immédiate)"},{f:"Acheteur",to:"Vendeur",m:"Utilisation bon"},{f:"Vendeur",to:"PA",m:"BUM: e-reporting à l'utilisation"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture vente bon (BUU: TVA immédiate)",coty:"Y"},{f:"Acheteur",to:"Vendeur",m:"Utilisation bon"},{f:"Vendeur",to:"PA",m:"BUM: e-reporting à l'utilisation"}],
    st:["200","201","204"]},
   {id:"UC-26",cat:"special",
    en:"Invoices with Contractual Retention Clauses",cx:"medium",
    t:"Cas 26 — Factures avec clauses de réserve contractuelle",
    d:"Partie du prix retenue jusqu'à levée de la réserve (garanties de parfait achèvement, retenues de garantie BTP). BT-115 < BT-112. Le solde retenu est payé après levée de réserve.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115=montant hors retenue"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Levée réserve",to:"PA",m:"Facture complémentaire retenue"},{f:"Vendeur",to:"PA",m:"CDAR 212"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture BT-115=montant hors retenue",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement partiel"},{f:"Levée réserve",to:"PA",m:"Facture complémentaire retenue"},{f:"Vendeur",to:"PA",m:"CDAR 212"}],
    st:["200","201","204","212"]},
   {id:"UC-27",cat:"special",
    en:"Toll Tickets (to taxable entity in France)",cx:"basic",
    t:"Cas 27 — Gestion des péages (tickets de péage à assujetti)",
    d:"Tickets de péage émis à des assujettis : périmètre EI en principe, mais tolérance administrative pour les reçus aux péages. Péages facturant des abonnements ou comptes entreprise : flux EI complet.",
-   flow:[{f:"Société péage",to:"PA",m:"Facture abonnement ou compte entreprise"},{f:"Entreprise",to:"PA",m:"CDAR 203/204"}],
+   flow:[{f:"Société péage",to:"PA",m:"Facture abonnement ou compte entreprise",coty:"Y"},{f:"Entreprise",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
   {id:"UC-28",cat:"special",
    en:"Restaurant Tickets (taxable restaurateur in France)",cx:"medium",
    t:"Cas 28 — Tickets de restaurant (restaurateur assujetti en France)",
    d:"Restaurateurs établis en France émettant des factures à des assujettis (repas d'affaires, restauration collective). Flux EI standard. Les notes de restaurant < 150€ ont des règles simplifiées.",
-   flow:[{f:"Restaurateur",to:"PA",m:"Facture repas (EI si client assujetti)"},{f:"Entreprise cliente",to:"PA",m:"CDAR 203/204"}],
+   flow:[{f:"Restaurateur",to:"PA",m:"Facture repas (EI si client assujetti)",coty:"Y"},{f:"Entreprise cliente",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
   {id:"UC-29",cat:"tva",
    en:"VAT Group (Single Taxable Entity art. 256C CGI)",cx:"complex",
    t:"Cas 29 — Groupe TVA (assujetti unique art. 256C CGI)",
    d:"Entité unique TVA regroupant plusieurs entités juridiques. L'assujetti unique a un seul numéro TVA pour le groupe. Les transactions intra-groupe sont hors champ TVA. Flux EI entre membres du groupe = e-reporting.",
-   flow:[{f:"Entité A",to:"Entité B",m:"Transaction intra-groupe (hors TVA)"},{f:"Entité groupe",to:"PA",m:"E-reporting consolidé au niveau groupe"}],
+   flow:[{f:"Entité A",to:"Entité B",m:"Transaction intra-groupe (hors TVA)",coty:"Y"},{f:"Entité groupe",to:"PA",m:"E-reporting consolidé au niveau groupe"}],
    st:[]},
   {id:"UC-30",cat:"tva",
    en:"VAT Already Collected (B2C → B2B Retrospective)",cx:"complex",
    t:"Cas 30 — TVA déjà collectée (B2C → B2B rétrospectif)",
    d:"Transaction initialement traitée en B2C (e-reporting), puis facture B2B émise rétrospectivement. Régularisation de l'e-reporting B2C. La facture B2B déclenche un flux EI.",
-   flow:[{f:"Vendeur",to:"PA",m:"E-reporting B2C initial"},{f:"Acheteur",to:"Vendeur",m:"Demande facture B2B a posteriori"},{f:"Vendeur",to:"PA",m:"Facture EI + régularisation e-reporting B2C"}],
+   flow:[{f:"Vendeur",to:"PA",m:"E-reporting B2C initial",coty:"Y"},{f:"Acheteur",to:"Vendeur",m:"Demande facture B2B a posteriori"},{f:"Vendeur",to:"PA",m:"Facture EI + régularisation e-reporting B2C"}],
    st:["200","201","204"]},
   {id:"UC-31",cat:"tva",
    en:"Mixed Invoices (main + ancillary operation)",cx:"medium",
    t:"Cas 31 — Factures mixtes (opération principale + opération accessoire)",
    d:"Une facture combine une opération principale (ex: vente) avec une opération accessoire différente (ex: transport). Chaque opération peut avoir un taux TVA différent. Plusieurs lignes avec BT-151 différents.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture multi-lignes multi-taux TVA"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture multi-lignes multi-taux TVA",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
   {id:"UC-32",cat:"special",
    en:"Instalment Payments (monthly)",cx:"medium",
    t:"Cas 32 — Paiements échelonnés (mensualités)",
    d:"Contrat avec paiements périodiques (abonnements, loyers, maintenance). Une facture par période ou une facture globale avec tableau d'échelonnement. BT-20 décrit les modalités.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture mensuelle ou globale avec BT-20"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement périodique"},{f:"Vendeur",to:"PA",m:"CDAR 212 par encaissement"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture mensuelle ou globale avec BT-20",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 204 + paiement périodique"},{f:"Vendeur",to:"PA",m:"CDAR 212 par encaissement"}],
    st:["200","201","204","212"]},
   {id:"UC-33",cat:"tva",
    en:"Margin Scheme (VAT on profit)",cx:"complex",
    t:"Cas 33 — Régime de la marge (TVA sur profit)",
    d:"Régime de la marge bénéficiaire : biens d'occasion, agences de voyages, antiquités. TVA calculée sur la marge, pas sur le prix total. BT-102=S sur lignes hors marge. Indicateur marge obligatoire.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec indicateur régime marge"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec indicateur régime marge",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
   {id:"UC-34",cat:"acompte",
    en:"Partial Payment Acknowledgement & Cancellation",cx:"medium",
    t:"Cas 34 — Accusé de paiement partiel et annulation d'accusé",
    d:"Chaque paiement partiel déclenche un CDAR 212 avec le montant reçu. En cas d'annulation (chèque sans provision), un CDAR complémentaire annule le précédent. Applicable uniquement pour TVA encaissements.",
-   flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement partiel 1"},{f:"Vendeur",to:"PA",m:"CDAR 212 montant partiel"},{f:"Banque",to:"Vendeur",m:"Rejet chèque"},{f:"Vendeur",to:"PA",m:"CDAR 212 annulation (montant négatif)"}],
+   flow:[{f:"Acheteur",to:"Vendeur",m:"Paiement partiel 1",coty:"Y"},{f:"Vendeur",to:"PA",m:"CDAR 212 montant partiel"},{f:"Banque",to:"Vendeur",m:"Rejet chèque"},{f:"Vendeur",to:"PA",m:"CDAR 212 annulation (montant négatif)"}],
    st:["212"]},
   {id:"UC-35",cat:"special",
    en:"Author's Fees (copyright)",cx:"basic",
    t:"Cas 35 — Notes d'auteurs (droits d'auteur)",
    d:"Cas en cours de discussion, sous réserve d'évolutions. Les auteurs percevant des droits peuvent être soumis à TVA selon leur régime. Flux à confirmer selon décision DGFIP.",
-   flow:[{f:"Auteur",to:"Éditeur/Société",m:"Note d'auteur (régime TVA à confirmer)"}],
+   flow:[{f:"Auteur",to:"Éditeur/Société",m:"Note d'auteur (régime TVA à confirmer)",coty:"Y"}],
    st:[]},
   {id:"UC-36",cat:"special",
    en:"Professional Secrecy and Sensitive Data",cx:"complex",
    t:"Cas 36 — Secret professionnel et données sensibles",
    d:"Transactions soumises au secret professionnel (art. 226-13 Code pénal : secret bancaire, médical, avocat...). Anonymisation possible des données dans le flux e-invoicing. Modalités spécifiques avec DGFIP.",
-   flow:[{f:"Prestataire",to:"PA",m:"Facture avec données minimales (anonymisées)"},{f:"PA",to:"PPF",m:"Flux avec restrictions données sensibles"}],
+   flow:[{f:"Prestataire",to:"PA",m:"Facture avec données minimales (anonymisées)",coty:"N"},{f:"PA",to:"PPF",m:"Flux avec restrictions données sensibles"}],
    st:["200","201","204"]},
   // ── STRUCTURES JURIDIQUES ────────────────────────────────────────────────
   {id:"UC-37",cat:"structure",
    en:"Joint Ventures / Temporary Groupings",cx:"complex",
    t:"Cas 37 — SEP (Sociétés en Participation / Groupements momentanés)",
    d:"GME/GIE sans personnalité morale. Le mandataire du groupement est le vendeur unique (BG-4=mandataire). Facturation au nom du groupement via son mandataire. Chaque membre refacture au mandataire.",
-   flow:[{f:"Mandataire GME",to:"PA",m:"Facture client (BG-4=mandataire)"},{f:"Client",to:"PA",m:"CDAR 204"},{f:"Membres",to:"Mandataire",m:"Refacturation quote-part interne"}],
+   flow:[{f:"Mandataire GME",to:"PA",m:"Facture client (BG-4=mandataire)",coty:"N"},{f:"Client",to:"PA",m:"CDAR 204"},{f:"Membres",to:"Mandataire",m:"Refacturation quote-part interne"}],
    st:["200","201","204","212"]},
   {id:"UC-38",cat:"special",
    en:"Invoices with Sub-lines and Groupings",cx:"medium",
    t:"Cas 38 — Factures avec sous-lignes et regroupements",
    d:"Certains secteurs nécessitent une description détaillée des composants. Kits, assemblages, facturation télécom avec détail des communications. Structure hiérarchique de lignes via BT-128 (référence objet).",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec lignes regroupées (BT-128)"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec lignes regroupées (BT-128)",coty:"Y"},{f:"Acheteur",to:"PA",m:"CDAR 203/204"}],
    st:["200","201","204"]},
   {id:"UC-39",cat:"intermediaire",
    en:"Multi-vendor Transparent Intermediary (consolidated invoice)",cx:"complex",
    t:"Cas 39 — Intermédiaire transparent multi-vendeurs (facture consolidée)",
    d:"Centrale d'achat ou agrégateur facturant à un acheteur unique pour le compte de plusieurs vendeurs. Facture consolidée multi-vendeurs (Multi-Vendor Invoice). BG-4 = chaque vendeur distinct.",
-   flow:[{f:"Vendeurs A,B,C",to:"Intermédiaire",m:"Factures individuelles"},{f:"Intermédiaire",to:"PA",m:"Facture consolidée multi-vendeurs"},{f:"Acheteur",to:"PA",m:"CDAR 204 global"}],
+   flow:[{f:"Vendeurs A,B,C",to:"Intermédiaire",m:"Factures individuelles",coty:"N"},{f:"Intermédiaire",to:"PA",m:"Facture consolidée multi-vendeurs"},{f:"Acheteur",to:"PA",m:"CDAR 204 global"}],
    st:["200","201","204","212"]},
   {id:"UC-40",cat:"special",
    en:"Group Payments, Netting or Compensation",cx:"complex",
    t:"Cas 40 — Paiements groupés, netting ou compensation (achats croisés)",
    d:"Deux entités qui s'achètent mutuellement peuvent compenser leurs créances. Netting : une seule transaction nette. Chaque facture reste individuelle dans EI, le paiement net est rapproché.",
-   flow:[{f:"A",to:"PA",m:"Facture A→B"},{f:"B",to:"PA",m:"Facture B→A"},{f:"Compensation",to:"PA",m:"CDAR 212 net (montant compensé)"}],
+   flow:[{f:"A",to:"PA",m:"Facture A→B",coty:"Y"},{f:"B",to:"PA",m:"Facture B→A"},{f:"Compensation",to:"PA",m:"CDAR 212 net (montant compensé)"}],
    st:["200","201","204","212"]},
   {id:"UC-41",cat:"special",
    en:"Barter Companies (inter-company exchange)",cx:"complex",
    t:"Cas 41 — Entreprises de troc (échange inter-entreprises)",
    d:"Transactions de troc entre professionnels. Chaque partie est simultanément vendeur et acheteur. Deux factures séparées ou une seule avec compensation. Base TVA = valeur vénale des biens/services échangés.",
-   flow:[{f:"Entreprise A",to:"PA",m:"Facture A→B (valeur vénale)"},{f:"Entreprise B",to:"PA",m:"Facture B→A (valeur vénale)"},{f:"Les deux",to:"PA",m:"CDAR 212 croisés"}],
+   flow:[{f:"Entreprise A",to:"PA",m:"Facture A→B (valeur vénale)",coty:"N"},{f:"Entreprise B",to:"PA",m:"Facture B→A (valeur vénale)"},{f:"Les deux",to:"PA",m:"CDAR 212 croisés"}],
    st:["200","201","204","212"]},
   // ── TVA / EXONERATIONS ───────────────────────────────────────────────────
   {id:"UC-42",cat:"tva",
    en:"Tax Exemptions (duty-free)",cx:"medium",
    t:"Cas 42 — Gestion des exonérations fiscales (détaxe)",
    d:"Ventes à des clients hors UE bénéficiant de la détaxe (TVA remboursée à la sortie du territoire). Cas 1 : vente B2C initiale avec TVA. Cas 2 : vente B2C sans TVA applicable en France.",
-   flow:[{f:"Vendeur",to:"PA",m:"Facture avec TVA (ou exonérée BT-118=G)"},{f:"Client",to:"Douane",m:"Demande remboursement TVA sortie"},{f:"Vendeur",to:"PA",m:"E-reporting B2C (montant HT)"}],
+   flow:[{f:"Vendeur",to:"PA",m:"Facture avec TVA (ou exonérée BT-118=G)",coty:"N"},{f:"Client",to:"Douane",m:"Demande remboursement TVA sortie"},{f:"Vendeur",to:"PA",m:"E-reporting B2C (montant HT)"}],
    st:[]},
   {id:"UC-43",cat:"international",
    en:"B2B International E-Reporting (sales/acquisitions)",cx:"complex",
    t:"Cas 43 — E-reporting B2B international (ventes/acquisitions)",
    d:"Transactions B2B avec acheteurs étrangers (hors périmètre EI). E-reporting individuel par transaction. BT-118=K (intra-UE) ou G (export). Sous-cas : 43a Transactions triangulaires, 43b Transferts de stocks intra-UE.",
-   flow:[{f:"Vendeur FR",to:"PA",m:"Données transaction internationale"},{f:"PA",to:"PPF",m:"E-reporting B2B-INT"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA internationale"}],
+   flow:[{f:"Vendeur FR",to:"PA",m:"Données transaction internationale",coty:"N"},{f:"PA",to:"PPF",m:"E-reporting B2B-INT"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA internationale"}],
    st:[]},
   {id:"UC-43a",cat:"international",cx:"complex",
    t:"Cas 43a — Transactions triangulaires (A→B→C, livraison A→C)",
@@ -628,7 +628,7 @@ const UC=[
    en:"Transactions with DOM/COM/TAAF Entities",cx:"medium",
    t:"Cas 44 — Transactions avec entités DROMs/COMs/TAAFs",
    d:"Transactions avec entités établies dans les collectivités d'outre-mer (DROMs, COMs, TAAFs). Régime TVA différent de la France métropolitaine. Codes pays spéciaux : NC (Nouvelle-Calédonie, ICD 0228), PF (Polynésie, ICD 0229). Traitement e-reporting spécifique.",
-   flow:[{f:"Vendeur FR Metro",to:"PA",m:"Facture BT-57b=NC ou PF"},{f:"PA",to:"PPF",m:"E-reporting international (hors périmètre EI métropole)"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA spécifique DROM"}],
+   flow:[{f:"Vendeur FR Metro",to:"PA",m:"Facture BT-57b=NC ou PF",coty:"Y"},{f:"PA",to:"PPF",m:"E-reporting international (hors périmètre EI métropole)"},{f:"PPF",to:"DGFiP",m:"Déclaration TVA spécifique DROM"}],
    st:[]},
   // ── CORRECTION ───────────────────────────────────────────────────────────
   {id:"UC-C1",cat:"correction",cx:"basic",
@@ -970,6 +970,7 @@ function App(){
   const [ucSort,setUcSort]=useState("id");
   const [ucSortDir,setUcSortDir]=useState("asc");
   const [ucLang,setUcLang]=useState("fr");
+  const [ucCoty,setUcCoty]=useState("all");
   const [xml,setXml]=useState(SXML);
   const [res,setRes]=useState(null);
   const [validating,setValidating]=useState(false);
@@ -1547,9 +1548,15 @@ function App(){
               </div>
             </div>
             {/* Category filters */}
-            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+            <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:4}}>
               {[["all","Tous","#6366F1"],["nominal","Nominal","#3B82F6"],["expenses","Notes frais","#F59E0B"],["tiers","Tiers payeur","#8B5CF6"],["intermediaire","Intermédiaires","#06B6D4"],["soustrait","Sous-traitance","#10B981"],["mandat","Mandats","#EC4899"],["acompte","Acomptes","#F97316"],["escompte","Escomptes","#84CC16"],["tva","TVA spéciaux","#EF4444"],["juridique","Structures jur.","#A78BFA"],["international","International","#34D399"],["correction","Corrections","#94A3B8"]].map(([v,l,c])=>(
                 <button key={v} onClick={()=>setUcCat(v)} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",border:"1px solid "+(ucCat===v?c:"rgba(255,255,255,0.1)"),background:ucCat===v?c+"20":"transparent",color:ucCat===v?c:"rgba(255,255,255,0.35)",fontWeight:ucCat===v?700:400}}>{l}</button>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>COTY:</span>
+              {[["all","Tous","#6366F1"],["Y","✅ Applicable","#22C55E"],["N","❌ Non applicable","#EF4444"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setUcCoty(v)} style={{fontSize:10,padding:"2px 8px",borderRadius:5,cursor:"pointer",border:"1px solid "+(ucCoty===v?c:"rgba(255,255,255,0.1)"),background:ucCoty===v?c+"20":"transparent",color:ucCoty===v?c:"rgba(255,255,255,0.35)",fontWeight:ucCoty===v?700:400}}>{l}</button>
               ))}
             </div>
           </div>
@@ -1560,9 +1567,9 @@ function App(){
             {/* LEFT — sortable list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 62px 1fr 110px 58px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 62px 1fr 110px 56px 44px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
-                {[["id","CODE"],["t","TITRE"],["cat","CATÉGORIE"],["cx","NIVEAU"]].map(([k,lbl])=>(
+                {[["id","CODE"],["t","TITRE"],["cat","CATÉGORIE"],["cx","NIVEAU"],["coty","COTY"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(ucSort===k)setUcSortDir(d=>d==="asc"?"desc":"asc");else{setUcSort(k);setUcSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:ucSort===k?"#10B981":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{ucSort===k&&<span style={{fontSize:8}}>{ucSortDir==="asc"?"▲":"▼"}</span>}
@@ -1576,7 +1583,7 @@ function App(){
                   const CAT_C={"nominal":"#3B82F6","expenses":"#F59E0B","tiers":"#8B5CF6","intermediaire":"#06B6D4","soustrait":"#10B981","mandat":"#EC4899","acompte":"#F97316","escompte":"#84CC16","tva":"#EF4444","juridique":"#A78BFA","international":"#34D399","correction":"#94A3B8"};
                   const CX_C={"basic":"#22C55E","medium":"#F59E0B","complex":"#EF4444"};
                   const filtered=[...UC]
-                    .filter(f=>ucCat==="all"||f.cat===ucCat)
+                    .filter(f=>(ucCat==="all"||f.cat===ucCat)&&(ucCoty==="all"||f.coty===ucCoty))
                     .sort((a,b)=>{
                       let av,bv;
                       if(ucSort==="cx"){av=CX_ORDER[a.cx]||0;bv=CX_ORDER[b.cx]||0;}
@@ -1591,7 +1598,7 @@ function App(){
                     const title=ucLang==="en"?(f.en||f.t):f.t;
                     return(
                     <div key={f.id} onClick={()=>setSelUC(selUC?.id===f.id?null:f)}
-                      style={{display:"grid",gridTemplateColumns:"3px 62px 1fr 110px 58px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                      style={{display:"grid",gridTemplateColumns:"3px 62px 1fr 110px 56px 44px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
                         background:selUC?.id===f.id?cc+"18":"transparent",transition:"background 0.1s"}}
                       onMouseEnter={e=>{if(selUC?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                       onMouseLeave={e=>{if(selUC?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -1603,6 +1610,9 @@ function App(){
                       </div>
                       <div style={{display:"flex",justifyContent:"center"}}>
                         <span style={{fontSize:8,background:cxc+"18",color:cxc,borderRadius:3,padding:"2px 5px",fontWeight:600}}>{f.cx}</span>
+                      </div>
+                      <div style={{display:"flex",justifyContent:"center"}}>
+                        {f.coty?<span style={{fontSize:10,fontWeight:700,color:f.coty==="Y"?"#22C55E":"rgba(255,255,255,0.2)"}}>{f.coty}</span>:<span style={{fontSize:9,color:"rgba(255,255,255,0.15)"}}>—</span>}
                       </div>
                     </div>
                   );});
@@ -1629,6 +1639,7 @@ function App(){
                     <div style={{display:"flex",gap:5,flexShrink:0}}>
                       <span style={{fontSize:10,background:cc+"18",color:cc,border:"1px solid "+cc+"35",borderRadius:5,padding:"3px 10px",fontWeight:700,textTransform:"uppercase"}}>{selUC.cat}</span>
                       <span style={{fontSize:10,background:cxc+"18",color:cxc,border:"1px solid "+cxc+"35",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{selUC.cx}</span>
+                      {selUC.coty&&<span style={{fontSize:10,background:selUC.coty==="Y"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",color:selUC.coty==="Y"?"#22C55E":"rgba(255,255,255,0.3)",border:"1px solid "+(selUC.coty==="Y"?"rgba(34,197,94,0.3)":"rgba(255,255,255,0.1)"),borderRadius:5,padding:"3px 10px",fontWeight:700}}>Coty: {selUC.coty}</span>}
                     </div>
                   </div>
 
