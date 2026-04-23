@@ -1111,10 +1111,11 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 60px 1fr 100px 100px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 60px 1fr 56px 90px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>CODE</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>DESIGNATION</div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>STATUT</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>FAMILLE</div>
                 <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>ACTEUR</div>
               </div>
@@ -1124,7 +1125,7 @@ function App(){
                   const FC={"technique":"#3B82F6","business":"#8B5CF6","paiement":"#16A34A"}[f.famille]||"#6366F1";
                   return(
                   <div key={f.code} onClick={()=>setSelILC(selILC?.code===f.code?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 60px 1fr 100px 100px",padding:"7px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 60px 1fr 56px 90px 90px",padding:"7px 8px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
                       background:selILC?.code===f.code?FC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selILC?.code!==f.code)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selILC?.code!==f.code)e.currentTarget.style.background="transparent";}}>
@@ -1132,12 +1133,17 @@ function App(){
                     {/* Code */}
                     <div>
                       <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:14,fontWeight:800,color:FC}}>{f.code}</div>
-                      {f.m&&<div style={{fontSize:8,color:"#FCA5A5",fontWeight:600}}>OBL.</div>}
                     </div>
                     {/* Label FR + EN */}
                     <div style={{minWidth:0}}>
                       <div style={{fontSize:13,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
                       <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",fontStyle:"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.en}</div>
+                    </div>
+                    {/* Statut OBL/OPT */}
+                    <div style={{display:"flex",justifyContent:"center"}}>
+                      {f.m
+                        ?<span style={{fontSize:10,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"2px 6px",fontWeight:700}}>OBL.</span>
+                        :<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"2px 6px"}}>OPT</span>}
                     </div>
                     {/* Famille */}
                     <div style={{display:"flex",justifyContent:"center"}}>
