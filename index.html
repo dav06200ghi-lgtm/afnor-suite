@@ -995,15 +995,15 @@ function App(){
           </div>
 
           {/* Two-column layout */}
-          <div style={{display:"grid",gridTemplateColumns:"720px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"800px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 22px 70px 300px 52px 72px 72px 72px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 22px 68px 260px 50px 66px 66px 66px 90px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 <div></div>
-                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["tt","TT/TG"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["tt","TT/TG"],["sap","SAP S/4H"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
@@ -1021,7 +1021,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 22px 70px 300px 52px 72px 72px 72px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 22px 68px 260px 50px 66px 66px 66px 90px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -1067,6 +1067,12 @@ function App(){
                     <div style={{overflow:"hidden"}}>
                       {f.tt
                         ?<code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#6366F1",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block",fontWeight:700}}>{f.tt}</code>
+                        :<div style={{fontSize:9,color:"rgba(255,255,255,0.15)",textAlign:"center"}}>—</div>}
+                    </div>
+                    {/* SAP S/4H */}
+                    <div style={{overflow:"hidden"}}>
+                      {f.sap&&f.sap.trim()
+                        ?<div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#34D399",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",lineHeight:1.4}}>{f.sap.split("\n")[0]}</div>
                         :<div style={{fontSize:9,color:"rgba(255,255,255,0.15)",textAlign:"center"}}>—</div>}
                     </div>
 
