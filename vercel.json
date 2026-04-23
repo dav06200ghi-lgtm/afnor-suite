@@ -1,18 +1,7 @@
 {
-  "functions": {
-    "api/chat.js": {
-      "maxDuration": 30
-    }
-  },
+  "functions": { "api/chat.js": { "maxDuration": 30 } },
   "rewrites": [
-    {
-      "source": "/api/chat",
-      "destination": "/api/chat"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "_deploy": "20260423_081231"
+    { "source": "/api/chat", "destination": "/api/chat" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
