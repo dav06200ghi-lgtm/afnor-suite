@@ -3427,295 +3427,273 @@ function App(){
                 Flux <span style={{color:"#06B6D4"}}>Architecture Coty</span>
               </h2>
               <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",marginTop:6}}>
-                Pagero = PA Coty AR (e-invoicing + e-reporting) &nbsp;·&nbsp; Tradeshift = PA Coty AP (réception factures fournisseurs)
+                Pagero = PA Coty AR (e-invoicing + e-reporting) &nbsp;·&nbsp; Tradeshift = PA Coty AP (réception + e-reporting achat)
               </p>
             </div>
 
-            {/* ══════════════════════════════════════════════
-                SCHÉMA AR
-            ══════════════════════════════════════════════ */}
-            <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:16,padding:"22px 24px",marginBottom:24}}>
-              <div style={{fontSize:11,fontWeight:800,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1.5,marginBottom:20}}>
-                📤 FLUX AR — Coty vend (E-Invoicing + E-Reporting)
-              </div>
+            {/* ══════════════════════════════════════════
+                COMPOSANTS RÉUTILISABLES
+            ══════════════════════════════════════════ */}
+            {(()=>{
 
-              {/* ── Ligne 1 : Flux facture aller ── */}
-              <div style={{marginBottom:6}}>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Flux facture →</div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(99,102,241,0.2)",  b:"#6366F1", icon:"🏢", t:"COTY",       s1:"SAP S/4H",    s2:"Vendeur"},
-                    {arrow:true, label:"UBL/CII\nBT-1..153", c:"#10B981"},
-                    {bg:"rgba(16,185,129,0.15)", b:"#10B981", icon:"📡", t:"PAGERO",     s1:"PA Coty AR",  s2:"e-inv + e-report", badge:"reçoit PUF"},
-                    {arrow:true, label:"Flux 2\nAnnuaire", c:"#10B981"},
-                    {bg:"rgba(139,92,246,0.12)", b:"#8B5CF6", icon:"🏛", t:"PPF",        s1:"Portail Public",s2:"routage BT-49"},
-                    {arrow:true, label:"routage\nBT-49", c:"#10B981"},
-                    {bg:"rgba(6,182,212,0.1)",   b:"#06B6D4", icon:"📡", t:"PA CLIENT",  s1:"PA propre",   s2:"variable"},
-                    {arrow:true, label:"livraison\nCDAR 200", c:"#10B981"},
-                    {bg:"rgba(59,130,246,0.12)", b:"#3B82F6", icon:"🏢", t:"CLIENT",     s1:"BT-47 SIRET", s2:"France"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 2px"}}>
-                      <div style={{fontSize:9,color:n.c,textAlign:"center",fontWeight:600,lineHeight:1.4,marginBottom:3,whiteSpace:"pre-line"}}>{n.label}</div>
-                      <div style={{display:"flex",alignItems:"center",width:"100%"}}>
-                        <div style={{flex:1,height:2,background:n.c,opacity:0.7}}/>
-                        <div style={{width:0,height:0,borderTop:"5px solid transparent",borderBottom:"5px solid transparent",borderLeft:`8px solid ${n.c}`}}/>
-                      </div>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:100,background:n.bg,border:`2px solid ${n.b}`,borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
-                      <div style={{fontSize:16,marginBottom:4}}>{n.icon}</div>
-                      <div style={{fontSize:11,fontWeight:800,color:"#fff",marginBottom:3}}>{n.t}</div>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.55)",marginBottom:2}}>{n.s1}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.35)"}}>{n.s2}</div>
-                      {n.badge&&<div style={{marginTop:5,fontSize:7.5,background:"rgba(16,185,129,0.2)",color:"#6EE7B7",borderRadius:3,padding:"1px 6px",display:"inline-block"}}>{n.badge}</div>}
-                    </div>
-                  ))}
+              // Nœud acteur
+              const Node=({bg,b,icon,t,s1,s2,badge,dash})=>(
+                <div style={{flex:1,minWidth:110,background:bg,border:`${dash?"1.5px dashed":"2px solid"} ${b}`,borderRadius:10,padding:"12px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                  {icon&&<div style={{fontSize:18,marginBottom:3}}>{icon}</div>}
+                  <div style={{fontSize:11,fontWeight:800,color:"#fff",lineHeight:1.2}}>{t}</div>
+                  <div style={{fontSize:8,color:"rgba(255,255,255,0.5)",marginTop:2}}>{s1}</div>
+                  {s2&&<div style={{fontSize:7.5,color:"rgba(255,255,255,0.3)"}}>{s2}</div>}
+                  {badge&&<div style={{marginTop:5,fontSize:7.5,background:b+"25",color:b,borderRadius:3,padding:"1px 7px",fontWeight:700}}>{badge}</div>}
                 </div>
-              </div>
+              );
 
-              {/* ── Ligne 2 : ILC Technique (retour auto) ── */}
-              <div style={{marginBottom:6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{fontSize:9,fontWeight:700,color:"#C4B5FD",textTransform:"uppercase",letterSpacing:1}}>← ILC Technique (auto PA/PPF)</div>
-                  <div style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>200 Déposée · 201 Émise · 202 Reçue PA · 203 Mise à dispo · 213 Rejetée tech</div>
+              // Nœud compact (rangées ILC)
+              const SmNode=({bg,b,t,s1,active})=>(
+                <div style={{flex:1,minWidth:100,background:bg,border:`1.5px dashed ${b}`,borderRadius:7,padding:"7px 8px",textAlign:"center",opacity:active?1:0.7}}>
+                  <div style={{fontSize:10,fontWeight:700,color:active?"#fff":"rgba(255,255,255,0.6)",lineHeight:1.2}}>{t}</div>
+                  {s1&&<div style={{fontSize:7.5,color:"rgba(255,255,255,0.35)",marginTop:2}}>{s1}</div>}
                 </div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(99,102,241,0.1)",  b:"#6366F1", t:"COTY SAP",    s1:"reçoit notif"},
-                    {arrow:true, c:"#8B5CF6", rev:true},
-                    {bg:"rgba(16,185,129,0.08)", b:"#8B5CF6", t:"PAGERO",      s1:"transmet ILC"},
-                    {arrow:true, c:"#8B5CF6", rev:true},
-                    {bg:"rgba(139,92,246,0.08)", b:"#8B5CF6", t:"PPF",         s1:"route ILC"},
-                    {arrow:true, c:"#8B5CF6", rev:true},
-                    {bg:"rgba(6,182,212,0.06)",  b:"#8B5CF6", t:"PA CLIENT",   s1:"génère auto"},
-                    {arrow:true, c:"#8B5CF6", rev:true},
-                    {bg:"rgba(59,130,246,0.06)", b:"#8B5CF6", t:"CLIENT",      s1:"—"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 2px"}}>
-                      <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`7px solid ${n.c}`}}/>
-                      <div style={{flex:1,height:1.5,background:n.c,opacity:0.6,borderTop:`1.5px dashed ${n.c}`}}/>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:100,background:n.bg,border:`1px dashed ${n.b}`,borderRadius:8,padding:"8px 10px",textAlign:"center",opacity:0.85}}>
-                      <div style={{fontSize:10,fontWeight:700,color:"#C4B5FD",marginBottom:2}}>{n.t}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{n.s1}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              );
 
-              {/* ── Ligne 3 : ILC Métier (retour client décide) ── */}
-              <div style={{marginBottom:18,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{fontSize:9,fontWeight:700,color:"#86EFAC",textTransform:"uppercase",letterSpacing:1}}>← ILC Métier (client décide)</div>
-                  <div style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>204 Approuvée · 210 Refusée · 211 Paiement transmis · 212 Encaissée</div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(99,102,241,0.1)",  b:"#22C55E", t:"COTY SAP",   s1:"reçoit statut"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(16,185,129,0.08)", b:"#22C55E", t:"PAGERO",     s1:"transmet"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(139,92,246,0.08)", b:"#22C55E", t:"PPF",        s1:"route"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(6,182,212,0.06)",  b:"#22C55E", t:"PA CLIENT",  s1:"transmet"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(59,130,246,0.1)",  b:"#22C55E", t:"CLIENT",     s1:"décide & émet"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 2px"}}>
-                      <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`7px solid ${n.c}`}}/>
-                      <div style={{flex:1,height:1.5,borderTop:`1.5px dashed ${n.c}`}}/>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:100,background:n.bg,border:`1px dashed ${n.b}`,borderRadius:8,padding:"8px 10px",textAlign:"center",opacity:0.85}}>
-                      <div style={{fontSize:10,fontWeight:700,color:"#86EFAC",marginBottom:2}}>{n.t}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{n.s1}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Ligne 4 : E-Reporting ── */}
-              <div style={{background:"rgba(245,158,11,0.04)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"14px 16px"}}>
-                <div style={{fontSize:9,fontWeight:800,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>📊 E-Reporting — Double flux</div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(99,102,241,0.15)", b:"#6366F1", icon:"🏢", t:"COTY",    s1:"SAP S/4H",       s2:"source données"},
-                    {arrow:true, label:"① PUF\nextension XML", c:"#FB923C"},
-                    {bg:"rgba(16,185,129,0.15)", b:"#10B981", icon:"📡", t:"PAGERO",  s1:"reçoit PUF",     s2:"transforme → XML DGFiP"},
-                    {arrow:true, label:"② XML DGFiP\nFlux 10.1/10.3", c:"#F59E0B"},
-                    {bg:"rgba(245,158,11,0.12)", b:"#F59E0B", icon:"🏦", t:"DGFiP",   s1:"XML Flux 10",    s2:"TT/TG/TB"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:100,padding:"0 4px"}}>
-                      <div style={{fontSize:9,color:n.c,textAlign:"center",fontWeight:700,lineHeight:1.4,marginBottom:4,whiteSpace:"pre-line"}}>{n.label}</div>
-                      <div style={{display:"flex",alignItems:"center",width:"100%"}}>
-                        <div style={{flex:1,height:2.5,background:n.c,opacity:0.8}}/>
-                        <div style={{width:0,height:0,borderTop:"6px solid transparent",borderBottom:"6px solid transparent",borderLeft:`9px solid ${n.c}`}}/>
-                      </div>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:140,background:n.bg,border:`2px solid ${n.b}`,borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
-                      <div style={{fontSize:18,marginBottom:5}}>{n.icon}</div>
-                      <div style={{fontSize:12,fontWeight:800,color:"#fff",marginBottom:4}}>{n.t}</div>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.6)",marginBottom:2}}>{n.s1}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{n.s2}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ══════════════════════════════════════════════
-                SCHÉMA AP
-            ══════════════════════════════════════════════ */}
-            <div style={{background:"rgba(59,130,246,0.04)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"22px 24px",marginBottom:28}}>
-              <div style={{fontSize:11,fontWeight:800,color:"#93C5FD",textTransform:"uppercase",letterSpacing:1.5,marginBottom:20}}>
-                📥 FLUX AP — Coty achète (Réception via Tradeshift)
-              </div>
-
-              {/* ── Ligne 1 : Flux facture aller ── */}
-              <div style={{marginBottom:6}}>
-                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Flux facture →</div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(148,163,184,0.1)", b:"#94A3B8", icon:"🏭", t:"FOURN.",      s1:"ERP propre",    s2:"FR / EU / monde"},
-                    {arrow:true, label:"UBL/CII", c:"#3B82F6"},
-                    {bg:"rgba(100,116,139,0.12)",b:"#64748B", icon:"📡", t:"PA FOURN.",   s1:"PA propre",     s2:"inconnue Coty", dash:true},
-                    {arrow:true, label:"Flux 2\nroutage", c:"#3B82F6"},
-                    {bg:"rgba(139,92,246,0.12)", b:"#8B5CF6", icon:"🏛", t:"PPF",         s1:"Portail Public",s2:"routage BT-49"},
-                    {arrow:true, label:"routage\nBT-49", c:"#3B82F6"},
-                    {bg:"rgba(59,130,246,0.18)", b:"#3B82F6", icon:"📡", t:"TRADESHIFT",  s1:"PA Coty AP",    s2:"Edgar Palau", badge:"PA Coty"},
-                    {arrow:true, label:"VIM\nIDOC", c:"#3B82F6"},
-                    {bg:"rgba(99,102,241,0.18)", b:"#6366F1", icon:"🏢", t:"COTY",        s1:"SAP S/4H AP",   s2:"Acheteur"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 2px"}}>
-                      <div style={{fontSize:9,color:n.c,textAlign:"center",fontWeight:600,lineHeight:1.4,marginBottom:3,whiteSpace:"pre-line"}}>{n.label}</div>
-                      <div style={{display:"flex",alignItems:"center",width:"100%"}}>
-                        <div style={{flex:1,height:2,background:n.c,opacity:0.7}}/>
-                        <div style={{width:0,height:0,borderTop:"5px solid transparent",borderBottom:"5px solid transparent",borderLeft:`8px solid ${n.c}`}}/>
-                      </div>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:100,background:n.bg,border:`${n.dash?"1px dashed":"2px solid"} ${n.b}`,borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
-                      <div style={{fontSize:16,marginBottom:4}}>{n.icon}</div>
-                      <div style={{fontSize:11,fontWeight:800,color:"#fff",marginBottom:3}}>{n.t}</div>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.55)",marginBottom:2}}>{n.s1}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.35)"}}>{n.s2}</div>
-                      {n.badge&&<div style={{marginTop:5,fontSize:7.5,background:"rgba(59,130,246,0.25)",color:"#93C5FD",borderRadius:3,padding:"1px 6px",display:"inline-block"}}>{n.badge}</div>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Ligne 2 : ILC Technique ── */}
-              <div style={{marginBottom:6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{fontSize:9,fontWeight:700,color:"#C4B5FD",textTransform:"uppercase",letterSpacing:1}}>← ILC Technique (auto Tradeshift/PPF)</div>
-                  <div style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>200 Déposée · 201 Émise · 202 Reçue PA · 203 Mise à dispo · 213 Rejetée tech</div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(148,163,184,0.06)",b:"#8B5CF6", t:"FOURN. ERP",  s1:"reçoit notif"},
-                    {arrow:true, c:"#8B5CF6"},
-                    {bg:"rgba(100,116,139,0.06)",b:"#8B5CF6", t:"PA FOURN.",   s1:"reçoit ILC"},
-                    {arrow:true, c:"#8B5CF6"},
-                    {bg:"rgba(139,92,246,0.06)", b:"#8B5CF6", t:"PPF",         s1:"route ILC"},
-                    {arrow:true, c:"#8B5CF6"},
-                    {bg:"rgba(59,130,246,0.06)", b:"#8B5CF6", t:"TRADESHIFT",  s1:"génère auto"},
-                    {arrow:true, c:"#8B5CF6"},
-                    {bg:"rgba(99,102,241,0.06)", b:"#8B5CF6", t:"COTY SAP",    s1:"—"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 2px"}}>
-                      <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`7px solid ${n.c}`}}/>
-                      <div style={{flex:1,height:1.5,borderTop:`1.5px dashed ${n.c}`}}/>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:100,background:n.bg,border:`1px dashed ${n.b}`,borderRadius:8,padding:"8px 10px",textAlign:"center",opacity:0.85}}>
-                      <div style={{fontSize:10,fontWeight:700,color:"#C4B5FD",marginBottom:2}}>{n.t}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{n.s1}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Ligne 3 : ILC Métier ── */}
-              <div style={{paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{fontSize:9,fontWeight:700,color:"#86EFAC",textTransform:"uppercase",letterSpacing:1}}>← ILC Métier (Coty décide via SAP/VIM)</div>
-                  <div style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>204 Approuvée · 210 Refusée · 211 Paiement transmis · 212 Encaissée</div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:0}}>
-                  {[
-                    {bg:"rgba(148,163,184,0.06)",b:"#22C55E", t:"FOURN. ERP",  s1:"reçoit statut"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(100,116,139,0.06)",b:"#22C55E", t:"PA FOURN.",   s1:"transmet"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(139,92,246,0.06)", b:"#22C55E", t:"PPF",         s1:"route"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(59,130,246,0.1)",  b:"#22C55E", t:"TRADESHIFT",  s1:"transmet décision"},
-                    {arrow:true, c:"#22C55E"},
-                    {bg:"rgba(99,102,241,0.1)",  b:"#22C55E", t:"COTY SAP",    s1:"décide & émet"},
-                  ].map((n,i)=>n.arrow?(
-                    <div key={i} style={{display:"flex",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 2px"}}>
-                      <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`7px solid ${n.c}`}}/>
-                      <div style={{flex:1,height:1.5,borderTop:`1.5px dashed ${n.c}`}}/>
-                    </div>
-                  ):(
-                    <div key={i} style={{flex:1,minWidth:100,background:n.bg,border:`1px dashed ${n.b}`,borderRadius:8,padding:"8px 10px",textAlign:"center",opacity:0.85}}>
-                      <div style={{fontSize:10,fontWeight:700,color:"#86EFAC",marginBottom:2}}>{n.t}</div>
-                      <div style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{n.s1}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Note e-reporting AP */}
-              <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10,background:"rgba(245,158,11,0.05)",border:"1px dashed rgba(245,158,11,0.25)",borderRadius:8,padding:"10px 14px"}}>
-                <span style={{fontSize:14}}>ℹ️</span>
-                <div>
-                  <span style={{fontSize:10,fontWeight:700,color:"#FCD34D"}}>E-Reporting AP</span>
-                  <span style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginLeft:8}}>Déclaré par le fournisseur via sa propre PA → DGFiP. Hors périmètre Coty.</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Légende globale ── */}
-            <div style={{display:"flex",gap:20,flexWrap:"wrap",marginBottom:28,padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10}}>
-              {[
-                {c:"#10B981", label:"Flux facture (aller)", style:"solid"},
-                {c:"#8B5CF6", label:"ILC Technique auto (PA/PPF) — 200/201/202/203/213", style:"dashed"},
-                {c:"#22C55E", label:"ILC Métier (décision humaine) — 204/210/211/212", style:"dashed"},
-                {c:"#FB923C", label:"E-Reporting ① PUF (Coty → Pagero)", style:"solid"},
-                {c:"#F59E0B", label:"E-Reporting ② XML DGFiP (Pagero → DGFiP)", style:"solid"},
-              ].map((l,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
-                  <div style={{width:28,height:2,background:l.style==="dashed"?"transparent":l.c,borderTop:l.style==="dashed"?`2px dashed ${l.c}`:"none",position:"relative"}}>
-                    {l.style==="solid"&&<div style={{position:"absolute",right:-5,top:-4,width:0,height:0,borderTop:"5px solid transparent",borderBottom:"5px solid transparent",borderLeft:`7px solid ${l.c}`}}/>}
+              // Flèche → droite
+              const ArrowR=({label,c,bold})=>(
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:68,padding:"0 2px"}}>
+                  {label&&<div style={{fontSize:8,color:c,textAlign:"center",fontWeight:bold?700:600,lineHeight:1.3,marginBottom:3,whiteSpace:"pre-line"}}>{label}</div>}
+                  <div style={{display:"flex",alignItems:"center",width:"100%"}}>
+                    <div style={{flex:1,height:2,background:c,opacity:0.75}}/>
+                    <div style={{width:0,height:0,borderTop:"5px solid transparent",borderBottom:"5px solid transparent",borderLeft:`8px solid ${c}`}}/>
                   </div>
-                  <span style={{fontSize:10,color:"rgba(255,255,255,0.55)"}}>{l.label}</span>
                 </div>
-              ))}
-            </div>
+              );
 
-            {/* ── Acteurs ── */}
-            <div style={{marginBottom:24}}>
-              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.5)",marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>Acteurs de l'écosystème</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+              // Flèche ← gauche
+              const ArrowL=({c})=>(
+                <div style={{display:"flex",alignItems:"center",flex:"0 0 auto",minWidth:68,padding:"0 2px"}}>
+                  <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`7px solid ${c}`}}/>
+                  <div style={{flex:1,height:0,borderTop:`2px dashed ${c}`,opacity:0.7}}/>
+                </div>
+              );
+
+              // Bandeau codes statuts
+              const IlcBadges=({codes,c})=>(
+                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:5}}>
+                  {codes.map(({code,label})=>(
+                    <span key={code} style={{fontSize:8,background:c+"18",color:c,border:`1px solid ${c}35`,borderRadius:4,padding:"1px 7px",fontWeight:700,whiteSpace:"nowrap"}}>
+                      {code} <span style={{fontWeight:400,opacity:0.8}}>{label}</span>
+                    </span>
+                  ))}
+                </div>
+              );
+
+              const TECH_CODES=[
+                {code:"200",label:"Déposée"},{code:"201",label:"Émise PA"},
+                {code:"202",label:"Reçue PA"},{code:"203",label:"Mise à dispo"},{code:"213",label:"Rejetée tech"},
+              ];
+              const METIER_CODES=[
+                {code:"204",label:"Approuvée"},{code:"205",label:"Prise en charge"},
+                {code:"207",label:"En litige"},{code:"210",label:"Refusée"},
+                {code:"211",label:"Paiement transmis"},{code:"212",label:"Encaissée"},
+              ];
+
+              return(
+              <React.Fragment>
+
+              {/* ══════════════════════════════════════════
+                  SCHÉMA AR
+              ══════════════════════════════════════════ */}
+              <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:16,padding:"22px 24px",marginBottom:22}}>
+                <div style={{fontSize:11,fontWeight:800,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1.5,marginBottom:20}}>
+                  📤 FLUX AR — Coty vend &nbsp;(E-Invoicing + E-Reporting)
+                </div>
+
+                {/* Rangée 1 : Flux facture → */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>① Facture →</div>
+                  <div style={{display:"flex",alignItems:"stretch",gap:0}}>
+                    <Node bg="rgba(99,102,241,0.2)"  b="#6366F1" icon="🏢" t="COTY"      s1="SAP S/4H" s2="Vendeur"/>
+                    <ArrowR label={"UBL/CII\nBT-1..153"} c="#10B981"/>
+                    <Node bg="rgba(16,185,129,0.15)" b="#10B981" icon="📡" t="PAGERO"    s1="PA Coty AR" s2="e-inv + e-report" badge="reçoit PUF"/>
+                    <ArrowR label={"Flux 2\nAnnuaire"} c="#10B981"/>
+                    <Node bg="rgba(139,92,246,0.12)" b="#8B5CF6" icon="🏛" t="PPF"       s1="Portail Public" s2="Annuaire BT-49"/>
+                    <ArrowR label={"routage\nBT-49"} c="#10B981"/>
+                    <Node bg="rgba(6,182,212,0.1)"   b="#06B6D4" icon="📡" t="PA CLIENT" s1="PA propre" s2="variable"/>
+                    <ArrowR label={"livraison\nCDAR 200"} c="#10B981"/>
+                    <Node bg="rgba(59,130,246,0.12)" b="#3B82F6" icon="🏢" t="CLIENT"    s1="BT-47 SIRET" s2="France"/>
+                  </div>
+                </div>
+
+                {/* Rangée 2 : ILC Technique ← auto */}
+                <div style={{marginBottom:14,background:"rgba(139,92,246,0.04)",border:"1px solid rgba(139,92,246,0.12)",borderRadius:10,padding:"12px 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                    <div style={{fontSize:9,fontWeight:800,color:"#C4B5FD",textTransform:"uppercase",letterSpacing:1}}>② ILC Technique ← auto PA/PPF</div>
+                    <div style={{fontSize:8,color:"rgba(255,255,255,0.35)",fontStyle:"italic"}}>émis automatiquement par les plateformes, sans décision Coty/Client</div>
+                  </div>
+                  <IlcBadges codes={TECH_CODES} c="#8B5CF6"/>
+                  <div style={{display:"flex",alignItems:"center",gap:0,marginTop:10}}>
+                    <SmNode bg="rgba(99,102,241,0.08)"  b="#8B5CF6" t="COTY SAP"   s1="reçoit notif" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(16,185,129,0.06)"  b="#8B5CF6" t="PAGERO"     s1="transmet" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(139,92,246,0.06)"  b="#8B5CF6" t="PPF"        s1="route" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(6,182,212,0.05)"   b="#8B5CF6" t="PA CLIENT"  s1="génère auto" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(59,130,246,0.05)"  b="#8B5CF6" t="CLIENT"     s1="— (non requis)" active/>
+                  </div>
+                </div>
+
+                {/* Rangée 3 : ILC Métier ← client décide → émet de droite à gauche */}
+                <div style={{marginBottom:18,background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:10,padding:"12px 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                    <div style={{fontSize:9,fontWeight:800,color:"#86EFAC",textTransform:"uppercase",letterSpacing:1}}>③ ILC Métier ← client émet une décision</div>
+                    <div style={{fontSize:8,color:"rgba(255,255,255,0.35)",fontStyle:"italic"}}>le CLIENT prend une décision et l'envoie via sa PA → PPF → Pagero → Coty</div>
+                  </div>
+                  <IlcBadges codes={METIER_CODES} c="#22C55E"/>
+                  <div style={{display:"flex",alignItems:"center",gap:0,marginTop:10}}>
+                    <SmNode bg="rgba(99,102,241,0.08)"  b="#22C55E" t="COTY SAP"   s1="reçoit statut" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(16,185,129,0.06)"  b="#22C55E" t="PAGERO"     s1="transmet" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(139,92,246,0.06)"  b="#22C55E" t="PPF"        s1="route" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(6,182,212,0.08)"   b="#22C55E" t="PA CLIENT"  s1="transmet" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(59,130,246,0.12)"  b="#22C55E" t="CLIENT"     s1="✦ décide & émet" active/>
+                  </div>
+                </div>
+
+                {/* Rangée 4 : E-Reporting AR ① PUF → ② XML DGFiP */}
+                <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"14px 16px"}}>
+                  <div style={{fontSize:9,fontWeight:800,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>④ E-Reporting AR — Double flux</div>
+                  <div style={{display:"flex",alignItems:"stretch",gap:0}}>
+                    <Node bg="rgba(99,102,241,0.15)" b="#6366F1" icon="🏢" t="COTY"   s1="SAP S/4H" s2="source données"/>
+                    <ArrowR label={"① PUF\nextension XML\npuf:reportPeriod..."} c="#FB923C" bold/>
+                    <Node bg="rgba(16,185,129,0.15)" b="#10B981" icon="📡" t="PAGERO" s1="reçoit PUF" s2="→ transforme XML DGFiP"/>
+                    <ArrowR label={"② XML DGFiP\nFlux 10.1/10.3\nTT/TG/TB"} c="#F59E0B" bold/>
+                    <Node bg="rgba(245,158,11,0.12)" b="#F59E0B" icon="🏦" t="DGFiP"  s1="XML Flux 10" s2="TVA agrégée"/>
+                  </div>
+                </div>
+              </div>
+
+              {/* ══════════════════════════════════════════
+                  SCHÉMA AP
+              ══════════════════════════════════════════ */}
+              <div style={{background:"rgba(59,130,246,0.04)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"22px 24px",marginBottom:24}}>
+                <div style={{fontSize:11,fontWeight:800,color:"#93C5FD",textTransform:"uppercase",letterSpacing:1.5,marginBottom:20}}>
+                  📥 FLUX AP — Coty achète &nbsp;(Réception + E-Reporting)
+                </div>
+
+                {/* Rangée 1 : Flux facture → */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>① Facture →</div>
+                  <div style={{display:"flex",alignItems:"stretch",gap:0}}>
+                    <Node bg="rgba(148,163,184,0.1)"  b="#94A3B8" icon="🏭" t="FOURN."     s1="ERP propre"    s2="FR/EU/monde"/>
+                    <ArrowR label="UBL/CII" c="#3B82F6"/>
+                    <Node bg="rgba(100,116,139,0.12)" b="#64748B" icon="📡" t="PA FOURN."  s1="PA propre"     s2="inconnue Coty" dash/>
+                    <ArrowR label={"Flux 2\nroutage"} c="#3B82F6"/>
+                    <Node bg="rgba(139,92,246,0.12)"  b="#8B5CF6" icon="🏛" t="PPF"        s1="Portail Public" s2="Annuaire BT-49"/>
+                    <ArrowR label={"routage\nBT-49"} c="#3B82F6"/>
+                    <Node bg="rgba(59,130,246,0.18)"  b="#3B82F6" icon="📡" t="TRADESHIFT" s1="PA Coty AP"     s2="Edgar Palau" badge="PA Coty"/>
+                    <ArrowR label={"VIM\nIDOC"} c="#3B82F6"/>
+                    <Node bg="rgba(99,102,241,0.18)"  b="#6366F1" icon="🏢" t="COTY"       s1="SAP S/4H AP"   s2="Acheteur"/>
+                  </div>
+                </div>
+
+                {/* Rangée 2 : ILC Technique ← auto */}
+                <div style={{marginBottom:14,background:"rgba(139,92,246,0.04)",border:"1px solid rgba(139,92,246,0.12)",borderRadius:10,padding:"12px 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                    <div style={{fontSize:9,fontWeight:800,color:"#C4B5FD",textTransform:"uppercase",letterSpacing:1}}>② ILC Technique ← auto Tradeshift/PPF</div>
+                    <div style={{fontSize:8,color:"rgba(255,255,255,0.35)",fontStyle:"italic"}}>émis automatiquement sans décision Coty</div>
+                  </div>
+                  <IlcBadges codes={TECH_CODES} c="#8B5CF6"/>
+                  <div style={{display:"flex",alignItems:"center",gap:0,marginTop:10}}>
+                    <SmNode bg="rgba(148,163,184,0.06)" b="#8B5CF6" t="FOURN. ERP"  s1="reçoit notif" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(100,116,139,0.05)" b="#8B5CF6" t="PA FOURN."   s1="reçoit ILC" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(139,92,246,0.06)"  b="#8B5CF6" t="PPF"         s1="route ILC" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(59,130,246,0.06)"  b="#8B5CF6" t="TRADESHIFT"  s1="génère auto" active/>
+                    <ArrowL c="#8B5CF6"/>
+                    <SmNode bg="rgba(99,102,241,0.06)"  b="#8B5CF6" t="COTY SAP"    s1="— (non requis)" active/>
+                  </div>
+                </div>
+
+                {/* Rangée 3 : ILC Métier ← Coty décide → émet de gauche à droite */}
+                <div style={{marginBottom:18,background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:10,padding:"12px 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                    <div style={{fontSize:9,fontWeight:800,color:"#86EFAC",textTransform:"uppercase",letterSpacing:1}}>③ ILC Métier ← Coty émet une décision</div>
+                    <div style={{fontSize:8,color:"rgba(255,255,255,0.35)",fontStyle:"italic"}}>COTY décide (SAP/VIM) → Tradeshift → PPF → PA Fourn → Fournisseur</div>
+                  </div>
+                  <IlcBadges codes={METIER_CODES} c="#22C55E"/>
+                  <div style={{display:"flex",alignItems:"center",gap:0,marginTop:10}}>
+                    <SmNode bg="rgba(148,163,184,0.06)" b="#22C55E" t="FOURN. ERP"  s1="reçoit statut" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(100,116,139,0.05)" b="#22C55E" t="PA FOURN."   s1="transmet" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(139,92,246,0.06)"  b="#22C55E" t="PPF"         s1="route" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(59,130,246,0.12)"  b="#22C55E" t="TRADESHIFT"  s1="transmet" active/>
+                    <ArrowL c="#22C55E"/>
+                    <SmNode bg="rgba(99,102,241,0.12)"  b="#22C55E" t="COTY SAP"    s1="✦ décide & émet" active/>
+                  </div>
+                </div>
+
+                {/* Rangée 4 : E-Reporting AP ① PUF → ② XML DGFiP */}
+                <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"14px 16px"}}>
+                  <div style={{fontSize:9,fontWeight:800,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>④ E-Reporting AP — Double flux (même architecture AR)</div>
+                  <div style={{display:"flex",alignItems:"stretch",gap:0}}>
+                    <Node bg="rgba(99,102,241,0.15)" b="#6366F1" icon="🏢" t="COTY"   s1="SAP S/4H" s2="source données AP"/>
+                    <ArrowR label={"① PUF\nextension XML\npuf:reportPeriod..."} c="#FB923C" bold/>
+                    <Node bg="rgba(16,185,129,0.15)" b="#10B981" icon="📡" t="PAGERO" s1="reçoit PUF AP" s2="→ transforme XML DGFiP"/>
+                    <ArrowR label={"② XML DGFiP\nFlux 10.2/10.4\nTT/TG/TB"} c="#F59E0B" bold/>
+                    <Node bg="rgba(245,158,11,0.12)" b="#F59E0B" icon="🏦" t="DGFiP"  s1="XML Flux 10" s2="TVA déductible AP"/>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Légende ── */}
+              <div style={{display:"flex",gap:16,flexWrap:"wrap",padding:"14px 18px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,marginBottom:24}}>
                 {[
-                  {n:"PA (Plateforme Agréée)",c:"#6366F1",d:"Anciennement PDP. Certifiée DGFiP. Gère émission, réception, ILC et e-reporting."},
-                  {n:"PPF (Portail Public de Facturation)",c:"#8B5CF6",d:"Annuaire central SIRET→PA + concentrateur DGFiP. Point de routage de tous les flux."},
-                  {n:"Pagero — PA Coty AR",c:"#10B981",d:"PA de Coty côté vente (AR). Reçoit le PUF Coty, route les factures, gère l'e-reporting vers DGFiP."},
-                  {n:"Tradeshift — PA Coty AP",c:"#3B82F6",d:"PA de Coty côté achat (AP). Reçoit les factures fournisseurs via PPF, alimente VIM/SAP."},
-                  {n:"DGFiP",c:"#F59E0B",d:"Reçoit les données TVA agrégées (Flux 10) via PPF. Contrôle et pré-remplit les déclarations."},
-                  {n:"SC (Solution Compatible)",c:"#A78BFA",d:"Solution non certifiée connectée à une PA via API XP Z12-013."},
-                ].map(a=>(
-                  <div key={a.n} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${a.c}25`,borderRadius:9,padding:14}}>
-                    <div style={{fontSize:11,fontWeight:700,color:a.c,marginBottom:6}}>{a.n}</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.6}}>{a.d}</div>
+                  {c:"#10B981",label:"Flux facture aller (e-invoicing)"},
+                  {c:"#8B5CF6",label:"ILC Technique auto (PA/PPF) — 200/201/202/203/213",d:true},
+                  {c:"#22C55E",label:"ILC Métier (décision humaine) — 204/205/207/210/211/212",d:true},
+                  {c:"#FB923C",label:"E-Reporting ① PUF Coty → Pagero"},
+                  {c:"#F59E0B",label:"E-Reporting ② XML DGFiP Pagero → DGFiP"},
+                ].map((l,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
+                    <div style={{position:"relative",width:30,height:12,display:"flex",alignItems:"center"}}>
+                      <div style={{width:"100%",height:2,background:l.d?"transparent":l.c,borderTop:l.d?`2px dashed ${l.c}`:"none"}}/>
+                      {!l.d&&<div style={{position:"absolute",right:0,width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderLeft:`6px solid ${l.c}`}}/>}
+                    </div>
+                    <span style={{fontSize:10,color:"rgba(255,255,255,0.5)"}}>{l.label}</span>
                   </div>
                 ))}
               </div>
-            </div>
+
+              {/* ── Acteurs ── */}
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.4)",marginBottom:10,textTransform:"uppercase",letterSpacing:1}}>Acteurs de l'écosystème</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:10}}>
+                  {[
+                    {n:"PA (Plateforme Agréée)",c:"#6366F1",d:"Anciennement PDP. Certifiée DGFiP. Gère émission, réception, ILC et e-reporting."},
+                    {n:"PPF (Portail Public)",c:"#8B5CF6",d:"Annuaire SIRET→PA + concentrateur DGFiP. Point de routage central de tous les flux."},
+                    {n:"Pagero — PA Coty AR",c:"#10B981",d:"PA de Coty côté vente ET e-reporting (AR + AP). Reçoit le PUF Coty, route les factures, transmet Flux 10 au DGFiP."},
+                    {n:"Tradeshift — PA Coty AP",c:"#3B82F6",d:"PA de Coty côté achat uniquement. Reçoit les factures fournisseurs via PPF, alimente VIM/SAP. ILC vers fournisseurs."},
+                    {n:"DGFiP",c:"#F59E0B",d:"Reçoit le Flux 10 (AR + AP) via PPF. Contrôle TVA et pré-remplit les déclarations."},
+                    {n:"SC (Solution Compatible)",c:"#A78BFA",d:"Solution non certifiée connectée à une PA via API XP Z12-013. Suffisant pour les PME."},
+                  ].map(a=>(
+                    <div key={a.n} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${a.c}25`,borderRadius:9,padding:14}}>
+                      <div style={{fontSize:11,fontWeight:700,color:a.c,marginBottom:5}}>{a.n}</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.6}}>{a.d}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              </React.Fragment>
+              );
+            })()}
 
           </div>
         </div>
