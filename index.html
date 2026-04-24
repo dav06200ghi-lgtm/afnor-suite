@@ -3427,12 +3427,74 @@ function App(){
               </h2>
               <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",marginTop:6}}>
                 Pagero = PA Coty AR (e-invoicing + e-reporting) &nbsp;·&nbsp; Tradeshift = PA Coty AP (réception + ILC achat)
+                &nbsp;·&nbsp; <span style={{color:"rgba(99,102,241,0.7)"}}>Les éléments soulignés sont cliquables</span>
               </p>
             </div>
 
             {(()=>{
-              const Node=({bg,b,icon,t,s1,s2,badge,dash,w})=>(
-                <div style={{flex:w||1,minWidth:w||105,background:bg,border:`${dash?"1.5px dashed":"2px solid"} ${b}`,borderRadius:10,padding:"11px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+              // ── Navigation helper ──
+              const go=(tabId,fn)=>{
+                setTab(tabId);
+                if(fn) setTimeout(fn,50);
+              };
+
+              // ── Lien ILC code ──
+              const IlcLink=({code,label,c})=>{
+                const entry=ILC.find(x=>x.code===code);
+                return(
+                  <span onClick={()=>go("ilc",()=>entry&&setSelILC(entry))}
+                    style={{fontSize:8,background:c+"15",color:c,border:`1px solid ${c}30`,borderRadius:4,
+                      padding:"2px 8px",fontWeight:700,whiteSpace:"nowrap",cursor:"pointer",
+                      textDecoration:"underline dotted",textUnderlineOffset:2}}>
+                    <span style={{fontFamily:"JetBrains Mono,monospace"}}>{code}</span>
+                    {" "}<span style={{fontWeight:400,opacity:0.85}}>{label}</span>
+                  </span>
+                );
+              };
+
+              // ── Bandeau codes ILC cliquables ──
+              const Codes=({items,c})=>(
+                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:6}}>
+                  {items.map(({n,l})=><IlcLink key={n} code={n} label={l} c={c}/>)}
+                </div>
+              );
+
+              // ── Lien ER (e-reporting) ──
+              const ErLink=({label,ttCode,c,sub})=>{
+                const entry=ER.find(x=>x.tt===ttCode)||ER[0];
+                return(
+                  <div onClick={()=>go("er",()=>setSelER(entry))}
+                    style={{fontSize:8,color:c,textAlign:"center",fontWeight:700,lineHeight:1.3,
+                      marginBottom:3,whiteSpace:"pre-line",cursor:"pointer",
+                      textDecoration:"underline dotted",textUnderlineOffset:2}}>
+                    {label}
+                  </div>
+                );
+              };
+
+              // ── Lien BT field ──
+              const BtLink=({label,btId,c})=>{
+                const entry=BT.find(x=>x.id===btId)||BT[0];
+                return(
+                  <span onClick={()=>go("bt",()=>setSelBT(entry))}
+                    style={{fontSize:8,color:c,cursor:"pointer",fontWeight:600,
+                      textDecoration:"underline dotted",textUnderlineOffset:2}}>
+                    {label}
+                  </span>
+                );
+              };
+
+              // ── Lien PUF ──
+              const PufLink=({label,c})=>(
+                <span onClick={()=>go("puf")}
+                  style={{fontSize:8,color:c,cursor:"pointer",fontWeight:600,
+                    textDecoration:"underline dotted",textUnderlineOffset:2}}>
+                  {label}
+                </span>
+              );
+
+              const Node=({bg,b,icon,t,s1,s2,badge,dash})=>(
+                <div style={{flex:1,minWidth:105,background:bg,border:`${dash?"1.5px dashed":"2px solid"} ${b}`,borderRadius:10,padding:"11px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
                   {icon&&<div style={{fontSize:17,marginBottom:3}}>{icon}</div>}
                   <div style={{fontSize:11,fontWeight:800,color:"#fff",lineHeight:1.2}}>{t}</div>
                   {s1&&<div style={{fontSize:8,color:"rgba(255,255,255,0.5)",marginTop:2}}>{s1}</div>}
@@ -3441,11 +3503,15 @@ function App(){
                 </div>
               );
 
-              // Flèche → droite avec label au-dessus
-              const R=({label,c,sub})=>(
+              // Flèche → avec label cliquable ou texte simple
+              const R=({label,c,link,sub})=>(
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:64,padding:"0 1px"}}>
-                  <div style={{fontSize:8,color:c,textAlign:"center",fontWeight:600,lineHeight:1.3,marginBottom:2,whiteSpace:"pre-line"}}>{label}</div>
-                  {sub&&<div style={{fontSize:7,color:"rgba(255,255,255,0.25)",marginBottom:2,whiteSpace:"pre-line",textAlign:"center"}}>{sub}</div>}
+                  <div style={{fontSize:8,color:c,textAlign:"center",fontWeight:600,lineHeight:1.3,marginBottom:2,whiteSpace:"pre-line",
+                    cursor:link?"pointer":"default",textDecoration:link?"underline dotted":"none",textUnderlineOffset:2}}
+                    onClick={link?link:undefined}>
+                    {label}
+                  </div>
+                  {sub&&<div style={{marginBottom:2}}>{sub}</div>}
                   <div style={{display:"flex",alignItems:"center",width:"100%"}}>
                     <div style={{flex:1,height:2,background:c,opacity:0.8}}/>
                     <div style={{width:0,height:0,borderTop:"5px solid transparent",borderBottom:"5px solid transparent",borderLeft:`8px solid ${c}`}}/>
@@ -3453,73 +3519,77 @@ function App(){
                 </div>
               );
 
-              // Double flèche ↔ avec labels haut/bas
-              const BiDir=({top,bot,ct,cb})=>(
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:72,padding:"0 1px",gap:1}}>
-                  {/* → droite */}
+              // Flèche ← simple
+              const L=({c})=>(
+                <div style={{display:"flex",alignItems:"center",flex:"0 0 auto",minWidth:64,padding:"0 1px"}}>
+                  <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`7px solid ${c}`}}/>
+                  <div style={{flex:1,height:0,borderTop:`2px dashed ${c}`,opacity:0.75}}/>
+                </div>
+              );
+
+              // Double flèche ↔
+              const BiDir=({top,bot,ct,cb,linkT,linkB})=>(
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",minWidth:70,padding:"0 1px",gap:2}}>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
-                    <div style={{fontSize:7,color:ct,textAlign:"center",fontWeight:600,lineHeight:1.2,marginBottom:1,whiteSpace:"pre-line"}}>{top}</div>
+                    <div style={{fontSize:7,color:ct,textAlign:"center",fontWeight:600,lineHeight:1.2,marginBottom:1,whiteSpace:"pre-line",
+                      cursor:linkT?"pointer":"default",textDecoration:linkT?"underline dotted":"none"}}
+                      onClick={linkT||undefined}>{top}</div>
                     <div style={{display:"flex",alignItems:"center",width:"100%"}}>
                       <div style={{flex:1,height:1.5,background:ct,opacity:0.75}}/>
                       <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderLeft:`6px solid ${ct}`}}/>
                     </div>
                   </div>
-                  {/* ← gauche */}
                   <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
                     <div style={{display:"flex",alignItems:"center",width:"100%"}}>
                       <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderRight:`6px solid ${cb}`}}/>
                       <div style={{flex:1,height:0,borderTop:`1.5px dashed ${cb}`,opacity:0.75}}/>
                     </div>
-                    <div style={{fontSize:7,color:cb,textAlign:"center",fontWeight:600,lineHeight:1.2,marginTop:1,whiteSpace:"pre-line"}}>{bot}</div>
+                    <div style={{fontSize:7,color:cb,textAlign:"center",fontWeight:600,lineHeight:1.2,marginTop:1,whiteSpace:"pre-line",
+                      cursor:linkB?"pointer":"default",textDecoration:linkB?"underline dotted":"none"}}
+                      onClick={linkB||undefined}>{bot}</div>
                   </div>
-                </div>
-              );
-
-              // Codes ILC badge strip
-              const Codes=({items,c})=>(
-                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:6}}>
-                  {items.map(({n,l})=>(
-                    <span key={n} style={{fontSize:8,background:c+"15",color:c,border:`1px solid ${c}30`,borderRadius:4,padding:"2px 8px",fontWeight:700,whiteSpace:"nowrap"}}>
-                      <span style={{fontFamily:"JetBrains Mono,monospace"}}>{n}</span> <span style={{fontWeight:400,opacity:0.85}}>{l}</span>
-                    </span>
-                  ))}
                 </div>
               );
 
               return(
               <React.Fragment>
 
-              {/* ══════════════════════════════════════
-                  FLUX AR
-              ══════════════════════════════════════ */}
+              {/* ══ FLUX AR ══ */}
               <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:16,padding:"22px 24px",marginBottom:22}}>
                 <div style={{fontSize:11,fontWeight:800,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1.5,marginBottom:20}}>
                   📤 FLUX AR — Coty vend
                 </div>
 
-                {/* Ligne facture */}
+                {/* Facture */}
                 <div style={{marginBottom:18}}>
                   <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>① Facture (e-invoicing) →</div>
                   <div style={{display:"flex",alignItems:"stretch",gap:0}}>
                     <Node bg="rgba(99,102,241,0.2)"  b="#6366F1" icon="🏢" t="COTY"      s1="SAP S/4H" s2="Vendeur"/>
-                    <R label={"UBL/CII"} c="#10B981"/>
+                    <R label="UBL/CII" c="#10B981"
+                      sub={<div style={{display:"flex",gap:2,justifyContent:"center",flexWrap:"wrap",marginBottom:2}}>
+                        {["BT-1","BT-2","BT-3"].map(bt=><BtLink key={bt} label={bt} btId={bt} c="#6EE7B7"/>)}
+                      </div>}/>
                     <Node bg="rgba(16,185,129,0.15)" b="#10B981" icon="📡" t="PAGERO"    s1="PA Coty AR" badge="reçoit PUF"/>
-                    <R label={"Flux 2"} c="#10B981"/>
+                    <R label="Flux 2" c="#10B981"
+                      link={()=>go("er",()=>setSelER(ER.find(x=>x.tt==="TB-2")||ER[0]))}
+                      sub={<BtLink label="BT-49" btId="BT-49" c="#6EE7B7"/>}/>
                     <Node bg="rgba(139,92,246,0.12)" b="#8B5CF6" icon="🏛" t="PPF"       s1="Annuaire BT-49"/>
-                    <R label={"routage"} c="#10B981"/>
+                    <R label="routage" c="#10B981"
+                      sub={<BtLink label="BT-49" btId="BT-49" c="#6EE7B7"/>}/>
                     <Node bg="rgba(6,182,212,0.1)"   b="#06B6D4" icon="📡" t="PA CLIENT" s1="PA propre" s2="variable"/>
-                    <R label={"livraison"} c="#10B981"/>
+                    <R label={"livraison\nCDAR 200"} c="#10B981"
+                      link={()=>go("ilc",()=>setSelILC(ILC.find(x=>x.code==="200")||ILC[0]))}/>
                     <Node bg="rgba(59,130,246,0.12)" b="#3B82F6" icon="🏢" t="CLIENT"    s1="BT-47 SIRET"/>
                   </div>
                 </div>
 
-                {/* ILC — canal bidirectionnel */}
+                {/* ILC canal */}
                 <div style={{marginBottom:18,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px"}}>
                   <div style={{fontSize:9,fontWeight:800,color:"rgba(255,255,255,0.6)",textTransform:"uppercase",letterSpacing:1,marginBottom:14}}>
-                    ② ILC — Canal bidirectionnel COTY ↔ CLIENT (via Pagero ↔ PPF ↔ PA Client)
+                    ② ILC — Canal bidirectionnel COTY ↔ CLIENT &nbsp;<span style={{fontSize:8,color:"rgba(255,255,255,0.3)",fontWeight:400,textTransform:"none"}}>via Pagero ↔ PPF ↔ PA Client</span>
                   </div>
 
-                  {/* Sous-section : Technique auto — PA → PA */}
+                  {/* Tech auto */}
                   <div style={{marginBottom:14,paddingBottom:14,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <span style={{fontSize:9,fontWeight:700,color:"#C4B5FD",background:"rgba(139,92,246,0.15)",borderRadius:5,padding:"2px 10px"}}>🔵 TECHNIQUE auto — PA/PPF</span>
@@ -3529,60 +3599,64 @@ function App(){
                       {n:"200",l:"Déposée"},{n:"201",l:"Émise PA"},{n:"202",l:"Reçue PA"},{n:"203",l:"Mise à dispo"},{n:"213",l:"Rejetée tech"},
                     ]}/>
                     <div style={{display:"flex",alignItems:"center",gap:0,marginTop:12}}>
-                      <Node bg="rgba(99,102,241,0.08)" b="#8B5CF6" t="COTY" s1="notifié"/>
-                      <BiDir top={"200/201\nPagero→Client"} bot={"202/203\nPA-R→Pagero"} ct="#8B5CF6" cb="#8B5CF6"/>
-                      <Node bg="rgba(16,185,129,0.06)" b="#8B5CF6" t="PAGERO" s1="émet 200/201"/>
-                      <BiDir top={"route →"} bot={"← route"} ct="#8B5CF6" cb="#8B5CF6"/>
-                      <Node bg="rgba(139,92,246,0.06)" b="#8B5CF6" t="PPF" s1="route"/>
-                      <BiDir top={"livraison →"} bot={"← 202/203"} ct="#8B5CF6" cb="#8B5CF6"/>
-                      <Node bg="rgba(6,182,212,0.05)" b="#8B5CF6" t="PA CLIENT" s1="émet 202/203"/>
-                      <BiDir top={"→ client"} bot={"(interne)"} ct="#8B5CF6" cb="#8B5CF6"/>
-                      <Node bg="rgba(59,130,246,0.05)" b="#8B5CF6" t="CLIENT" s1="reçoit notif"/>
+                      <Node bg="rgba(99,102,241,0.08)" b="#8B5CF6" t="COTY"      s1="notifié"/>
+                      <BiDir top={"200/201\nPagero→Client"} bot={"202/203\nPA-R→Pagero"}
+                        ct="#8B5CF6" cb="#8B5CF6"
+                        linkT={()=>go("ilc",()=>setSelILC(ILC.find(x=>x.code==="200")||ILC[0]))}
+                        linkB={()=>go("ilc",()=>setSelILC(ILC.find(x=>x.code==="202")||ILC[0]))}/>
+                      <Node bg="rgba(16,185,129,0.06)" b="#8B5CF6" t="PAGERO"    s1="émet 200/201"/>
+                      <BiDir top="route →" bot="← route" ct="#8B5CF6" cb="#8B5CF6"/>
+                      <Node bg="rgba(139,92,246,0.06)" b="#8B5CF6" t="PPF"       s1="route"/>
+                      <BiDir top="livraison →" bot="← 202/203" ct="#8B5CF6" cb="#8B5CF6"
+                        linkB={()=>go("ilc",()=>setSelILC(ILC.find(x=>x.code==="202")||ILC[0]))}/>
+                      <Node bg="rgba(6,182,212,0.05)"  b="#8B5CF6" t="PA CLIENT" s1="émet 202/203"/>
+                      <BiDir top="→ client" bot="(interne)" ct="#8B5CF6" cb="#8B5CF6"/>
+                      <Node bg="rgba(59,130,246,0.05)" b="#8B5CF6" t="CLIENT"    s1="reçoit notif"/>
                     </div>
                   </div>
 
-                  {/* Sous-section : Métier CLIENT → Coty */}
+                  {/* Métier CLIENT → Coty */}
                   <div style={{marginBottom:14,paddingBottom:14,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <span style={{fontSize:9,fontWeight:700,color:"#86EFAC",background:"rgba(34,197,94,0.15)",borderRadius:5,padding:"2px 10px"}}>🟢 MÉTIER — CLIENT décide</span>
-                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>le client approuve, refuse, paie → remonte vers Coty</span>
+                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>approuve, refuse, paie → remonte vers Coty</span>
                     </div>
                     <Codes c="#22C55E" items={[
-                      {n:"204",l:"Approuvée"},{n:"205",l:"Prise en charge"},{n:"206",l:"Approuvée partiellement"},
+                      {n:"204",l:"Approuvée"},{n:"205",l:"Prise en charge"},{n:"206",l:"Approuvée part."},
                       {n:"207",l:"En litige"},{n:"208",l:"Suspendue"},{n:"210",l:"Refusée"},{n:"211",l:"Paiement transmis"},
                     ]}/>
                     <div style={{display:"flex",alignItems:"center",gap:0,marginTop:12}}>
                       <Node bg="rgba(99,102,241,0.1)"  b="#22C55E" t="COTY"      s1="reçoit statut"/>
-                      <R label={"← statut"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(16,185,129,0.08)" b="#22C55E" t="PAGERO"    s1="transmet"/>
-                      <R label={"← route"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(139,92,246,0.06)" b="#22C55E" t="PPF"       s1="route"/>
-                      <R label={"← route"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(6,182,212,0.08)"  b="#22C55E" t="PA CLIENT" s1="transmet"/>
-                      <R label={"← émet"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(59,130,246,0.15)" b="#22C55E" t="CLIENT"    s1="✦ décide"/>
                     </div>
                   </div>
 
-                  {/* Sous-section : Métier COTY → Client */}
+                  {/* Métier COTY → Client */}
                   <div>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <span style={{fontSize:9,fontWeight:700,color:"#FCD34D",background:"rgba(245,158,11,0.15)",borderRadius:5,padding:"2px 10px"}}>🟡 MÉTIER — COTY décide</span>
-                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>Coty confirme encaissement, annule, affacture → notifie le client</span>
+                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>encaisse, annule, affacture → notifie le client</span>
                     </div>
                     <Codes c="#F59E0B" items={[
-                      {n:"209",l:"Complétée"},{n:"212",l:"Encaissée (TVA encaiss.)"},{n:"214",l:"Visée"},
-                      {n:"225",l:"Affacturée"},{n:"226",l:"Affact. confidentiel"},{n:"227",l:"Chgt compte"},{n:"228",l:"Non affacturée"},
+                      {n:"209",l:"Complétée"},{n:"212",l:"Encaissée"},{n:"214",l:"Visée"},
+                      {n:"225",l:"Affacturée"},{n:"226",l:"Affact. confid."},{n:"227",l:"Chgt compte"},{n:"228",l:"Non affacturée"},
                     ]}/>
                     <div style={{display:"flex",alignItems:"center",gap:0,marginTop:12}}>
                       <Node bg="rgba(99,102,241,0.15)" b="#F59E0B" t="COTY"      s1="✦ décide"/>
-                      <R label={"émet →"} c="#F59E0B"/>
+                      <R label="émet →" c="#F59E0B"/>
                       <Node bg="rgba(16,185,129,0.1)"  b="#F59E0B" t="PAGERO"    s1="transmet"/>
-                      <R label={"route →"} c="#F59E0B"/>
+                      <R label="route →" c="#F59E0B"/>
                       <Node bg="rgba(139,92,246,0.06)" b="#F59E0B" t="PPF"       s1="route"/>
-                      <R label={"route →"} c="#F59E0B"/>
+                      <R label="route →" c="#F59E0B"/>
                       <Node bg="rgba(6,182,212,0.08)"  b="#F59E0B" t="PA CLIENT" s1="livre"/>
-                      <R label={"→ client"} c="#F59E0B"/>
+                      <R label="→ client" c="#F59E0B"/>
                       <Node bg="rgba(59,130,246,0.08)" b="#F59E0B" t="CLIENT"    s1="reçoit notif"/>
                     </div>
                   </div>
@@ -3593,32 +3667,39 @@ function App(){
                   <div style={{fontSize:9,fontWeight:800,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1.2,marginBottom:12}}>③ E-Reporting AR — Double flux</div>
                   <div style={{display:"flex",alignItems:"stretch",gap:0}}>
                     <Node bg="rgba(99,102,241,0.15)" b="#6366F1" icon="🏢" t="COTY"   s1="SAP S/4H" s2="source données AR"/>
-                    <R label={"① PUF\npuf:reportPeriod\nextension XML"} c="#FB923C"/>
+                    <R label={"① PUF\nextension XML"} c="#FB923C"
+                      link={()=>go("puf")}
+                      sub={<PufLink label="→ onglet PUF Pagero" c="#FB923C"/>}/>
                     <Node bg="rgba(16,185,129,0.15)" b="#10B981" icon="📡" t="PAGERO" s1="reçoit PUF" s2="transforme → XML DGFiP"/>
-                    <R label={"② XML DGFiP\nFlux 10.1/10.3\nTT/TG/TB"} c="#F59E0B"/>
+                    <R label={"② XML DGFiP\nFlux 10.1/10.3"} c="#F59E0B"
+                      link={()=>go("er",()=>setSelER(ER.find(x=>x.tt==="TB-2")||ER[0]))}
+                      sub={<ErLink label="→ E-Reporting" ttCode="TB-2" c="#FCD34D"/>}/>
                     <Node bg="rgba(245,158,11,0.12)" b="#F59E0B" icon="🏦" t="DGFiP"  s1="TVA agrégée AR"/>
                   </div>
                 </div>
               </div>
 
-              {/* ══════════════════════════════════════
-                  FLUX AP
-              ══════════════════════════════════════ */}
+              {/* ══ FLUX AP ══ */}
               <div style={{background:"rgba(59,130,246,0.04)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"22px 24px",marginBottom:24}}>
                 <div style={{fontSize:11,fontWeight:800,color:"#93C5FD",textTransform:"uppercase",letterSpacing:1.5,marginBottom:20}}>
                   📥 FLUX AP — Coty achète
                 </div>
 
-                {/* Ligne facture */}
+                {/* Facture */}
                 <div style={{marginBottom:18}}>
                   <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>① Facture (e-invoicing) →</div>
                   <div style={{display:"flex",alignItems:"stretch",gap:0}}>
                     <Node bg="rgba(148,163,184,0.1)"  b="#94A3B8" icon="🏭" t="FOURN."     s1="ERP propre"  s2="FR/EU/monde"/>
-                    <R label="UBL/CII" c="#3B82F6"/>
+                    <R label="UBL/CII" c="#3B82F6"
+                      sub={<div style={{display:"flex",gap:2,justifyContent:"center",flexWrap:"wrap",marginBottom:2}}>
+                        {["BT-1","BT-3"].map(bt=><BtLink key={bt} label={bt} btId={bt} c="#93C5FD"/>)}
+                      </div>}/>
                     <Node bg="rgba(100,116,139,0.12)" b="#64748B" icon="📡" t="PA FOURN."  s1="PA propre"   s2="inconnue Coty" dash/>
-                    <R label={"Flux 2"} c="#3B82F6"/>
+                    <R label="Flux 2" c="#3B82F6"
+                      link={()=>go("er",()=>setSelER(ER.find(x=>x.tt==="TB-2")||ER[0]))}/>
                     <Node bg="rgba(139,92,246,0.12)"  b="#8B5CF6" icon="🏛" t="PPF"        s1="Annuaire BT-49"/>
-                    <R label={"routage"} c="#3B82F6"/>
+                    <R label="routage" c="#3B82F6"
+                      sub={<BtLink label="BT-49" btId="BT-49" c="#93C5FD"/>}/>
                     <Node bg="rgba(59,130,246,0.18)"  b="#3B82F6" icon="📡" t="TRADESHIFT" s1="PA Coty AP" badge="PA Coty"/>
                     <R label={"VIM\nIDOC"} c="#3B82F6"/>
                     <Node bg="rgba(99,102,241,0.18)"  b="#6366F1" icon="🏢" t="COTY"       s1="SAP S/4H AP" s2="Acheteur"/>
@@ -3628,10 +3709,10 @@ function App(){
                 {/* ILC AP */}
                 <div style={{marginBottom:18,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px"}}>
                   <div style={{fontSize:9,fontWeight:800,color:"rgba(255,255,255,0.6)",textTransform:"uppercase",letterSpacing:1,marginBottom:14}}>
-                    ② ILC — Canal bidirectionnel COTY ↔ FOURN. (via Tradeshift ↔ PPF ↔ PA Fourn.)
+                    ② ILC — Canal bidirectionnel COTY ↔ FOURN. &nbsp;<span style={{fontSize:8,color:"rgba(255,255,255,0.3)",fontWeight:400,textTransform:"none"}}>via Tradeshift ↔ PPF ↔ PA Fourn.</span>
                   </div>
 
-                  {/* Technique auto */}
+                  {/* Tech */}
                   <div style={{marginBottom:14,paddingBottom:14,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <span style={{fontSize:9,fontWeight:700,color:"#C4B5FD",background:"rgba(139,92,246,0.15)",borderRadius:5,padding:"2px 10px"}}>🔵 TECHNIQUE auto — Tradeshift/PPF</span>
@@ -3641,22 +3722,23 @@ function App(){
                     ]}/>
                     <div style={{display:"flex",alignItems:"center",gap:0,marginTop:12}}>
                       <Node bg="rgba(148,163,184,0.05)" b="#8B5CF6" t="FOURN. ERP" s1="reçoit notif"/>
-                      <BiDir top={"→ notif"} bot={"200/201"} ct="#8B5CF6" cb="#8B5CF6"/>
+                      <BiDir top="→ notif" bot="200/201" ct="#8B5CF6" cb="#8B5CF6"
+                        linkB={()=>go("ilc",()=>setSelILC(ILC.find(x=>x.code==="200")||ILC[0]))}/>
                       <Node bg="rgba(100,116,139,0.05)" b="#8B5CF6" t="PA FOURN." s1="transmet"/>
-                      <BiDir top={"route →"} bot={"← 202/203"} ct="#8B5CF6" cb="#8B5CF6"/>
+                      <BiDir top="route →" bot="← route" ct="#8B5CF6" cb="#8B5CF6"/>
                       <Node bg="rgba(139,92,246,0.06)"  b="#8B5CF6" t="PPF"       s1="route"/>
-                      <BiDir top={"route →"} bot={"← route"} ct="#8B5CF6" cb="#8B5CF6"/>
+                      <BiDir top="route →" bot="← route" ct="#8B5CF6" cb="#8B5CF6"/>
                       <Node bg="rgba(59,130,246,0.06)"  b="#8B5CF6" t="TRADESHIFT" s1="génère auto"/>
-                      <BiDir top={"→"} bot={"(interne)"} ct="#8B5CF6" cb="#8B5CF6"/>
+                      <BiDir top="→" bot="(interne)" ct="#8B5CF6" cb="#8B5CF6"/>
                       <Node bg="rgba(99,102,241,0.06)"  b="#8B5CF6" t="COTY SAP"  s1="notifié"/>
                     </div>
                   </div>
 
-                  {/* Métier COTY → Fourn */}
+                  {/* Métier COTY */}
                   <div style={{marginBottom:14,paddingBottom:14,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <span style={{fontSize:9,fontWeight:700,color:"#86EFAC",background:"rgba(34,197,94,0.15)",borderRadius:5,padding:"2px 10px"}}>🟢 MÉTIER — COTY décide</span>
-                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>Coty approuve, refuse, paie → notifie le fournisseur</span>
+                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>approuve, refuse, paie → notifie le fournisseur</span>
                     </div>
                     <Codes c="#22C55E" items={[
                       {n:"204",l:"Approuvée"},{n:"205",l:"Prise en charge"},{n:"207",l:"En litige"},
@@ -3664,35 +3746,34 @@ function App(){
                     ]}/>
                     <div style={{display:"flex",alignItems:"center",gap:0,marginTop:12}}>
                       <Node bg="rgba(148,163,184,0.05)" b="#22C55E" t="FOURN. ERP" s1="reçoit statut"/>
-                      <R label={"← statut"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(100,116,139,0.05)" b="#22C55E" t="PA FOURN." s1="transmet"/>
-                      <R label={"← route"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(139,92,246,0.06)"  b="#22C55E" t="PPF"       s1="route"/>
-                      <R label={"← route"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(59,130,246,0.12)"  b="#22C55E" t="TRADESHIFT" s1="transmet"/>
-                      <R label={"← émet"} c="#22C55E"/>
+                      <L c="#22C55E"/>
                       <Node bg="rgba(99,102,241,0.15)"  b="#22C55E" t="COTY SAP"  s1="✦ décide"/>
                     </div>
                   </div>
 
-                  {/* Métier Fourn → Coty (rare mais possible) */}
+                  {/* Métier Fourn */}
                   <div>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <span style={{fontSize:9,fontWeight:700,color:"#FCD34D",background:"rgba(245,158,11,0.15)",borderRadius:5,padding:"2px 10px"}}>🟡 MÉTIER — FOURN. informe Coty</span>
-                      <span style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>fournisseur envoie complément, litige ou info paiement</span>
                     </div>
                     <Codes c="#F59E0B" items={[
-                      {n:"209",l:"Complétée (info)"},{n:"214",l:"Visée"},{n:"206",l:"Approuvée partiellement"},
+                      {n:"206",l:"Approuvée part."},{n:"209",l:"Complétée"},{n:"214",l:"Visée"},
                     ]}/>
                     <div style={{display:"flex",alignItems:"center",gap:0,marginTop:12}}>
                       <Node bg="rgba(148,163,184,0.08)" b="#F59E0B" t="FOURN. ERP" s1="✦ informe"/>
-                      <R label={"émet →"} c="#F59E0B"/>
+                      <R label="émet →" c="#F59E0B"/>
                       <Node bg="rgba(100,116,139,0.06)" b="#F59E0B" t="PA FOURN." s1="transmet"/>
-                      <R label={"route →"} c="#F59E0B"/>
+                      <R label="route →" c="#F59E0B"/>
                       <Node bg="rgba(139,92,246,0.06)"  b="#F59E0B" t="PPF"       s1="route"/>
-                      <R label={"route →"} c="#F59E0B"/>
+                      <R label="route →" c="#F59E0B"/>
                       <Node bg="rgba(59,130,246,0.1)"   b="#F59E0B" t="TRADESHIFT" s1="reçoit"/>
-                      <R label={"→ SAP"} c="#F59E0B"/>
+                      <R label="→ SAP" c="#F59E0B"/>
                       <Node bg="rgba(99,102,241,0.08)"  b="#F59E0B" t="COTY SAP"  s1="reçoit info"/>
                     </div>
                   </div>
@@ -3700,12 +3781,16 @@ function App(){
 
                 {/* E-Reporting AP */}
                 <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.18)",borderRadius:10,padding:"14px 16px"}}>
-                  <div style={{fontSize:9,fontWeight:800,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1.2,marginBottom:12}}>③ E-Reporting AP — Double flux (même architecture AR)</div>
+                  <div style={{fontSize:9,fontWeight:800,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1.2,marginBottom:12}}>③ E-Reporting AP — Double flux</div>
                   <div style={{display:"flex",alignItems:"stretch",gap:0}}>
                     <Node bg="rgba(99,102,241,0.15)" b="#6366F1" icon="🏢" t="COTY"   s1="SAP S/4H" s2="données achats AP"/>
-                    <R label={"① PUF\npuf:reportPeriod\nextension XML"} c="#FB923C"/>
+                    <R label={"① PUF\nextension XML"} c="#FB923C"
+                      link={()=>go("puf")}
+                      sub={<PufLink label="→ onglet PUF Pagero" c="#FB923C"/>}/>
                     <Node bg="rgba(16,185,129,0.15)" b="#10B981" icon="📡" t="PAGERO" s1="reçoit PUF AP" s2="transforme → XML DGFiP"/>
-                    <R label={"② XML DGFiP\nFlux 10.2/10.4\nTT/TG/TB"} c="#F59E0B"/>
+                    <R label={"② XML DGFiP\nFlux 10.2/10.4"} c="#F59E0B"
+                      link={()=>go("er",()=>setSelER(ER.find(x=>x.tt==="TB-3")||ER.find(x=>x.tt==="TB-2")||ER[0]))}
+                      sub={<ErLink label="→ E-Reporting" ttCode="TB-3" c="#FCD34D"/>}/>
                     <Node bg="rgba(245,158,11,0.12)" b="#F59E0B" icon="🏦" t="DGFiP"  s1="TVA déductible AP"/>
                   </div>
                 </div>
@@ -3715,14 +3800,15 @@ function App(){
               <div style={{display:"flex",gap:14,flexWrap:"wrap",padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,marginBottom:22}}>
                 {[
                   {c:"#10B981",label:"Facture aller (e-invoicing)"},
-                  {c:"#8B5CF6",label:"ILC Technique auto PA/PPF",d:true},
-                  {c:"#22C55E",label:"ILC Métier décision humaine",d:true},
-                  {c:"#F59E0B",label:"ILC Métier info inverse",d:true},
+                  {c:"#8B5CF6",label:"ILC Technique auto",d:true},
+                  {c:"#22C55E",label:"ILC Métier décideur",d:true},
+                  {c:"#F59E0B",label:"ILC Métier sens inverse",d:true},
                   {c:"#FB923C",label:"E-Reporting ① PUF"},
                   {c:"#F59E0B",label:"E-Reporting ② XML DGFiP"},
+                  {c:"rgba(255,255,255,0.5)",label:"Souligné pointillé = lien cliquable"},
                 ].map((l,i)=>(
                   <div key={i} style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{position:"relative",width:26,height:10,display:"flex",alignItems:"center"}}>
+                    <div style={{position:"relative",width:24,height:10,display:"flex",alignItems:"center"}}>
                       <div style={{width:"100%",height:1.5,background:l.d?"transparent":l.c,borderTop:l.d?`1.5px dashed ${l.c}`:"none"}}/>
                       {!l.d&&<div style={{position:"absolute",right:0,width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderLeft:`6px solid ${l.c}`}}/>}
                     </div>
@@ -3739,7 +3825,7 @@ function App(){
                     {n:"PA (Plateforme Agréée)",c:"#6366F1",d:"Anciennement PDP. Certifiée DGFiP. Gère émission, réception, ILC et e-reporting."},
                     {n:"PPF (Portail Public)",c:"#8B5CF6",d:"Annuaire SIRET→PA + concentrateur DGFiP. Point de routage central."},
                     {n:"Pagero — PA Coty AR",c:"#10B981",d:"PA de Coty côté vente ET e-reporting (AR + AP). Reçoit PUF, route factures, transmet Flux 10."},
-                    {n:"Tradeshift — PA Coty AP",c:"#3B82F6",d:"PA de Coty côté achat uniquement. Reçoit factures via PPF, alimente VIM/SAP, émet ILC vers fournisseurs."},
+                    {n:"Tradeshift — PA Coty AP",c:"#3B82F6",d:"PA de Coty côté achat uniquement. Reçoit factures via PPF, alimente VIM/SAP, émet ILC."},
                     {n:"DGFiP",c:"#F59E0B",d:"Reçoit Flux 10 AR + AP via PPF. Contrôle TVA, pré-remplit déclarations."},
                     {n:"SC (Solution Compatible)",c:"#A78BFA",d:"Solution non certifiée connectée à une PA via API XP Z12-013."},
                   ].map(a=>(
