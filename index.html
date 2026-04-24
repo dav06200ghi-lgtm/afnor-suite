@@ -511,19 +511,19 @@ const ILC=[
   {code:"200",famille:"technique",l:"Déposée",en:"Submitted",m:true,actor:"PA Supplier",
    ts:"Sending",modif:"Automatique",coty:"Y",
    d:"Le fournisseur dépose sa facture ou son avoir sur sa plateforme. Statut généré après les contrôles. Point d'entrée obligatoire pour toutes les e-factures.",
-   c:"#3B82F6",next:["201","213"],fix:null,cdarCodes:null,pagero_code:"SUBMITTED"},
+   c:"#3B82F6",next:["201","213"],fix:null,cdarCodes:null,pagero_code:"SUBMITTED",pa_ar:"Pagero reçoit la facture du vendeur et la soumet au PPF",pa_ap:"Tradeshift attend la confirmation de réception",initiateur:"Pagero (PA-E)"},
   {code:"201",famille:"technique",l:"Émise par la plateforme",en:"Sent",m:false,actor:"PA Supplier",
    ts:"Sent",modif:"Automatique",coty:"Y",
    d:"La facture a été prise en charge par la plateforme du fournisseur et est émise à destination de l'acheteur.",
-   c:"#06B6D4",next:["202","213"],fix:null,cdarCodes:null,pagero_code:"ISSUED_BY_PLATFORM"},
+   c:"#06B6D4",next:["202","213"],fix:null,cdarCodes:null,pagero_code:"ISSUED_BY_PLATFORM",pa_ar:"Pagero confirme l'émission de la facture vers le réseau",pa_ap:"Tradeshift attend la livraison",initiateur:"Pagero (PA-E)"},
   {code:"202",famille:"technique",l:"Reçue par la plateforme",en:"Received",m:false,actor:"PA Customer AP",
    ts:"Received",modif:"Automatique",coty:"Y",
    d:"La facture est reçue par la plateforme de l'acheteur (ou du destinataire) mais n'est pas encore mise à disposition de son client.",
-   c:"#6366F1",next:["203","213"],fix:null,cdarCodes:null,pagero_code:"RECEIVED_BY_PLATFORM"},
+   c:"#6366F1",next:["203","213"],fix:null,cdarCodes:null,pagero_code:"RECEIVED_BY_PLATFORM",pa_ar:"Pagero confirme la réception par la PA de l'acheteur",pa_ap:"Tradeshift reçoit la facture sur sa PA",initiateur:"Pagero (PA-R)"},
   {code:"203",famille:"technique",l:"Mise à disposition",en:"Received",m:false,actor:"PA Customer AP",
    ts:"Received",modif:"Automatique",coty:"Y",
    d:"La facture est mise à disposition de l'acheteur sur sa plateforme.",
-   c:"#8B5CF6",next:["204","207","213"],fix:null,cdarCodes:null,pagero_code:"MADE_AVAILABLE"},
+   c:"#8B5CF6",next:["204","207","213"],fix:null,cdarCodes:null,pagero_code:"MADE_AVAILABLE",pa_ar:"Pagero notifie la mise à disposition",pa_ap:"Tradeshift rend la facture disponible dans VIM OpenText",initiateur:"Pagero (PA-R)"},
   {code:"204",famille:"business",l:"Prise en charge",en:"Business Delivered",m:false,actor:"PA Customer AP",
    ts:"Business Delivered",modif:"Manuelle",coty:"Y",
    d:"La facture est prise en charge par l'acheteur pour procéder à son traitement.",
@@ -535,15 +535,15 @@ const ILC=[
      {code:"REF-05",l:"Bon de commande incorrect",fix:"Vérifier BT-13."},
      {code:"REF-06",l:"TVA incorrecte",fix:"Vérifier BT-118/BT-119."},
      {code:"REF-07",l:"Autre motif",fix:"Contacter le fournisseur pour correction."},
-     {code:"ZZZ",l:"Motif non standard",fix:"Texte libre."}]},
+     {code:"ZZZ",l:"Motif non standard",fix:"Texte libre."}],pa_ar:"Pagero transmet IN_PROCESS au vendeur",pa_ap:"Tradeshift / VIM: BusinessDelivered → SSC prend en charge",initiateur:"Tradeshift → Pagero"},
   {code:"205",famille:"business",l:"Approuvée",en:"Accepted",m:false,actor:"PA Customer AP",
    ts:"Accepted",modif:"Manuelle",coty:"Y",
    d:"La facture est acceptée dans son intégralité par l'acheteur mandataire (co-traitance) ou le titulaire (sous-traitance).",
-   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null,vim:"15",vim_label:"Posted",coty_ap_val:"BusinessAccept",coty_note:"Coty AP to send BusinessAccept. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"ACCEPTED"},
+   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null,vim:"15",vim_label:"Posted",coty_ap_val:"BusinessAccept",coty_note:"Coty AP to send BusinessAccept. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"ACCEPTED",pa_ar:"Pagero transmet ACCEPTED au vendeur",pa_ap:"Tradeshift / VIM: BusinessAccept → comptabilisation SAP",initiateur:"Tradeshift → Pagero"},
   {code:"206",famille:"business",l:"Approuvée partiellement",en:"Partially approved",m:false,actor:"PA Customer AP",
    ts:"To be added",modif:"Manuelle",coty:"N",
    d:"La facture est acceptée partiellement par l'acheteur. Ce traitement peut donner lieu à un avoir.",
-   c:"#84CC16",next:["211","210"],fix:null,cdarCodes:null,pagero_code:"PARTIALLY_ACCEPTED"},
+   c:"#84CC16",next:["211","210"],fix:null,cdarCodes:null,pagero_code:"PARTIALLY_ACCEPTED",pa_ar:"Pagero transmet PARTIALLY_ACCEPTED au vendeur",pa_ap:"Tradeshift: approbation partielle — montants disputés à préciser",initiateur:"Tradeshift → Pagero"},
   {code:"207",famille:"business",l:"En litige",en:"Disputed",m:false,actor:"PA Customer AP",
    ts:"Disputed",modif:"Manuelle",coty:"N",
    d:"Un différend est constaté sur la facture. Ce désaccord peut se solder par un refus ou par une approbation de l'acheteur.",
@@ -555,15 +555,15 @@ const ILC=[
      {code:"BV",l:"Bon à viser",fix:"Viser selon procédure interne."},
      {code:"UQ",l:"Quantité non conforme",fix:"Vérifier BT-129."},
      {code:"PD",l:"Litige prix/quantité",fix:"Émettre avoir + nouvelle facture corrigée."},
-     {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}]},
+     {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}],pa_ar:"Pagero transmet UNDER_QUERY au vendeur",pa_ap:"Tradeshift: litige — reason code obligatoire",initiateur:"Tradeshift → Pagero"},
   {code:"208",famille:"technique",l:"Suspendue",en:"Suspended",m:false,actor:"PA Customer AP",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Le traitement de la facture peut être suspendu lorsqu'une ou plusieurs pièces justificatives sont manquantes. Les données restent inchangées.",
-   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:[{code:"JUSTIF_ABS",l:"Justificatif absent",en:"Missing attachment",pagero_code:"ON_HOLD"},{code:"COORD_BANC_ERR",l:"Erreur coordonnées bancaires",en:"Incorrect bank details",vim:"21"},{code:"CMD_ERR",l:"N° de commande incorrect",en:"Incorrect PO number",vim:"12,13"},{code:"SIRET_ERR",l:"SIRET erroné ou absent",en:"Incorrect/missing SIRET",vim:"09"},{code:"CODE_ROUTAGE_ERR",l:"Code routage erroné",en:"Incorrect routing code"},{code:"REF_CT_ABSENT",l:"Référence contractuelle manquante",en:"Missing contract reference",vim:"07"}]},
+   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:[{code:"JUSTIF_ABS",l:"Justificatif absent",en:"Missing attachment",pagero_code:"ON_HOLD"},{code:"COORD_BANC_ERR",l:"Erreur coordonnées bancaires",en:"Incorrect bank details",vim:"21"},{code:"CMD_ERR",l:"N° de commande incorrect",en:"Incorrect PO number",vim:"12,13"},{code:"SIRET_ERR",l:"SIRET erroné ou absent",en:"Incorrect/missing SIRET",vim:"09"},{code:"CODE_ROUTAGE_ERR",l:"Code routage erroné",en:"Incorrect routing code"},{code:"REF_CT_ABSENT",l:"Référence contractuelle manquante",en:"Missing contract reference",vim:"07"}],pa_ar:"Pagero transmet ON_HOLD au vendeur",pa_ap:"Tradeshift: suspension — en attente d'info complémentaire",initiateur:"Tradeshift → Pagero"},
   {code:"209",famille:"business",l:"Complétée",en:"Completed",m:false,actor:"PA Customer AP",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"La facture est complétée lorsque le fournisseur ajoute une pièce jointe ou un commentaire à une facture au statut suspendue.",
-   c:"#A78BFA",next:["204","205"],fix:null,cdarCodes:null,pagero_code:"INFORMATION_PROVIDED"},
+   c:"#A78BFA",next:["204","205"],fix:null,cdarCodes:null,pagero_code:"INFORMATION_PROVIDED",pa_ar:"Pagero transmet INFORMATION_PROVIDED au vendeur",pa_ap:"Tradeshift: complément d'info ajouté par l'émetteur",initiateur:"Pagero (émetteur)"},
   {code:"210",famille:"business",l:"Refusée (business reject)",en:"Rejected",m:true,actor:"PA Customer AP",
    ts:"Rejected",modif:"Manuelle",coty:"Y",
    d:"La facture est refusée par le destinataire pour des raisons métiers.",
@@ -571,23 +571,23 @@ const ILC=[
      {code:"AB",l:"Destinataire introuvable",fix:"Vérifier BT-49 dans l'Annuaire PPF.",vim:"95",vim_label:"BusinessReject",coty_ap_val:"BusinessReject",coty_note:"Coty to send BusinessReject + provide Reject reason code. PS team retrieves + reason from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"REJECTED"},
      {code:"RE",l:"Règles métier non respectées",fix:"Corriger selon les règles BR-FR signalées."},
      {code:"CA",l:"Annulation demandée",fix:"Émettre un avoir BT-3=381 référençant la facture originale BT-25."},
-     {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}]},
+     {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}],pa_ar:"Pagero transmet REJECTED au vendeur + notifie PPF",pa_ap:"Tradeshift / VIM: BusinessReject — reason code requis",initiateur:"Tradeshift → Pagero → PPF"},
   {code:"211",famille:"business",l:"Paiement transmis",en:"Marked as paid",m:false,actor:"PA Customer AP",
    ts:"Marked as paid",modif:"Manuelle",coty:"Y",
    d:"Le flux de virement a été envoyé au fournisseur.",
-   c:"#10B981",next:["212"],fix:null,cdarCodes:null,vim:"Z3",vim_label:"BusinessPaid",coty_ap_val:"BusinessPaid",coty_note:"Coty to send BusinessPaid. PS team retrieves from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"PAYMENT_INITIATED"},
+   c:"#10B981",next:["212"],fix:null,cdarCodes:null,vim:"Z3",vim_label:"BusinessPaid",coty_ap_val:"BusinessPaid",coty_note:"Coty to send BusinessPaid. PS team retrieves from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"PAYMENT_INITIATED",pa_ar:"Pagero transmet PAYMENT_INITIATED au vendeur",pa_ap:"Tradeshift / VIM: BusinessPaid — confirmation paiement envoyé",initiateur:"Tradeshift → Pagero"},
   {code:"212",famille:"paiement",l:"Encaissée",en:"Paid",m:true,actor:"PA Supplier",
    ts:"Paid",modif:"Manuelle",coty:"Y",
    d:"Le fournisseur a reçu le paiement de la facture. Statut obligatoire pour les prestations de services (hors TVA sur les débits et hors opérations auto-liquidées).",
-   c:"#16A34A",next:[],fix:null,cdarCodes:null,pagero_code:"PAYMENT_RECEIVED"},
+   c:"#16A34A",next:[],fix:null,cdarCodes:null,pagero_code:"PAYMENT_RECEIVED",pa_ar:"Pagero transmet PAYMENT_RECEIVED — transaction close",pa_ap:"Tradeshift: statut final attendu côté AP",initiateur:"Pagero (vendeur confirme encaissement)"},
   {code:"213",famille:"technique",l:"Rejetée (technical reject)",en:"Rejected (technical)",m:true,actor:"TS PA / PPF",
    ts:"Rejected",modif:"Automatique",coty:"Y",
    d:"La facture pourra être rejetée automatiquement pour des raisons techniques (ex : format non conforme à la norme).",
-   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:[{code:"REJ_SEMAN",l:"Erreur sémantique",en:"Semantic error",pagero_code:"VALIDATION_FAILURE"},{code:"REJ_UNI",l:"Contrôle unicité",en:"Uniqueness check"},{code:"REJ_COH",l:"Cohérence de données",en:"Data consistency"},{code:"REJ_ADR",l:"Contrôle adressage",en:"Addressing control"},{code:"MONTANTTOTAL_ERR",l:"Montant Total Erroné",en:"Incorrect total amount",vim:"16,17,19"},{code:"CALCUL_ERR",l:"Erreur de calcul",en:"Calculation error"},{code:"DOUBLON",l:"Facture en doublon",en:"Duplicate invoice",vim:"05"}]},
+   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:[{code:"REJ_SEMAN",l:"Erreur sémantique",en:"Semantic error",pagero_code:"VALIDATION_FAILURE"},{code:"REJ_UNI",l:"Contrôle unicité",en:"Uniqueness check"},{code:"REJ_COH",l:"Cohérence de données",en:"Data consistency"},{code:"REJ_ADR",l:"Contrôle adressage",en:"Addressing control"},{code:"MONTANTTOTAL_ERR",l:"Montant Total Erroné",en:"Incorrect total amount",vim:"16,17,19"},{code:"CALCUL_ERR",l:"Erreur de calcul",en:"Calculation error"},{code:"DOUBLON",l:"Facture en doublon",en:"Duplicate invoice",vim:"05"}],pa_ar:"Pagero: rejet technique à l'émission (PA-E) ou à la réception (PA-R)",pa_ap:"Tradeshift: rejet technique à la réception — correction requise",initiateur:"PPF / PA (technique)"},
   {code:"214",famille:"business",l:"Visée",en:"Stamped / Approved (B2G)",m:false,actor:"PA Supplier / Mandataire Gouvernement",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Statut utilisé uniquement dans le cadre de la co-traitance B2U ou B2G (hors marchés de travaux) pour viser une facture. Joint contracting not subcontracting.",
-   c:"#EC4899",next:["205"],fix:null,cdarCodes:null,pagero_code:"ENDORSED"},
+   c:"#EC4899",next:["205"],fix:null,cdarCodes:null,pagero_code:"ENDORSED",pa_ar:"Pagero: endorsement transmis à l'émetteur et au destinataire",pa_ap:"Tradeshift: notification d'endorsement reçue",initiateur:"Agent vendeur ou acheteur → Pagero"},
 ];
 const UC=[
   // ── NOMINAL FLOWS ────────────────────────────────────────────────────────
@@ -1972,8 +1972,16 @@ function App(){
                       <span style={{fontSize:10,background:FC+"18",color:FC,borderRadius:3,padding:"2px 7px",fontWeight:600,textTransform:"capitalize"}}>{f.famille}</span>
                     </div>
                     {/* Acteur */}
-                    <div style={{overflow:"hidden"}}>
-                      <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.actor}</div>
+                    <div style={{overflow:"hidden",display:"flex",flexDirection:"column",gap:2,justifyContent:"center"}}>
+                      {(()=>{
+                        const isAP = f.pa_ap&&f.pa_ap.includes('Tradeshift');
+                        const bc = isAP?"#F59E0B":f.famille==="technique"?"#8B5CF6":"#22C55E";
+                        const bl = isAP?"AP":"AR";
+                        return(<>
+                          <span style={{fontSize:9,fontWeight:700,color:bc,background:bc+"15",borderRadius:3,padding:"1px 6px",alignSelf:"flex-start"}}>{bl}</span>
+                          <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isAP?"Tradeshift":"Pagero"}</div>
+                        </>);
+                      })()}
                     </div>
                     {/* Coty AP use */}
                     <div style={{display:"flex",justifyContent:"center"}}>
@@ -2003,10 +2011,37 @@ function App(){
                         <span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.actor}</span>
                         {selILC.modif&&<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.modif}</span>}
                         {selILC.coty&&<span style={{fontSize:10,background:selILC.coty==="Y"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",color:selILC.coty==="Y"?"#22C55E":"rgba(255,255,255,0.3)",border:"1px solid "+(selILC.coty==="Y"?"rgba(34,197,94,0.3)":"rgba(255,255,255,0.1)"),borderRadius:5,padding:"3px 10px",fontWeight:700}}>Coty AP: {selILC.coty}</span>}
-                        {selILC.pagero_code&&<span style={{fontSize:10,background:"rgba(16,185,129,0.12)",color:"#34D399",border:"1px solid rgba(16,185,129,0.3)",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>Pagero: {selILC.pagero_code}</span>}
-                        {selILC.coty_ap_val&&<span style={{fontSize:10,background:"rgba(245,158,11,0.1)",color:"#FCD34D",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>TS→SAP: {selILC.coty_ap_val}</span>}
-                        {selILC.vim&&<span style={{fontSize:10,background:"rgba(139,92,246,0.1)",color:"#C4B5FD",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace"}}>VIM: {selILC.vim} ({selILC.vim_label})</span>}
-                        {selILC.ts&&<span style={{fontSize:10,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px"}}>TS: {selILC.ts}</span>}
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12,marginTop:4}}>
+                          {/* AR — Pagero */}
+                          <div style={{background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.25)",borderRadius:8,padding:"10px 12px"}}>
+                            <div style={{fontSize:9,color:"#34D399",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
+                              <span style={{background:"rgba(16,185,129,0.15)",borderRadius:4,padding:"1px 7px"}}>AR</span>
+                              <span>Pagero (PA-R / PA-E)</span>
+                            </div>
+                            {selILC.pagero_code&&<div style={{marginBottom:4}}>
+                              <span style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>Code Pagero: </span>
+                              <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#34D399",fontWeight:700}}>{selILC.pagero_code}</code>
+                            </div>}
+                            {selILC.pa_ar&&<div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.6}}>{selILC.pa_ar}</div>}
+                          </div>
+                          {/* AP — Tradeshift */}
+                          <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:8,padding:"10px 12px"}}>
+                            <div style={{fontSize:9,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
+                              <span style={{background:"rgba(245,158,11,0.15)",borderRadius:4,padding:"1px 7px"}}>AP</span>
+                              <span>Tradeshift + VIM OpenText</span>
+                            </div>
+                            {selILC.coty_ap_val&&<div style={{marginBottom:4}}>
+                              <span style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>Coty AP status: </span>
+                              <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#FCD34D",fontWeight:700}}>{selILC.coty_ap_val}</code>
+                              {selILC.vim&&<span style={{marginLeft:8,fontSize:9,color:"rgba(255,255,255,0.35)"}}>VIM: <code style={{fontFamily:"JetBrains Mono,monospace",color:"#C4B5FD"}}>{selILC.vim}</code></span>}
+                            </div>}
+                            {selILC.pa_ap&&<div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.6}}>{selILC.pa_ap}</div>}
+                          </div>
+                        </div>
+                        {selILC.initiateur&&<div style={{fontSize:11,color:"rgba(255,255,255,0.4)",fontStyle:"italic",marginBottom:8}}>
+                          ▶ Initié par: {selILC.initiateur}
+                        </div>}
+                        {selILC.ts&&<div style={{marginBottom:8}}><span style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>Tradeshift code: </span><span style={{fontSize:10,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"2px 8px"}}>{selILC.ts}</span></div>}
                       </div>
                     </div>
                   </div>
