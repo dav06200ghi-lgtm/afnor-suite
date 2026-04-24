@@ -1593,6 +1593,22 @@ function App(){
                   )}
                 </div>
               )}
+                {selBT&&selBT.cadre&&(
+                  <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:9,padding:"12px 14px",marginTop:6}}>
+                    <div style={{fontSize:9,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>📋 Coty France AP — Cadre de Facturation confirmé (24/04/2026)</div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+                      {[{g:"Core AP scope",c:"#22C55E",codes:["B1","S1","M1"]},{g:"Advance payment",c:"#3B82F6",codes:["B2/S2/M2","B4/S4/M4"]},{g:"VAT-on-payment",c:"#F59E0B",codes:["B7/S7"]}].map(grp=>(
+                        <div key={grp.g} style={{flex:1,minWidth:130,background:grp.c+"10",border:"1px solid "+grp.c+"30",borderRadius:7,padding:"8px 10px"}}>
+                          <div style={{fontSize:9,color:grp.c,fontWeight:700,marginBottom:5}}>{grp.g}</div>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                            {grp.codes.map(code=><code key={code} style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:"#FCD34D",background:"rgba(245,158,11,0.1)",borderRadius:4,padding:"2px 8px",fontWeight:700}}>{code}</code>)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.6}}>⚠️ <strong>B7/S7</strong> : TVA déclarée au paiement (flux Média). Si appel de fonds sans TVA → reste <strong>S1</strong>.</div>
+                  </div>
+                )}
               </div>
             ):(
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",color:"rgba(255,255,255,0.15)"}}>
