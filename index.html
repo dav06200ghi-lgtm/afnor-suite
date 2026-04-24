@@ -2350,11 +2350,12 @@ function App(){
                         <span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.actor}</span>
                         {selILC.modif&&<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.modif}</span>}
                         {selILC.coty&&<span style={{fontSize:10,background:selILC.coty==="Y"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",color:selILC.coty==="Y"?"#22C55E":"rgba(255,255,255,0.3)",border:"1px solid "+(selILC.coty==="Y"?"rgba(34,197,94,0.3)":"rgba(255,255,255,0.1)"),borderRadius:5,padding:"3px 10px",fontWeight:700}}>Coty AP: {selILC.coty}</span>}
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12,marginTop:4}}>
-                          {/* AR — Pagero */}
+                        <div style={{display:"grid",gridTemplateColumns:(selILC.sides==="AR+AP")?"1fr 1fr":"1fr",gap:10,marginBottom:12,marginTop:4}}>
+                          {/* AR — Pagero : affiché si sides AR, AR+AP ou PA */}
+                          {(selILC.sides==="AR"||selILC.sides==="AR+AP"||selILC.sides==="PA")&&(
                           <div style={{background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.25)",borderRadius:8,padding:"10px 12px"}}>
                             <div style={{fontSize:9,color:"#34D399",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                              {selILC.sides==="AR+AP"?<span style={{background:"rgba(16,185,129,0.15)",borderRadius:4,padding:"1px 7px"}}>AR + AP</span>:selILC.sides==="PA"?<span style={{background:"rgba(139,92,246,0.15)",borderRadius:4,padding:"1px 7px"}}>PA</span>:<span style={{background:"rgba(16,185,129,0.15)",borderRadius:4,padding:"1px 7px"}}>AR</span>}
+                              {selILC.sides==="AR+AP"?<span style={{background:"rgba(16,185,129,0.15)",borderRadius:4,padding:"1px 7px"}}>AR + AP</span>:selILC.sides==="PA"?<span style={{background:"rgba(139,92,246,0.15)",borderRadius:4,padding:"1px 7px"}}>PA (tech)</span>:<span style={{background:"rgba(16,185,129,0.15)",borderRadius:4,padding:"1px 7px"}}>AR</span>}
                               <span>Pagero (PA-R / PA-E)</span>
                             </div>
                             {selILC.pagero_code&&<div style={{marginBottom:4}}>
@@ -2363,10 +2364,12 @@ function App(){
                             </div>}
                             {selILC.pa_ar&&<div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.6}}>{selILC.pa_ar}</div>}
                           </div>
-                          {/* AP — Tradeshift */}
+                          )}
+                          {/* AP — Tradeshift : affiché UNIQUEMENT si sides AP ou AR+AP */}
+                          {(selILC.sides==="AP"||selILC.sides==="AR+AP")&&(
                           <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:8,padding:"10px 12px"}}>
                             <div style={{fontSize:9,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                              {selILC.sides==="AR+AP"?<span style={{background:"rgba(245,158,11,0.15)",borderRadius:4,padding:"1px 7px"}}>AP</span>:selILC.sides==="PA"?<span style={{background:"rgba(139,92,246,0.15)",borderRadius:4,padding:"1px 7px"}}>PA</span>:<span style={{background:"rgba(245,158,11,0.15)",borderRadius:4,padding:"1px 7px"}}>AP</span>}
+                              <span style={{background:"rgba(245,158,11,0.15)",borderRadius:4,padding:"1px 7px"}}>AP</span>
                               <span>Tradeshift + VIM OpenText</span>
                             </div>
                             {selILC.coty_ap_val&&<div style={{marginBottom:4}}>
@@ -2376,6 +2379,7 @@ function App(){
                             </div>}
                             {selILC.pa_ap&&<div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.6}}>{selILC.pa_ap}</div>}
                           </div>
+                          )}
                         </div>
                         {selILC.initiateur&&<div style={{fontSize:11,color:"rgba(255,255,255,0.4)",fontStyle:"italic",marginBottom:8}}>
                           ▶ Initié par: {selILC.initiateur}
