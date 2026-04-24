@@ -1438,7 +1438,7 @@ const PUF_LC_EXAMPLES=[
   {id:"uc13_direct_payment",label:"Demande Paiement Direct (224) — UC13",code:"224",cdar:"REQUEST_PAYMENT",dir:"Subcontractor → Buyer + Main Contractor (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC13",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"REQUEST_PAYMENT",note:"Code 224 = Demande de Paiement Direct. Sous-traitant court-circuite le titulaire."},{k:"BT-23",v:"S5",note:"⚠️ Sous-traitant = S5. Autoliquidation VATEX-FR-AE sur la facture F1."},{k:"Distribution duale",v:"Acheteur final + Titulaire",note:"⚠️ Message envoyé aux 2 parties. cac:ReceiverParty = Acheteur final."},{k:"B2G",v:"Obligatoire marchés publics",note:"Optionnel en B2B privé. Obligatoire si B2G (appel depuis Chorus Pro)."},{k:"IBAN sous-traitant",v:"Via cbc:Note",note:"Coordonnées bancaires du sous-traitant pour le paiement direct."}]},
   {id:"uc14_endorsed",label:"Visée (214) — UC14 Co-traitance",code:"214",cdar:"ENDORSED",dir:"Lead Contractor → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC14",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"ENDORSED",note:"Code 214 = Visée. Chef de file valide la facture du co-traitant."},{k:"BT-23",v:"S6",note:"Co-traitant = S6. Le chef de file \"vise\" pour grouper le paiement."},{k:"Condition",v:"PA-R doit supporter les droits délégués",note:"L'acheteur doit avoir accordé accès délégué au chef de file sur sa PA-R."},{k:"Initiateur",v:"Agent vendeur ou acheteur → Pagero",note:"Sides = AR+AP (chef de file agit pour les 2 parties)."}]}
 ];
-const TABS=[{id:"flux",i:"🌐",l:"Flux"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"cal",i:"📅",l:"Calendrier"},{id:"search",i:"🔍",l:"Recherche"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const TABS=[{id:"flux",i:"🌐",l:"Flux"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"cal",i:"📅",l:"Calendrier"},{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"rules",i:"⚖️",l:"Rules"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"val",i:"🔬",l:"XML Validator"},{id:"search",i:"🔍",l:"Recherche"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -3905,9 +3905,10 @@ function App(){
                   }
                 });
                 // BFR Rules
-                if(typeof BFR!=="undefined") BFR.forEach(f=>{
-                  if((f.r&&f.r.toLowerCase().includes(q2))||(f.bt&&f.bt.toLowerCase().includes(q2))){
-                    results.push({src:"BFR",tab:"bfr",id:"#"+f.n,label:f.r.substring(0,60),sub:f.cat||"",badge:f.afnor||"",color:"#EF4444"});
+                BFR.forEach(f=>{
+                  const searchStr=(f.msg||"")+(f.cat||"")+(f.bt||"")+(f.grp||"");
+                  if(searchStr.toLowerCase().includes(q2)){
+                    results.push({src:"BFR",tab:"bfr",id:"#"+f.no,label:(f.msg||"").substring(0,60),sub:f.cat||"",badge:f.afnor||"",color:"#EF4444",no:f.no});
                   }
                 });
                 setGres(results.slice(0,80));
@@ -3952,7 +3953,15 @@ function App(){
                       return [txt.slice(0,idx),<mark key="m" style={{background:r.color+"30",color:r.color,borderRadius:2}}>{txt.slice(idx,idx+gq.length)}</mark>,txt.slice(idx+gq.length)];
                     };
                     return(
-                      <div key={i} onClick={()=>setTab(r.tab)}
+                      <div key={i} onClick={()=>{
+                          setTab(r.tab);
+                          setTimeout(()=>{
+                            if(r.src==="ILC"){const e=ILC.find(x=>x.code===r.id);if(e)setSelILC(e);}
+                            else if(r.src==="ER"){const e=ER.find(x=>x.tt===r.id);if(e)setSelER(e);}
+                            else if(r.src==="BT"){const e=BT.find(x=>x.id===r.id);if(e)setSelBT(e);}
+                            else if(r.src==="UC"){const e=UC.find(x=>x.id===r.id);if(e)setSelUC(e);}
+                          },50);
+                        }}
                         style={{display:"grid",gridTemplateColumns:"80px 1fr 200px 44px",gap:8,alignItems:"center",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",cursor:"pointer",borderRadius:6,transition:"background 0.1s"}}
                         onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.04)"}
                         onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
