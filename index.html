@@ -1442,60 +1442,376 @@ const TABS=[{id:"flux",i:"🌐",l:"Flux"},{id:"puf",i:"📄",l:"PUF Pagero"},{id
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
+const SPUF_DS=`<?xml version="1.0" encoding="UTF-8"?>
+<ApplicationResponse xmlns="urn:oasis:names:specification:ubl:schema:xsd:ApplicationResponse-2"
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+  xmlns:puf="urn:pagero:ExtensionComponent:1.0">
+  <cbc:CustomizationID>urn:pagero.com:puf:document_status:1.0</cbc:CustomizationID>
+  <cbc:ProfileID>urn:pagero.com:puf:document_status:1.0</cbc:ProfileID>
+  <cbc:ID>RESP-FR-2026-001</cbc:ID>
+  <cbc:IssueDate>2026-03-04</cbc:IssueDate>
+  <cbc:IssueTime>14:00:00</cbc:IssueTime>
+  <cac:SenderParty>
+    <cac:PartyIdentification><cbc:ID schemeID="0002">987654321</cbc:ID></cac:PartyIdentification>
+    <cac:PartyLegalEntity><cbc:RegistrationName>TechDistrib France SARL</cbc:RegistrationName></cac:PartyLegalEntity>
+  </cac:SenderParty>
+  <cac:ReceiverParty>
+    <cac:PartyIdentification><cbc:ID schemeID="0002">123456789</cbc:ID></cac:PartyIdentification>
+    <cac:PartyLegalEntity><cbc:RegistrationName>Client France SA</cbc:RegistrationName></cac:PartyLegalEntity>
+  </cac:ReceiverParty>
+  <cac:DocumentResponse>
+    <cac:Response>
+      <ext:UBLExtensions><ext:UBLExtension>
+        <ext:ExtensionURI>urn:pagero:ExtensionComponent:1.0:PageroExtension:ResponseExtension</ext:ExtensionURI>
+        <ext:ExtensionContent><puf:PageroExtension><puf:ResponseExtension>
+          <puf:DocumentMatchingID><cbc:ID>10000000001</cbc:ID></puf:DocumentMatchingID>
+        </puf:ResponseExtension></puf:PageroExtension></ext:ExtensionContent>
+      </ext:UBLExtension></ext:UBLExtensions>
+      <cbc:ResponseCode>PAYMENT_RECEIVED</cbc:ResponseCode>
+      <cac:Status>
+        <ext:UBLExtensions><ext:UBLExtension>
+          <ext:ExtensionURI>urn:pagero:ExtensionComponent:1.0:PageroExtension:StatusExtension</ext:ExtensionURI>
+          <ext:ExtensionContent><puf:PageroExtension><puf:StatusExtension><puf:Amounts>
+            <puf:Amount>
+              <puf:AmountType>MEN</puf:AmountType>
+              <cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount>
+              <cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount>
+              <puf:ClassifiedTaxCategory><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></puf:ClassifiedTaxCategory>
+              <puf:Date>2026-03-01</puf:Date>
+            </puf:Amount>
+          </puf:Amounts></puf:StatusExtension></puf:PageroExtension></ext:ExtensionContent>
+        </ext:UBLExtension></ext:UBLExtensions>
+        <cbc:StatusReasonCode>NON</cbc:StatusReasonCode>
+      </cac:Status>
+    </cac:Response>
+    <cac:DocumentReference>
+      <cbc:ID>FR-INV-2026-001</cbc:ID>
+      <cbc:IssueDate>2026-02-01</cbc:IssueDate>
+      <cbc:DocumentTypeCode>380</cbc:DocumentTypeCode>
+    </cac:DocumentReference>
+  </cac:DocumentResponse>
+</ApplicationResponse>`;
+
+const SPUF_IR=`<?xml version="1.0" encoding="UTF-8"?>
+<ApplicationResponse xmlns="urn:oasis:names:specification:ubl:schema:xsd:ApplicationResponse-2"
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+  xmlns:puf="urn:pagero:ExtensionComponent:1.0">
+  <cbc:CustomizationID>urn:pagero.com:puf:invoice_response:1.0</cbc:CustomizationID>
+  <cbc:ProfileID>urn:pagero.com:puf:invoice_response:1.0</cbc:ProfileID>
+  <cbc:ID>RESP-FR-2026-002</cbc:ID>
+  <cbc:IssueDate>2026-02-10</cbc:IssueDate>
+  <cbc:IssueTime>09:30:00</cbc:IssueTime>
+  <cac:SenderParty>
+    <cac:PartyIdentification><cbc:ID schemeID="0002">123456789</cbc:ID></cac:PartyIdentification>
+    <cac:PartyLegalEntity><cbc:RegistrationName>Client France SA</cbc:RegistrationName></cac:PartyLegalEntity>
+  </cac:SenderParty>
+  <cac:ReceiverParty>
+    <cac:PartyIdentification><cbc:ID schemeID="0002">987654321</cbc:ID></cac:PartyIdentification>
+    <cac:PartyLegalEntity><cbc:RegistrationName>TechDistrib France SARL</cbc:RegistrationName></cac:PartyLegalEntity>
+  </cac:ReceiverParty>
+  <cac:DocumentResponse>
+    <cac:Response>
+      <cbc:ResponseCode>RE</cbc:ResponseCode>
+      <cac:Status><cbc:StatusReasonCode listID="OPStatusReason">CALCUL_ERR</cbc:StatusReasonCode></cac:Status>
+      <cac:Status><cbc:StatusReasonCode listID="OPStatusAction">NIN</cbc:StatusReasonCode></cac:Status>
+    </cac:Response>
+    <cac:DocumentReference>
+      <cbc:ID>FR-INV-2026-001</cbc:ID>
+      <cbc:DocumentTypeCode>380</cbc:DocumentTypeCode>
+    </cac:DocumentReference>
+  </cac:DocumentResponse>
+</ApplicationResponse>`;
+
 
 function validateXML(xml){
   const errs=[],warns=[],infos=[];
   let doc,fmt="UNKNOWN";
-  try{doc=new DOMParser().parseFromString(xml,"application/xml");const pe=doc.querySelector("parseerror");if(pe)return{valid:false,errs:[{r:"PARSE",f:"",m:"XML parse error: "+pe.textContent.substring(0,150)}],warns:[],infos:[],fmt:"INVALID"};}catch(e){return{valid:false,errs:[{r:"PARSE",f:"",m:e.message}],warns:[],infos:[],fmt:"INVALID"};}
-  infos.push({r:"PARSE",f:"",m:"XML is well-formed"});
-  if(xml.includes("CrossIndustryInvoice")||xml.includes("rsm:"))fmt="CII";
-  else if(xml.includes("Invoice-2")||xml.includes("urn:oasis"))fmt="UBL";
-  else if(xml.includes("Transmission")&&xml.includes("Entete"))fmt="EREPORTING";
-  infos.push({r:"FORMAT",f:"",m:"Format: "+fmt});
-  const ns={"cbc":"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2","cac":"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2","rsm":"urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100","ram":"urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100","udt":"urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"};
-  const xg=(xp)=>{try{const r=doc.evaluate(xp,doc,p=>ns[p]||null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);return r.singleNodeValue?.textContent?.trim()||null;}catch{return null;}};
-  const xa=(xp)=>{try{const it=doc.evaluate(xp,doc,p=>ns[p]||null,XPathResult.ORDERED_NODE_ITERATOR_TYPE,null);const r=[];let n;while((n=it.iterateNext()))r.push(n.textContent.trim());return r;}catch{return[];}};
-  if(fmt==="UBL"){
-    const spec=xg("//cbc:CustomizationID");if(!spec)errs.push({r:"BR-1",f:"BT-24",m:"Missing CustomizationID (BT-24). Required: urn:cen.eu:en16931:2017"});else infos.push({r:"BR-1",f:"BT-24",m:"BT-24: "+spec});
-    const id=xg("//cbc:ID[1]");if(!id)errs.push({r:"BR-2",f:"BT-1",m:"Missing Invoice ID (BT-1)"});else infos.push({r:"BR-2",f:"BT-1",m:"BT-1: "+id});
-    const dt=xg("//cbc:IssueDate");if(!dt)errs.push({r:"BR-3",f:"BT-2",m:"Missing IssueDate (BT-2)"});else if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))errs.push({r:"BR-3",f:"BT-2",m:"BT-2 format invalid: "+dt});else infos.push({r:"BR-3",f:"BT-2",m:"BT-2: "+dt});
-    const tc=xg("//cbc:InvoiceTypeCode");if(!tc)errs.push({r:"BR-4",f:"BT-3",m:"Missing InvoiceTypeCode (BT-3)"});else if(!["380","381","384","389","394"].includes(tc))warns.push({r:"BR-4",f:"BT-3",m:"BT-3 type code may be invalid: "+tc});else infos.push({r:"BR-4",f:"BT-3",m:"BT-3: "+tc});
-    const cur=xg("//cbc:DocumentCurrencyCode");if(!cur)errs.push({r:"BR-5",f:"BT-5",m:"Missing DocumentCurrencyCode (BT-5)"});else infos.push({r:"BR-5",f:"BT-5",m:"BT-5: "+cur});
-    const sn=xg("//cac:AccountingSupplierParty//cbc:RegistrationName");if(!sn)errs.push({r:"BR-6",f:"BT-27",m:"Missing Seller RegistrationName (BT-27)"});else infos.push({r:"BR-6",f:"BT-27",m:"Seller: "+sn});
-    const ssiret=xg("//cac:AccountingSupplierParty//cac:PartyLegalEntity/cbc:CompanyID");if(!ssiret)errs.push({r:"BR-FR-02",f:"BT-30",m:"AFNOR MANDATORY: Missing Seller SIREN/SIRET (BT-30)"});else{const d=ssiret.replace(/[^0-9]/g,"");if(d.length!==9&&d.length!==14)errs.push({r:"BR-FR-02",f:"BT-30",m:"BT-30 invalid length: "+ssiret});else infos.push({r:"BR-FR-02",f:"BT-30",m:"BT-30: "+ssiret+" ("+(d.length===14?"SIRET":"SIREN")+")"});}
-    const svat=xg("//cac:AccountingSupplierParty//cac:PartyTaxScheme/cbc:CompanyID");if(svat)infos.push({r:"BR-CO-9",f:"BT-31",m:"BT-31 Seller VAT: "+svat});
-    const bn=xg("//cac:AccountingCustomerParty//cbc:RegistrationName");if(!bn)errs.push({r:"BR-7",f:"BT-44",m:"Missing Buyer RegistrationName (BT-44)"});else infos.push({r:"BR-7",f:"BT-44",m:"Buyer: "+bn});
-    const bsiret=xg("//cac:AccountingCustomerParty//cac:PartyLegalEntity/cbc:CompanyID");if(bsiret)infos.push({r:"BR-FR-03",f:"BT-47",m:"BT-47 Buyer SIREN/SIRET: "+bsiret});else warns.push({r:"BR-FR-03",f:"BT-47",m:"BT-47 Buyer SIREN/SIRET missing. Recommended for PPF Annuaire"});
-    const bt49=xg("//cac:AccountingCustomerParty//cac:Party/cbc:EndpointID")||xg("//cac:AccountingCustomerParty//cac:PartyIdentification/cbc:ID");
-    if(!bt49)warns.push({r:"ANNUAIRE-BT49",f:"BT-49",m:"ANNUAIRE: BT-49 absent. Sans cette adresse le PPF ne peut PAS router la facture → rejet CDAR 211 code AB. Demander à l'acheteur de s'enregistrer dans l'Annuaire PPF via sa PA."});else infos.push({r:"ANNUAIRE-BT49",f:"BT-49",m:"BT-49 Annuaire: "+bt49});
-    let barFound=false;try{barFound=!!doc.evaluate("//cbc:Note[@subjectCode='BAR']",doc,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;}catch{}
-    if(!barFound)warns.push({r:"BR-FR-20",f:"BT-21/22",m:"AFNOR: No BAR note. Add <cbc:Note subjectCode='BAR'> for e-invoicing scope"});else infos.push({r:"BR-FR-20",f:"BT-21/22",m:"BAR note present"});
-    const texcl=xg("//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount"),tincl=xg("//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount"),pay=xg("//cac:LegalMonetaryTotal/cbc:PayableAmount"),ttax=xg("//cac:TaxTotal/cbc:TaxAmount");
-    if(!texcl)errs.push({r:"BR-14",f:"BT-109",m:"Missing TaxExclusiveAmount (BT-109)"});else infos.push({r:"",f:"BT-109",m:"BT-109 HT: "+texcl});
-    if(!tincl)errs.push({r:"BR-CO-15",f:"BT-112",m:"Missing TaxInclusiveAmount (BT-112)"});else infos.push({r:"",f:"BT-112",m:"BT-112 TTC: "+tincl});
-    if(!pay)errs.push({r:"BR-CO-16",f:"BT-115",m:"Missing PayableAmount (BT-115)"});else infos.push({r:"",f:"BT-115",m:"BT-115 Due: "+pay});
-    if(!ttax)errs.push({r:"BR-CO-14",f:"BT-110",m:"Missing TaxTotal/TaxAmount (BT-110)"});else infos.push({r:"",f:"BT-110",m:"BT-110 VAT: "+ttax});
-    if(texcl&&tincl&&ttax){const e=parseFloat(texcl),i=parseFloat(tincl),t=parseFloat(ttax);if(Math.abs((e+t)-i)>0.02)errs.push({r:"BR-CO-15",f:"BT-112",m:"BR-CO-15 FAIL: HT("+e+")+VAT("+t+")="+(e+t).toFixed(2)+" ≠ TTC("+i+")"});else infos.push({r:"BR-CO-15",f:"",m:"Amounts OK: "+e+"+"+t+"="+i});}
-    const lines=xa("//cac:InvoiceLine/cbc:ID");if(lines.length===0)errs.push({r:"BR-16",f:"BT-126",m:"No InvoiceLine found"});else{infos.push({r:"",f:"",m:lines.length+" line(s)"});const nm=xa("//cac:InvoiceLine//cbc:Name");if(nm.length<lines.length)errs.push({r:"BR-25",f:"BT-153",m:(lines.length-nm.length)+" line(s) missing Item Name"});}
-    const txc=xa("//cac:TaxSubtotal/cac:TaxCategory/cbc:ID");if(txc.length===0)errs.push({r:"BR-CO-18",f:"BT-118",m:"No TaxSubtotal found"});else infos.push({r:"",f:"",m:txc.length+" VAT category(ies): "+txc.join(", ")});
-  }else if(fmt==="CII"){
-    const spec=xg("//ram:GuidelineSpecifiedDocumentContextParameter/ram:ID");if(!spec)errs.push({r:"BR-1",f:"BT-24",m:"Missing GuidelineSpecifiedDocumentContextParameter/ID"});else infos.push({r:"BR-1",f:"BT-24",m:"BT-24: "+spec});
-    const id=xg("//rsm:ExchangedDocument/ram:ID");if(!id)errs.push({r:"BR-2",f:"BT-1",m:"Missing ExchangedDocument/ID (BT-1)"});else infos.push({r:"BR-2",f:"BT-1",m:"BT-1: "+id});
-    const sn=xg("//ram:SellerTradeParty/ram:Name");if(!sn)errs.push({r:"BR-6",f:"BT-27",m:"Missing SellerTradeParty/Name"});else infos.push({r:"BR-6",f:"BT-27",m:"Seller: "+sn});
-    const ss=xg("//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID");if(!ss)errs.push({r:"BR-FR-02",f:"BT-30",m:"AFNOR: Missing Seller SIREN/SIRET in SpecifiedLegalOrganization/ID"});else infos.push({r:"BR-FR-02",f:"BT-30",m:"BT-30: "+ss});
-    const bn=xg("//ram:BuyerTradeParty/ram:Name");if(!bn)errs.push({r:"BR-7",f:"BT-44",m:"Missing BuyerTradeParty/Name"});else infos.push({r:"BR-7",f:"BT-44",m:"Buyer: "+bn});
-    const total=xg("//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:GrandTotalAmount");if(!total)errs.push({r:"BR-CO-15",f:"BT-112",m:"Missing GrandTotalAmount"});else infos.push({r:"",f:"BT-112",m:"TTC: "+total});
-  }else if(fmt==="EREPORTING"){
-    const tid=xml.match(/<IdentifiantTransmission>(.*?)<\/IdentifiantTransmission>/)?.[1];if(!tid)errs.push({r:"ER-01",f:"ER-01",m:"Missing IdentifiantTransmission"});else infos.push({r:"ER-01",f:"ER-01",m:"ID: "+tid});
-    const siret=xml.match(/<SiretDeclarant>(.*?)<\/SiretDeclarant>/)?.[1];if(!siret)errs.push({r:"ER-05",f:"ER-05",m:"Missing SiretDeclarant"});else if(siret.replace(/[^0-9]/g,"").length!==14)errs.push({r:"ER-05",f:"ER-05",m:"SIRET invalid: "+siret});else infos.push({r:"ER-05",f:"ER-05",m:"SIRET: "+siret});
-    const pd=xml.match(/<PeriodeDebut>(.*?)<\/PeriodeDebut>/)?.[1],pf=xml.match(/<PeriodeFin>(.*?)<\/PeriodeFin>/)?.[1];
-    if(!pd||!pf)errs.push({r:"ER-03",f:"ER-03/04",m:"Missing period dates"});else if(pd>pf)errs.push({r:"ER-03",f:"ER-03/04",m:"Period invalid: start "+pd+" after end "+pf});else infos.push({r:"ER-03",f:"ER-03/04",m:"Period: "+pd+" to "+pf});
-    const b2c=(xml.match(/<OperationB2C>/g)||[]).length,intl=(xml.match(/<OperationB2BInternational>/g)||[]).length;
-    infos.push({r:"",f:"",m:b2c+" B2C block(s), "+intl+" B2B-INT block(s)"});
-  }else{warns.push({r:"FORMAT",f:"",m:"Unknown format. Supported: UBL 2.1, CII/Factur-X, DGFiP e-Reporting XML"});}
-  return{valid:errs.length===0,errs,warns,infos,fmt,stats:{e:errs.length,w:warns.length,p:infos.length}};
-}
 
+  // ── 1. Parse XML ─────────────────────────────────────────────────────
+  try{
+    doc=new DOMParser().parseFromString(xml,"application/xml");
+    const pe=doc.querySelector("parseerror");
+    if(pe) return{valid:false,errs:[{r:"PARSE",f:"",m:"XML parse error: "+pe.textContent.substring(0,200)}],warns:[],infos:[],fmt:"INVALID"};
+  }catch(e){return{valid:false,errs:[{r:"PARSE",f:"",m:e.message}],warns:[],infos:[],fmt:"INVALID"};}
+  infos.push({r:"PARSE",f:"",m:"XML well-formed ✓"});
+
+  // ── 2. Format detection ───────────────────────────────────────────────
+  const root=doc.documentElement.localName;
+  const cid=doc.querySelector("CustomizationID")?.textContent?.trim()||"";
+  const pid=doc.querySelector("ProfileID")?.textContent?.trim()||"";
+  const ns=doc.documentElement.getAttribute("xmlns")||"";
+
+  if(root==="ApplicationResponse"){
+    fmt = cid.includes("invoice_response") ? "PUF_IR"    // Invoice Response (acheteur→vendeur)
+        : cid.includes("document_status")  ? "PUF_DS"    // Document Status (vendeur→acheteur)
+        : "PUF_AR_UNKNOWN";
+  } else if(root==="Invoice"&&(ns.includes("pagero")||pid.includes("pagero"))){
+    fmt="PUF_INVOICE";
+  } else if(xml.includes("CrossIndustryInvoice")||xml.includes("rsm:")){
+    fmt="CII";
+  } else if(root==="Invoice"&&(xml.includes("Invoice-2")||xml.includes("urn:oasis"))){
+    fmt="UBL";
+  } else if(xml.includes("TransactionsReport")||xml.includes("ReportDocument")){
+    fmt="EREPORTING";
+  }
+
+  infos.push({r:"FORMAT",f:"",m:"Format détecté: "+fmt});
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+  const xg=(sel)=>doc.querySelector(sel)?.textContent?.trim()||null;
+  const xa=(sel)=>[...doc.querySelectorAll(sel)].map(n=>n.textContent.trim());
+  const attr=(sel,a)=>doc.querySelector(sel)?.getAttribute(a)||null;
+
+  const VALID_RESP_CODES=["PAYMENT_RECEIVED","PAYMENT_INITIATED","RE","ACCEPTED","PARTIALLY_ACCEPTED",
+    "UNDER_QUERY","ON_HOLD","IN_PROCESS","REJECTED","ENDORSED","REQUEST_PAYMENT",
+    "FACTORED","FACTORED_CONFIDENTIAL","ACCOUNT_CHANGED","FACTORING_CANCELLED",
+    "SUBMITTED","ISSUED_BY_PLATFORM","RECEIVED_BY_PLATFORM","MADE_AVAILABLE","VALIDATION_FAILURE"];
+  const VALID_REASON_CODES=["NON","CALCUL_ERR","SIRET_ERR","CMD_ERR","COORD_BANC_ERR","REF_CT_ABSENT",
+    "CODE_ROUTAGE_ERR","DOUBLON","MONTANTTOTAL_ERR","JUSTIF_ABS","NON_CONFORME",
+    "DELAI_REGLEMENT_ERR","TVA_ERR","IDENTITE_ERR","REF_ERR","ROUTAGE_ERR",
+    "REJ_SEMAN","REJ_COH","REJ_UNI","REJ_ADR","SIRET_DEST_ERR","NON_TRANSMISE"];
+  const VALID_ACTION_CODES=["NIN","CLS","OTH","PIN","CNF","NAC","PPD"];
+  const VALID_AMT_TYPES=["MEN","MPA","ESC","RAP"];
+  const NEED_MEN_CODES=["PAYMENT_RECEIVED"];
+  const NEED_MPA_CODES=["PAYMENT_INITIATED"];
+  const REFUSAL_CODE="RE";
+  const SCHEME_FR="0002";
+
+  // ── 3a. PUF ApplicationResponse (Document Status ou Invoice Response) ─
+  if(fmt==="PUF_DS"||fmt==="PUF_IR"){
+    const isDS=fmt==="PUF_DS";
+    const typeLabel=isDS?"Document Status (Vendeur→Acheteur)":"Invoice Response (Acheteur→Vendeur)";
+    infos.push({r:"TYPE",f:"CustomizationID",m:typeLabel+" | "+cid});
+
+    // ID
+    const id=xg("ID");
+    if(!id) errs.push({r:"AR-01",f:"ID",m:"ID du message manquant (max 20 car.)"});
+    else if(id.length>20) warns.push({r:"AR-01",f:"ID",m:"ID dépasse 20 caractères: "+id});
+    else infos.push({r:"AR-01",f:"ID",m:"ID: "+id});
+
+    // IssueDate
+    const dt=xg("IssueDate");
+    if(!dt) errs.push({r:"AR-02",f:"IssueDate",m:"IssueDate manquant"});
+    else infos.push({r:"AR-02",f:"IssueDate",m:"IssueDate: "+dt});
+
+    // IssueTime (obligatoire France)
+    const tm=xg("IssueTime");
+    if(!tm) errs.push({r:"AR-03",f:"IssueTime",m:"IssueTime manquant — OBLIGATOIRE en France (format HH:MM:SS)"});
+    else infos.push({r:"AR-03",f:"IssueTime",m:"IssueTime: "+tm});
+
+    // SenderParty
+    const senderID=xg("SenderParty PartyIdentification ID");
+    const senderScheme=attr("SenderParty PartyIdentification ID","schemeID");
+    const senderName=xg("SenderParty PartyLegalEntity RegistrationName");
+    if(!senderID) errs.push({r:"AR-04",f:"SenderParty",m:"SenderParty ID manquant"});
+    else{
+      if(senderScheme!==SCHEME_FR) warns.push({r:"AR-04",f:"SenderParty schemeID",m:"schemeID="+senderScheme+" — attendu 0002 (SIREN) pour entité FR"});
+      if(!/^\d{9}$/.test(senderID)) warns.push({r:"AR-04",f:"SenderParty ID",m:"SIREN invalide (doit être 9 chiffres): "+senderID});
+      else infos.push({r:"AR-04",f:"SenderParty",m:"Sender: "+senderName+" — SIREN "+senderID+" ✓"});
+    }
+
+    // ReceiverParty
+    const recvID=xg("ReceiverParty PartyIdentification ID");
+    const recvScheme=attr("ReceiverParty PartyIdentification ID","schemeID");
+    const recvName=xg("ReceiverParty PartyLegalEntity RegistrationName");
+    if(!recvID) errs.push({r:"AR-05",f:"ReceiverParty",m:"ReceiverParty ID manquant"});
+    else{
+      if(recvScheme!==SCHEME_FR) warns.push({r:"AR-05",f:"ReceiverParty schemeID",m:"schemeID="+recvScheme+" — attendu 0002 (SIREN) pour entité FR"});
+      if(!/^\d{9}$/.test(recvID)) warns.push({r:"AR-05",f:"ReceiverParty ID",m:"SIREN invalide: "+recvID});
+      else infos.push({r:"AR-05",f:"ReceiverParty",m:"Receiver: "+recvName+" — SIREN "+recvID+" ✓"});
+    }
+
+    // ResponseCode
+    const rc=xg("ResponseCode");
+    if(!rc) errs.push({r:"AR-06",f:"ResponseCode",m:"ResponseCode manquant"});
+    else if(!VALID_RESP_CODES.includes(rc)) errs.push({r:"AR-06",f:"ResponseCode",m:"ResponseCode invalide: "+rc+"\nValeurs acceptées: "+VALID_RESP_CODES.join(", ")});
+    else infos.push({r:"AR-06",f:"ResponseCode",m:"ResponseCode: "+rc+" ✓"});
+
+    // Mapping ResponseCode → ILC français
+    const ILC_MAP={
+      PAYMENT_RECEIVED:"212 Encaissée",PAYMENT_INITIATED:"211 Paiement transmis",
+      RE:"210 Refusée",ACCEPTED:"204 Approuvée",PARTIALLY_ACCEPTED:"206 Approuvée partiellement",
+      UNDER_QUERY:"207 En litige",ON_HOLD:"208 Suspendue",IN_PROCESS:"205 Prise en charge",
+      REJECTED:"213 Rejetée (tech)",ENDORSED:"214 Visée",
+      REQUEST_PAYMENT:"224 Demande paiement direct",FACTORED:"225 Affacturée",
+      FACTORED_CONFIDENTIAL:"226 Affacturée confidentiel",
+      ACCOUNT_CHANGED:"227 Changement compte",FACTORING_CANCELLED:"228 Non affacturée",
+    };
+    if(rc&&ILC_MAP[rc]) infos.push({r:"ILC",f:"ResponseCode",m:"→ Code ILC français: "+ILC_MAP[rc]});
+
+    // DocumentMatchingID (recommandé)
+    const matchID=xg("DocumentMatchingID ID")||xg("DocumentMatchingID");
+    if(!matchID) warns.push({r:"AR-07",f:"DocumentMatchingID",m:"DocumentMatchingID absent — fortement recommandé Pagero pour matcher la réponse à la facture"});
+    else infos.push({r:"AR-07",f:"DocumentMatchingID",m:"DocumentMatchingID: "+matchID+" ✓"});
+
+    // DocumentReference (référence facture originale)
+    const docRef=xg("DocumentReference ID");
+    const docType=xg("DocumentReference DocumentTypeCode");
+    if(!docRef) errs.push({r:"AR-08",f:"DocumentReference",m:"DocumentReference/ID manquant — référence à la facture originale obligatoire"});
+    else infos.push({r:"AR-08",f:"DocumentReference",m:"Facture référencée: "+docRef+(docType?" (type "+docType+")":"")+" ✓"});
+
+    // Reason codes (obligatoire si refus RE)
+    const reasonCodes=xa("StatusReasonCode").filter(v=>v.trim()&&!v.includes("\n"));
+    const actionCodes=xa("StatusReasonCode").filter(v=>v.trim()&&!v.includes("\n")); // same tag different listID
+    if(rc===REFUSAL_CODE){
+      // Pour un refus, reason code et action code obligatoires
+      if(reasonCodes.length<1) errs.push({r:"AR-09",f:"StatusReasonCode",m:"Refus (RE): StatusReasonCode obligatoire — 1 code reason + 1 code action minimum"});
+      else{
+        const validRC=reasonCodes.filter(r=>VALID_REASON_CODES.includes(r)||VALID_ACTION_CODES.includes(r));
+        const invalidRC=reasonCodes.filter(r=>!VALID_REASON_CODES.includes(r)&&!VALID_ACTION_CODES.includes(r)&&r!=="NON");
+        if(invalidRC.length>0) warns.push({r:"AR-09",f:"StatusReasonCode",m:"Codes non reconnus: "+invalidRC.join(", ")});
+        infos.push({r:"AR-09",f:"StatusReasonCode",m:"Reason/Action codes: "+reasonCodes.join(", ")+" ✓"});
+      }
+    } else if(reasonCodes.length>0){
+      const invalid=reasonCodes.filter(r=>!VALID_REASON_CODES.includes(r)&&!VALID_ACTION_CODES.includes(r)&&r!=="NON"&&r.trim());
+      if(invalid.length>0) warns.push({r:"AR-09",f:"StatusReasonCode",m:"Code(s) non reconnus: "+invalid.join(", ")});
+      else infos.push({r:"AR-09",f:"StatusReasonCode",m:"StatusReasonCode: "+reasonCodes.filter(v=>v.trim()).join(", ")+" ✓"});
+    }
+
+    // Amounts (MEN/MPA/ESC/RAP)
+    const amounts=[...doc.querySelectorAll("Amount")].filter(a=>a.querySelector("AmountType"));
+    if(amounts.length>0){
+      amounts.forEach(a=>{
+        const type=a.querySelector("AmountType")?.textContent?.trim();
+        const ht=a.querySelector("TaxExclusiveAmount")?.textContent?.trim();
+        const ttc=a.querySelector("TaxInclusiveAmount")?.textContent?.trim();
+        const pct=a.querySelector("Percent")?.textContent?.trim();
+        const date=a.querySelector("Date")?.textContent?.trim();
+        if(!VALID_AMT_TYPES.includes(type)) errs.push({r:"AR-10",f:"AmountType",m:"AmountType invalide: "+type+" — valeurs acceptées: "+VALID_AMT_TYPES.join(", ")});
+        else{
+          let amtInfo="AmountType "+type+": TTC="+ttc+" HT="+ht+" TVA="+pct+"%";
+          if((type==="MEN"||type==="MPA")&&!date) warns.push({r:"AR-10",f:"Amount/Date",m:type+" : Date encaissement/paiement absente (MDT-218 v1.6 — recommandée)"});
+          if(date) amtInfo+=" Date="+date;
+          infos.push({r:"AR-10",f:"AmountType",m:amtInfo+" ✓"});
+        }
+      });
+      // MEN obligatoire pour PAYMENT_RECEIVED
+      if(rc==="PAYMENT_RECEIVED"){
+        const hasMEN=amounts.some(a=>a.querySelector("AmountType")?.textContent?.trim()==="MEN");
+        if(!hasMEN) errs.push({r:"AR-11",f:"MEN",m:"PAYMENT_RECEIVED: bloc MEN obligatoire pour déclaration DGFiP (PPF)"});
+        else infos.push({r:"AR-11",f:"MEN",m:"MEN présent — transmission PPF obligatoire ✓"});
+      }
+    } else if(rc==="PAYMENT_RECEIVED"){
+      errs.push({r:"AR-11",f:"MEN",m:"PAYMENT_RECEIVED: bloc puf:Amount/MEN manquant — obligatoire PPF"});
+    }
+  }
+
+  // ── 3b. PUF Invoice (e-reporting / facture) ───────────────────────────
+  else if(fmt==="PUF_INVOICE"){
+    infos.push({r:"TYPE",f:"ProfileID",m:"PUF Invoice (e-reporting/facturation) — "+pid});
+
+    const id=xg("ID");
+    if(!id) errs.push({r:"PI-01",f:"BT-1",m:"ID facture manquant"});
+    else infos.push({r:"PI-01",f:"BT-1",m:"ID: "+id+" ✓"});
+
+    const dt=xg("IssueDate");
+    if(!dt) errs.push({r:"PI-02",f:"BT-2",m:"IssueDate manquant"});
+    else infos.push({r:"PI-02",f:"BT-2",m:"IssueDate: "+dt+" ✓"});
+
+    // BT-23 @name (cadre facturation)
+    const btc=doc.querySelector("InvoiceTypeCode");
+    const cadre=btc?.getAttribute("name")||btc?.getAttribute("listID")||null;
+    if(!cadre) warns.push({r:"PI-03",f:"BT-23",m:"BT-23 @name absent — cadre facturation (B1/S1/M1...) obligatoire pour e-reporting DGFiP (TT-28)"});
+    else infos.push({r:"PI-03",f:"BT-23",m:"Cadre facturation (BT-23): "+cadre+" ✓"});
+
+    // puf:entryType (INVOICE ou RECEIPTTRANSACTION)
+    const entryType=[...doc.querySelectorAll("Key")].find(k=>k.textContent==="entryType")
+      ?.parentElement?.querySelector("Value")?.textContent?.trim();
+    if(!entryType) warns.push({r:"PI-04",f:"puf:entryType",m:"puf:entryType absent — discrimine INVOICE (B2Bi) vs RECEIPTTRANSACTION (B2C). Obligatoire pour e-reporting."});
+    else infos.push({r:"PI-04",f:"puf:entryType",m:"entryType: "+entryType+" ✓"});
+
+    // puf:reportPeriodStart/End
+    const periodStart=[...doc.querySelectorAll("Key")].find(k=>k.textContent==="reportPeriodStart")
+      ?.parentElement?.querySelector("Value")?.textContent?.trim();
+    const periodEnd=[...doc.querySelectorAll("Key")].find(k=>k.textContent==="reportPeriodEnd")
+      ?.parentElement?.querySelector("Value")?.textContent?.trim();
+    if(!periodStart||!periodEnd) errs.push({r:"PI-05",f:"puf:reportPeriod",m:"puf:reportPeriodStart / reportPeriodEnd absents — OBLIGATOIRES pour e-reporting (TT-17/TT-18)"});
+    else infos.push({r:"PI-05",f:"puf:reportPeriod",m:"Période: "+periodStart+" → "+periodEnd+" ✓"});
+
+    // Seller SIREN
+    const sellerID=xg("AccountingSupplierParty PartyIdentification ID")||
+                   xg("SellerSupplierParty PartyIdentification ID");
+    const sellerScheme=attr("AccountingSupplierParty PartyIdentification ID","schemeID")||
+                       attr("SellerSupplierParty PartyIdentification ID","schemeID");
+    if(!sellerID) errs.push({r:"PI-06",f:"BT-30",m:"SIREN vendeur manquant (BT-30 schemeID=0002)"});
+    else{
+      if(sellerScheme==="0002"&&!/^\d{9}$/.test(sellerID)) warns.push({r:"PI-06",f:"BT-30",m:"SIREN invalide (9 chiffres requis): "+sellerID});
+      else infos.push({r:"PI-06",f:"BT-30",m:"SIREN vendeur: "+sellerID+" (scheme "+sellerScheme+") ✓"});
+    }
+
+    // TVA
+    const taxTotal=xg("TaxAmount");
+    if(!taxTotal) warns.push({r:"PI-07",f:"BT-110",m:"TaxAmount manquant"});
+    else infos.push({r:"PI-07",f:"BT-110",m:"TVA: "+taxTotal+" ✓"});
+
+    // VATEX (exonération)
+    const vatex=xg("TaxExemptionReasonCode");
+    if(vatex) infos.push({r:"PI-08",f:"BT-121",m:"VATEX: "+vatex+" ✓"});
+  }
+
+  // ── 3c. UBL Invoice standard ──────────────────────────────────────────
+  else if(fmt==="UBL"){
+    const ns2={cbc:"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+               cac:"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"};
+    const xg2=(xp)=>{try{const r=doc.evaluate(xp,doc,p=>ns2[p]||null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);return r.singleNodeValue?.textContent?.trim()||null;}catch{return null;}};
+    const spec=xg2("//cbc:CustomizationID");
+    if(!spec) errs.push({r:"BR-1",f:"BT-24",m:"CustomizationID manquant"});
+    else infos.push({r:"BR-1",f:"BT-24",m:"BT-24: "+spec});
+    const id2=xg2("//cbc:ID[1]");
+    if(!id2) errs.push({r:"BR-2",f:"BT-1",m:"ID facture manquant (BT-1)"});
+    else infos.push({r:"BR-2",f:"BT-1",m:"BT-1: "+id2});
+    const dt2=xg2("//cbc:IssueDate");
+    if(!dt2) errs.push({r:"BR-3",f:"BT-2",m:"IssueDate manquant (BT-2)"});
+    else infos.push({r:"BR-3",f:"BT-2",m:"BT-2: "+dt2});
+    const tc=xg2("//cbc:InvoiceTypeCode");
+    if(!tc) errs.push({r:"BR-4",f:"BT-3",m:"InvoiceTypeCode manquant (BT-3)"});
+    else if(!["380","381","384","389","394","386","261","374","383","388","393"].includes(tc)) warns.push({r:"BR-4",f:"BT-3",m:"BT-3 type code inhabituel: "+tc});
+    else infos.push({r:"BR-4",f:"BT-3",m:"BT-3: "+tc});
+    const ssiret=xg2("//cac:AccountingSupplierParty//cac:PartyLegalEntity/cbc:CompanyID");
+    if(!ssiret) errs.push({r:"BR-FR-02",f:"BT-30",m:"SIREN vendeur manquant (BT-30) — AFNOR obligatoire"});
+    else infos.push({r:"BR-FR-02",f:"BT-30",m:"BT-30: "+ssiret});
+    const bt49=xg2("//cac:AccountingCustomerParty//cac:Party/cbc:EndpointID");
+    if(!bt49) warns.push({r:"BT-49",f:"BT-49",m:"BT-49 absent — sans cet ID le PPF ne peut pas router la facture"});
+    else infos.push({r:"BT-49",f:"BT-49",m:"BT-49: "+bt49});
+    const pay=xg2("//cac:LegalMonetaryTotal/cbc:PayableAmount");
+    const ttc=xg2("//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount");
+    if(!pay) errs.push({r:"BR-CO-16",f:"BT-115",m:"PayableAmount manquant (BT-115)"});
+    else infos.push({r:"BR-CO-16",f:"BT-115",m:"BT-115: "+pay});
+    if(!ttc) errs.push({r:"BR-CO-15",f:"BT-112",m:"TaxInclusiveAmount manquant (BT-112)"});
+    else infos.push({r:"BR-CO-15",f:"BT-112",m:"BT-112: "+ttc});
+  }
+
+  // ── 3d. CII ───────────────────────────────────────────────────────────
+  else if(fmt==="CII"){
+    const gid=doc.querySelector("ExchangedDocument ID")?.textContent?.trim();
+    if(!gid) errs.push({r:"BR-2",f:"BT-1",m:"ID facture CII manquant"});
+    else infos.push({r:"BR-2",f:"BT-1",m:"ID: "+gid});
+    const sn=doc.querySelector("SellerTradeParty Name")?.textContent?.trim();
+    if(!sn) errs.push({r:"BR-6",f:"BT-27",m:"Seller Name manquant"});
+    else infos.push({r:"BR-6",f:"BT-27",m:"Vendeur: "+sn});
+    const ss=doc.querySelector("SellerTradeParty SpecifiedLegalOrganization ID")?.textContent?.trim();
+    if(!ss) errs.push({r:"BR-FR-02",f:"BT-30",m:"SIREN vendeur manquant"});
+    else infos.push({r:"BR-FR-02",f:"BT-30",m:"BT-30: "+ss});
+  }
+
+  // ── 3e. E-Reporting DGFiP ────────────────────────────────────────────
+  else if(fmt==="EREPORTING"){
+    const tid=xml.match(/<Id>(.*?)<\/Id>/)?.[1]||xml.match(/<IdentifiantTransmission>(.*?)<\/IdentifiantTransmission>/)?.[1];
+    if(!tid) errs.push({r:"ER-01",f:"ER-01",m:"ID transmission manquant"});
+    else infos.push({r:"ER-01",f:"ER-01",m:"ID: "+tid});
+  }
+
+  else{
+    warns.push({r:"FORMAT",f:"",m:"Format non reconnu. Formats supportés: PUF ApplicationResponse (ILC), PUF Invoice (e-reporting), UBL 2.1, CII/Factur-X, DGFiP e-Reporting"});
+  }
+
+  return{valid:errs.length===0,errs,warns,infos,fmt,
+    stats:{e:errs.length,w:warns.length,p:infos.length}};
+}
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const P=({label,active,onClick,color="#6366F1"})=>(
   <button onClick={onClick} style={{fontSize:11,padding:"3px 10px",borderRadius:6,cursor:"pointer",border:"1px solid "+(active?color:"rgba(255,255,255,0.1)"),background:active?color+"20":"transparent",color:active?color:"rgba(255,255,255,0.4)"}}>
@@ -2778,9 +3094,11 @@ function App(){
         <div style={{display:"grid",gridTemplateColumns:"1fr 400px",flex:1,overflow:"hidden",flex:1,minHeight:0}}>
           <div style={{display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,0.07)"}}>
             <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",flexShrink:0}}>
-              <span style={{fontSize:12,fontWeight:700}}>PA Simulator — XML Validator</span>
+              <span style={{fontSize:12,fontWeight:700}}>🔬 XML Validator — Pagero PUF · UBL · CII · e-Reporting</span>
               <div style={{display:"flex",gap:3,marginLeft:"auto"}}>
                 <button onClick={()=>{setXml(SXML);setRes(null);}} style={{fontSize:11,padding:"4px 10px",borderRadius:5,cursor:"pointer",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",color:"#A5B4FC"}}>Sample UBL</button>
+                <button onClick={()=>{setXml(SPUF_DS);setRes(null);}} style={{fontSize:11,padding:"4px 10px",borderRadius:5,cursor:"pointer",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.25)",color:"#6EE7B7"}}>Sample PUF 212</button>
+                <button onClick={()=>{setXml(SPUF_IR);setRes(null);}} style={{fontSize:11,padding:"4px 10px",borderRadius:5,cursor:"pointer",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.25)",color:"#FCA5A5"}}>Sample PUF 210</button>
               </div>
               <button onClick={()=>fileRef.current.click()} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:5,padding:"4px 10px",color:"rgba(255,255,255,0.5)",cursor:"pointer",fontSize:11}}>📂 Load</button>
               <input ref={fileRef} type="file" accept=".xml" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{setXml(ev.target.result);setRes(null);};r.readAsText(f);}}} style={{display:"none"}}/>
