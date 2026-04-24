@@ -2150,12 +2150,14 @@ function App(){
                     {/* Acteur */}
                     <div style={{overflow:"hidden",display:"flex",flexDirection:"column",gap:2,justifyContent:"center"}}>
                       {(()=>{
-                        const isAP = f.pa_ap&&f.pa_ap.includes('Tradeshift');
-                        const bc = isAP?"#F59E0B":f.famille==="technique"?"#8B5CF6":"#22C55E";
-                        const bl = isAP?"AP":"AR";
+                        const isAP = f.initiateur&&f.initiateur.startsWith('Tradeshift');
+                        const isPlatform = f.famille==="technique";
+                        const bc = isAP?"#F59E0B":isPlatform?"#8B5CF6":"#22C55E";
+                        const bl = isAP?"AP":isPlatform?"PA":"AR";
+                        const lbl = isAP?"Tradeshift":isPlatform?"PPF/PA":"Pagero";
                         return(<>
                           <span style={{fontSize:9,fontWeight:700,color:bc,background:bc+"15",borderRadius:3,padding:"1px 6px",alignSelf:"flex-start"}}>{bl}</span>
-                          <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isAP?"Tradeshift":"Pagero"}</div>
+                          <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{lbl}</div>
                         </>);
                       })()}
                     </div>
