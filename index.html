@@ -3109,7 +3109,46 @@ function App(){
             <textarea value={xml} onChange={e=>{setXml(e.target.value);setRes(null);}} style={{flex:1,background:"#050810",color:"#A5B4FC",fontFamily:"JetBrains Mono,monospace",fontSize:11,border:"none",outline:"none",padding:14,resize:"none",lineHeight:1.7}}/>
           </div>
           <div style={{overflow:"auto",padding:14,display:"flex",flexDirection:"column",gap:10}}>
-            {!res&&<div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,0.2)",gap:8}}><span style={{fontSize:40}}>🔬</span><div style={{fontSize:13,fontWeight:600}}>PA Simulator</div><div style={{fontSize:11,textAlign:"center"}}>UBL 2.1 · CII/Factur-X · E-Reporting XML</div></div>}
+            {!res&&(
+              <div style={{padding:14,display:"flex",flexDirection:"column",gap:10}}>
+                <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.6)",marginBottom:4}}>📋 Formats acceptés et règles testées</div>
+
+                {[
+                  {fmt:"PUF ApplicationResponse — ILC/CDAR",color:"#10B981",tag:"document_status / invoice_response",
+                   desc:"Statuts ILC Pagero (tes 16 fichiers UC). Racine = ApplicationResponse.",
+                   checks:["CustomizationID: document_status (vendeur→acheteur) ou invoice_response (acheteur→vendeur)","ID message ≤ 20 caractères","IssueDate + IssueTime présents","SenderParty + ReceiverParty avec SIREN schemeID=0002","DocumentReference (référence facture d'origine)","ResponseCode valide parmi les 20 codes Pagero (PAYMENT_RECEIVED, RE, ACCEPTED...)","StatusReasonCode valide parmi les 22 codes FR","MEN obligatoire si PAYMENT_RECEIVED (avec décomposition par taux TVA)","MPA obligatoire si PAYMENT_INITIATED","StatusReasonCode + ActionCode obligatoires si RE (refus)"]},
+                  {fmt:"PUF Invoice — Facture e-invoicing/e-reporting",color:"#22C55E",tag:"puf:billing / puf:purchase",
+                   desc:"Facture standard PUF Pagero (UC43 et fichiers factures). Racine = Invoice avec extensions puf:.",
+                   checks:["CustomizationID: urn:pagero.com:puf:billing:2.0","ProfileID: puf:billing:1.0 (AR) ou puf:purchase:1.0 (AP)","BT-1 ID, BT-2 IssueDate, BT-3 TypeCode","BT-27 Seller name, BT-30 SIREN (schemeID 0002)","BT-44 Buyer name, BT-47 Buyer ID","BT-23 @name = cadre de facturation (B1/S1/M1...)","Extensions PUF: puf:entryType, puf:reportPeriodStart/End","BT-110 TaxAmount, BT-112 TaxInclusiveAmount, BT-115 PayableAmount","Cohérence montants: HT + TVA = TTC"]},
+                  {fmt:"UBL 2.1 Invoice / CreditNote",color:"#6366F1",tag:"EN 16931 standard",
+                   desc:"Facture UBL standard EN 16931 sans extensions PUF.",
+                   checks:["BR-1 à BR-7 (champs obligatoires EN 16931)","BR-FR-02: SIREN vendeur obligatoire (schemeID 0009 ou 0002)","BR-FR-03: SIREN acheteur recommandé","BR-FR-20: Note BAR (scope e-invoicing)","BT-49 Annuaire PPF (recommandé)","Cohérence montants BT-109 + BT-110 = BT-112"]},
+                  {fmt:"CII / Factur-X",color:"#8B5CF6",tag:"CrossIndustryInvoice",
+                   desc:"Format CII / Factur-X (norme franco-allemande).",
+                   checks:["GuidelineSpecifiedDocumentContextParameter/ID (BT-24)","ExchangedDocument/ID (BT-1)","SellerTradeParty/Name + SIREN","BuyerTradeParty/Name","GrandTotalAmount (BT-112)"]},
+                  {fmt:"DGFiP e-Reporting XML",color:"#F59E0B",tag:"Flux 10 (TT/TG/TB)",
+                   desc:"XML propriétaire DGFiP — Flux 10.1/10.2/10.3/10.4. PAS le format PUF.",
+                   checks:["IdentifiantTransmission présent","SiretDeclarant valide (14 chiffres)","PeriodeDebut / PeriodeFin cohérentes","Comptage blocs B2C et B2B-INT"]},
+                ].map(({fmt,color,tag,desc,checks})=>(
+                  <div key={fmt} style={{background:"rgba(0,0,0,0.2)",border:`1px solid ${color}20`,borderRadius:9,padding:"10px 12px"}}>
+                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:4}}>
+                      <span style={{fontSize:11,fontWeight:700,color}}>{fmt}</span>
+                      <span style={{fontSize:8,background:color+"15",color,borderRadius:3,padding:"1px 7px",fontFamily:"JetBrains Mono,monospace"}}>{tag}</span>
+                    </div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginBottom:6}}>{desc}</div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                      {checks.map((c,i)=>(
+                        <span key={i} style={{fontSize:8.5,color:"rgba(255,255,255,0.5)",background:"rgba(255,255,255,0.04)",borderRadius:3,padding:"2px 6px"}}>✓ {c}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",padding:"8px 0",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+                  💡 Tes fichiers UC (UC2, UC4, UC10, UC13, UC14, UC19b, UC22a, UC26, UC34, UC40, UC41) sont des <strong style={{color:"rgba(255,255,255,0.4)"}}>PUF ApplicationResponse</strong> (statuts ILC 212/210/214/224/225). UC43 est une <strong style={{color:"rgba(255,255,255,0.4)"}}>PUF Invoice</strong> (e-reporting Flux 10.1). Les erreurs sur BT-1/BT-27 sont normales sur les ApplicationResponse car ces champs n'existent pas dans ce format.
+                </div>
+              </div>
+            )}
             {res&&<>
               <div style={{background:res.valid?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",border:"1.5px solid "+(res.valid?"#22C55E":"#EF4444"),borderRadius:9,padding:12,display:"flex",gap:10,alignItems:"center"}}>
                 <span style={{fontSize:24}}>{res.valid?"✅":"❌"}</span>
