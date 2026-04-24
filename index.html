@@ -1897,98 +1897,147 @@ function App(){
   const filtUC=useMemo(()=>UC.filter(u=>ucCat==="all"||u.cat===ucCat),[ucCat]);
   const filtILC=useMemo(()=>ILC.filter(s=>ilcFam==="all"||s.famille===ilcFam),[ilcFam]);
 
+  // ── Annuaire cache (session) ─────────────────────────────────────────
+  const ANN_CACHE={};
+  const ANN_TTL=6*60*60*1000; // 6h
+
   const doAnnuaire=useCallback(async()=>{
     const q=annQ.trim();
     if(q.length<3) return;
     setAnnLoading(true);
     setAnnRes(null);
+
+    const isSIREN=/^\d{9}$/.test(q);
+    const isSIRET=/^\d{14}$/.test(q);
+    const isTVA=/^FR\d{11}$/i.test(q.replace(/[\s.]/g,''));
+    const siren=isSIREN?q:isSIRET?q.substring(0,9):isTVA?q.slice(-9):q.replace(/\D/g,'').substring(0,9);
+
+    if(!siren||siren.length!==9){
+      setAnnRes({ppfStatus:"error",errorMsg:"Format non reconnu. SIREN (9 chiffres), SIRET (14 chiffres) ou TVA FR."});
+      setAnnLoading(false); return;
+    }
+
+    // ── Cache hit ──────────────────────────────────────────────────────
+    const cacheKey=siren+(annToken?"_auth":"");
+    if(ANN_CACHE[cacheKey]&&(Date.now()-ANN_CACHE[cacheKey].ts)<ANN_TTL){
+      setAnnRes({...ANN_CACHE[cacheKey].data,fromCache:true,cacheAge:Math.round((Date.now()-ANN_CACHE[cacheKey].ts)/60000)});
+      setAnnLoading(false); return;
+    }
+
     try{
-      const isSIREN=/^\d{9}$/.test(q);
-      const isSIRET=/^\d{14}$/.test(q);
-      const isTVA=/^FR\d{11}$/i.test(q.replace(/[\s.]/g,''));
-      const siren=isSIREN?q:isSIRET?q.substring(0,9):isTVA?q.slice(-9).replace(/\D/g,''):null;
-
-      if(!siren||siren.length!==9){
-        setAnnRes({status:"error",message:"Format non reconnu. Entrez un SIREN (9 chiffres), SIRET (14 chiffres) ou TVA FR (FR + 11 chiffres).",company:null,capabilities:null});
-        setAnnLoading(false);
-        return;
-      }
-
-      // 1. API Sirene INSEE (publique, sans auth) — vraies données entreprise
-      let company=null;
+      // ── 1. INSEE Sirene (publique) ─────────────────────────────────
+      let insee=null;
       try{
-        const sireneR=await fetch(`https://api.insee.fr/entreprises/sirene/V3.11/siren/${siren}`,{
-          headers:{"Accept":"application/json"}
-        });
-        if(sireneR.ok){
-          const sd=await sireneR.json();
-          const u=sd.uniteLegale;
-          const pd=u?.periodesUniteLegale?.[0];
-          company={
-            name:pd?.denominationUniteLegale||pd?.nomUniteLegale||"—",
+        const r=await fetch(`https://api.insee.fr/entreprises/sirene/V3.11/siren/${siren}`,{headers:{Accept:"application/json"}});
+        if(r.ok){
+          const d=await r.json();
+          const u=d.uniteLegale;
+          const p=u?.periodesUniteLegale?.[0]||{};
+          const cleTVA=((12+(3*(parseInt(siren)%97)))%97).toString().padStart(2,"0");
+          insee={
             siren:u?.siren||siren,
             siret:u?.siretSiegeFormatted||siren+"00000",
-            tva:`FR${((12+(3*(parseInt(siren)%97)))%97).toString().padStart(2,"0")}${siren}`,
-            naf:pd?.activitePrincipaleUniteLegale||"—",
-            forme:pd?.categorieJuridiqueUniteLegale||"—",
-            etat:u?.etatAdministratifUniteLegale==="A"?"Actif":"Cessé",
+            raison_sociale:p.denominationUniteLegale||p.nomUniteLegale||"—",
+            naf:p.activitePrincipaleUniteLegale||"—",
+            forme:p.categorieJuridiqueUniteLegale||"—",
+            tva:`FR${cleTVA}${siren}`,
+            statut_insee:u?.etatAdministratifUniteLegale==="A"?"actif":"cessé",
           };
-        }
-      }catch(e){/* Sirene indisponible */}
+        }else if(r.status===404){insee={siren,statut_insee:"inconnu",raison_sociale:"SIREN non trouvé dans Sirene"};}
+      }catch(e){insee={siren,statut_insee:"erreur_api",raison_sociale:"API Sirene indisponible"};}
 
-      // 2. API Chorus Pro rechercherDestinataire — nécessite token OAuth2
-      // Token non configuré → on indique le statut réel
-      const token=annToken||"";
-      let ppfStatus=null;
-
+      // ── 2. Chorus Pro rechercherDestinataire ───────────────────────
+      let chorus=null;
+      const token=annToken?.trim()||"";
       if(token){
         try{
-          const cpR=await fetch("https://api.chorus-pro.gouv.fr/aife_prod/cpro/rechercherDestinataire/v1",{
+          const siret=isSIRET?q:(insee?.siret||siren+"00000");
+          const r=await fetch("https://api.chorus-pro.gouv.fr/aife_prod/cpro/rechercherDestinataire/v1",{
             method:"POST",
             headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-            body:JSON.stringify({identifiantStructure:{idType:"SIRET",idValue:isSIRET?q:siren+"00000"}})
+            body:JSON.stringify({identifiantStructure:{idType:"SIRET",idValue:siret}})
           });
-          if(cpR.ok){
-            const cpd=await cpR.json();
-            ppfStatus=cpd;
-          }else if(cpR.status===401){
-            ppfStatus={error:"Token expiré ou invalide"};
+          if(r.ok){
+            const d=await r.json();
+            chorus={
+              adresse_facturation_active:!!d.adresseFacturationActive,
+              ppf:true,
+              pdp:(d.plateformesAgreees||[]).map(p=>p.libelle||p.code||p),
+              raw:d,
+            };
+          }else if(r.status===401||r.status===403){
+            chorus={error:"token_expired",msg:"Token expiré ou invalide ("+r.status+")"};
+            setAnnToken("");
+          }else if(r.status===404){
+            chorus={adresse_facturation_active:false,ppf:false,pdp:[],raw:null};
           }else{
-            ppfStatus={error:"Réponse inattendue: "+cpR.status};
+            chorus={error:"api_error",msg:"API Chorus Pro: HTTP "+r.status};
           }
-        }catch(e){ppfStatus={error:"API Chorus Pro inaccessible depuis ce navigateur (CORS)"};}
+        }catch(e){
+          chorus={error:"cors",msg:"CORS — API Chorus Pro non accessible depuis navigateur. Utilisez un middleware serveur."};
+        }
       }
 
-      // 3. Construire résultat
-      const hasCompany=!!company;
-      const ppfActive=ppfStatus&&!ppfStatus.error&&ppfStatus.adresseFacturationActive;
-      const ppfKnown=ppfStatus&&!ppfStatus.error;
-      const tokenMissing=!token;
+      // ── 3. Modèle normalisé ────────────────────────────────────────
+      const model={
+        siren:insee?.siren||siren,
+        siret:insee?.siret||"—",
+        raison_sociale:insee?.raison_sociale||"—",
+        tva:insee?.tva||"—",
+        naf:insee?.naf||"—",
+        forme:insee?.forme||"—",
+        statut_insee:insee?.statut_insee||"inconnu",
+        chorus:chorus,
+        ts:Date.now(),
+      };
 
-      setAnnRes({
-        status:ppfActive?"found":ppfKnown?"not_found":hasCompany?"partial":"error",
-        message:ppfActive
-          ?"L'entreprise est inscrite dans l'Annuaire PPF avec une adresse de facturation active."
-          :ppfKnown
-          ?"L'entreprise existe dans Sirene mais n'a pas d'adresse de facturation active dans l'Annuaire PPF Chorus Pro."
-          :tokenMissing
-          ?"Données INSEE récupérées. Statut Annuaire PPF : token Chorus Pro requis (voir configuration ci-dessous)."
-          :"SIREN non trouvé dans Sirene INSEE. Vérifiez le numéro.",
-        company:company||{name:"SIREN "+siren,siren,siret:"—",tva:"—",naf:"—",forme:"—"},
-        ppfRaw:ppfStatus,
-        tokenMissing,
-        sireneOk:hasCompany,
-        capabilities:[
-          {label:"SIREN valide (Sirene INSEE)",ok:hasCompany},
-          {label:"Adresse facturation active (PPF)",ok:!!ppfActive,unknown:tokenMissing},
-          {label:"Plateforme agréée rattachée",ok:!!ppfStatus?.plateformesAgreees?.length,unknown:tokenMissing},
-          {label:"Réception e-invoicing possible",ok:!!ppfActive,unknown:tokenMissing},
-        ],
+      // ── 4. Statut PPF calculé ──────────────────────────────────────
+      let ppfStatus,ppfMsg;
+      if(!token){
+        ppfStatus="no_token";
+        ppfMsg="Données INSEE récupérées. Token Chorus Pro requis pour vérifier le statut Annuaire PPF.";
+      }else if(chorus?.error==="token_expired"){
+        ppfStatus="token_expired";
+        ppfMsg="Token Chorus Pro expiré ou invalide. Régénérez-en un nouveau.";
+      }else if(chorus?.error==="cors"){
+        ppfStatus="cors_error";
+        ppfMsg="API Chorus Pro inaccessible depuis le navigateur (CORS). Architecture middleware requise.";
+      }else if(chorus?.error){
+        ppfStatus="api_error";
+        ppfMsg=chorus.msg||"Erreur API Chorus Pro.";
+      }else if(chorus?.adresse_facturation_active){
+        ppfStatus="active";
+        ppfMsg=`L'entreprise est inscrite dans l'Annuaire PPF avec une adresse de facturation active.${chorus.pdp?.length?" PA : "+chorus.pdp.join(", "):""}`;
+      }else if(chorus&&!chorus.adresse_facturation_active){
+        ppfStatus="inactive";
+        ppfMsg="L'entreprise existe dans Sirene mais n'a PAS d'adresse de facturation active dans l'Annuaire PPF.";
+      }else{
+        ppfStatus="insee_only";
+        ppfMsg="Données INSEE disponibles. Statut Annuaire PPF non vérifié.";
+      }
+
+      // ── 5. Règle métier e-invoicing ───────────────────────────────
+      let eInvRule;
+      if(ppfStatus==="active"){
+        eInvRule={ok:true,label:"E-invoicing obligatoire possible",detail:"adresseFacturationActive=true → envoi via réseau PA/PPF"};
+      }else if(ppfStatus==="inactive"){
+        eInvRule={ok:false,label:"Fallback e-reporting / PDF",detail:"Pas d'adresse active → e-reporting ou envoi hors réseau"};
+      }else{
+        eInvRule={ok:null,label:"Statut e-invoicing inconnu",detail:"Vérifiez le token Chorus Pro ou le portail directement"};
+      }
+
+      const result={...model,ppfStatus,ppfMsg,eInvRule,
         chorusUrl:`https://facturation.chorus-pro.gouv.fr/annuaire#!rechercheDestinataire?siren=${siren}`,
-      });
-      setAnnHistory(prev=>[{q,siren,res:{status:ppfActive?"found":hasCompany?"partial":"error",company:{name:company?.name||siren}}},...prev.filter(h=>h.q!==q)].slice(0,6));
+        tokenMissing:!token,fromCache:false};
+
+      // ── 6. Cache ──────────────────────────────────────────────────
+      ANN_CACHE[cacheKey]={data:result,ts:Date.now()};
+
+      setAnnRes(result);
+      setAnnHistory(prev=>[{q,siren,res:{ppfStatus,raison_sociale:model.raison_sociale}},...prev.filter(h=>h.q!==q)].slice(0,8));
+
     }catch(e){
-      setAnnRes({status:"error",message:"Erreur inattendue: "+e.message,company:null,capabilities:null});
+      setAnnRes({ppfStatus:"error",errorMsg:"Erreur inattendue: "+e.message});
     }finally{
       setAnnLoading(false);
     }
@@ -4163,228 +4212,275 @@ function App(){
       {tab==="annuaire"&&(
         <div style={{overflow:"auto",flex:1,background:"#080B14"}}>
 
-          {/* ── Hero ── */}
-          <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.12) 0%,rgba(6,182,212,0.08) 100%)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"40px 24px 36px"}}>
+          {/* Hero */}
+          <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.12) 0%,rgba(6,182,212,0.08) 100%)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"36px 24px 32px"}}>
             <div style={{maxWidth:680,margin:"0 auto",textAlign:"center"}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:2,marginBottom:10}}>
-                🏛 Portail Public de Facturation — France 2026
-              </div>
-              <h1 style={{fontFamily:"JetBrains Mono,monospace",fontSize:28,fontWeight:900,margin:"0 0 12px",lineHeight:1.2}}>
+              <div style={{fontSize:10,fontWeight:700,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:2,marginBottom:8}}>🏛 Portail Public de Facturation — France 2026</div>
+              <h1 style={{fontFamily:"JetBrains Mono,monospace",fontSize:26,fontWeight:900,margin:"0 0 10px",lineHeight:1.2}}>
                 Annuaire <span style={{color:"#06B6D4"}}>PPF Check</span>
               </h1>
-              <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.7,margin:"0 0 28px"}}>
-                Vérifiez si une entreprise est inscrite dans l'Annuaire PPF et peut recevoir des factures électroniques.
-                Recherchez par <strong style={{color:"rgba(255,255,255,0.7)"}}>SIREN</strong>, <strong style={{color:"rgba(255,255,255,0.7)"}}>SIRET</strong> ou <strong style={{color:"rgba(255,255,255,0.7)"}}>numéro de TVA</strong>.
+              <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.7,margin:"0 0 24px"}}>
+                Vérifiez si une entreprise est inscrite dans l'Annuaire PPF et peut recevoir des factures électroniques.<br/>
+                Sources réelles : <strong style={{color:"rgba(255,255,255,0.7)"}}>INSEE Sirene</strong> (identité) + <strong style={{color:"rgba(255,255,255,0.7)"}}>Chorus Pro API</strong> (capacité PPF)
               </p>
-
               {/* Barre de recherche */}
-              <div style={{position:"relative",maxWidth:560,margin:"0 auto"}}>
-                <div style={{display:"flex",gap:0,background:"rgba(255,255,255,0.06)",border:"2px solid "+(annLoading?"#6366F1":"rgba(255,255,255,0.15)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.2s",boxShadow:annLoading?"0 0 0 3px rgba(99,102,241,0.15)":"none"}}>
-                  <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:"rgba(255,255,255,0.3)",fontSize:18}}>🔍</span>
-                  <input
-                    value={annQ}
-                    onChange={e=>setAnnQ(e.target.value)}
+              <div style={{maxWidth:560,margin:"0 auto"}}>
+                <div style={{display:"flex",background:"rgba(255,255,255,0.06)",border:`2px solid ${annLoading?"#6366F1":annToken?"rgba(34,197,94,0.4)":"rgba(255,255,255,0.15)"}`,borderRadius:12,overflow:"hidden",transition:"border-color 0.2s",boxShadow:annToken?"0 0 0 3px rgba(34,197,94,0.08)":"none"}}>
+                  <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:"rgba(255,255,255,0.3)",fontSize:18,flexShrink:0}}>🔍</span>
+                  <input value={annQ} onChange={e=>setAnnQ(e.target.value)}
                     onKeyDown={e=>{if(e.key==="Enter"&&annQ.trim().length>=3)doAnnuaire();}}
-                    placeholder="SIREN (9 chiffres), SIRET (14 chiffres) ou TVA FR12345678901..."
-                    style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#E2E8F0",fontSize:14,padding:"14px 8px",fontFamily:"'DM Sans','Segoe UI',sans-serif"}}
-                  />
-                  <button
-                    onClick={doAnnuaire}
-                    disabled={annLoading||annQ.trim().length<3}
-                    style={{padding:"0 22px",background:annLoading||annQ.trim().length<3?"rgba(99,102,241,0.2)":"linear-gradient(135deg,#6366F1,#06B6D4)",border:"none",color:"#fff",fontWeight:700,fontSize:13,cursor:annLoading||annQ.trim().length<3?"not-allowed":"pointer",opacity:annQ.trim().length<3?0.5:1,transition:"all 0.2s",whiteSpace:"nowrap"}}>
-                    {annLoading?"⏳ Recherche...":"Vérifier →"}
+                    placeholder="SIREN (9 ch.), SIRET (14 ch.) ou TVA FR12345678901..."
+                    style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#E2E8F0",fontSize:13,padding:"13px 8px",fontFamily:"'DM Sans','Segoe UI',sans-serif"}}/>
+                  <button onClick={doAnnuaire} disabled={annLoading||annQ.trim().length<3}
+                    style={{padding:"0 20px",background:annLoading||annQ.trim().length<3?"rgba(99,102,241,0.2)":"linear-gradient(135deg,#6366F1,#06B6D4)",border:"none",color:"#fff",fontWeight:700,fontSize:12,cursor:annLoading||annQ.trim().length<3?"not-allowed":"pointer",opacity:annQ.trim().length<3?0.5:1,whiteSpace:"nowrap",flexShrink:0}}>
+                    {annLoading?"⏳...":"Vérifier →"}
                   </button>
                 </div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginTop:8,textAlign:"center"}}>
-                  Exemples : <span onClick={()=>setAnnQ("552032534")} style={{color:"#A5B4FC",cursor:"pointer",textDecoration:"underline dotted"}}>552032534</span> (LVMH) ·
-                  <span onClick={()=>setAnnQ("FR23552032534")} style={{color:"#A5B4FC",cursor:"pointer",textDecoration:"underline dotted",marginLeft:4}}>FR23552032534</span> ·
-                  <span onClick={()=>setAnnQ("44306184100047")} style={{color:"#A5B4FC",cursor:"pointer",textDecoration:"underline dotted",marginLeft:4}}>44306184100047</span> (SIRET)
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{maxWidth:860,margin:"0 auto",padding:"28px 24px"}}>
-
-            {/* Résultat */}
-            {annRes&&(()=>{
-              const ok=annRes.status==="found";
-              const warn=annRes.status==="partial";
-              const notfound=annRes.status==="not_found";
-              const err=annRes.status==="error";
-              const bc=ok?"#22C55E":warn?"#F59E0B":notfound?"#EF4444":"#94A3B8";
-              const bbg=ok?"rgba(34,197,94,0.06)":warn?"rgba(245,158,11,0.06)":notfound?"rgba(239,68,68,0.06)":"rgba(148,163,184,0.06)";
-              return(
-              <div style={{marginBottom:28}}>
-                {/* Carte résultat principale */}
-                <div style={{background:bbg,border:`2px solid ${bc}40`,borderRadius:14,padding:"20px 22px",marginBottom:16}}>
-                  <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:ok||warn?16:0}}>
-                    <div style={{fontSize:32,flexShrink:0}}>{ok?"✅":warn?"⚠️":notfound?"❌":"⚠️"}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:16,fontWeight:800,color:bc,marginBottom:4}}>
-                        {ok?"Inscrit dans l'Annuaire PPF":warn?"Inscription partielle / À vérifier":notfound?"Non trouvé dans l'Annuaire PPF":"Erreur de recherche"}
-                      </div>
-                      <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.6}}>{annRes.message}</div>
-                    </div>
-                    {(ok||warn)&&<div style={{flexShrink:0,background:bc+"15",border:`1px solid ${bc}30`,borderRadius:8,padding:"6px 14px",textAlign:"center"}}>
-                      <div style={{fontSize:9,color:bc,fontWeight:700,textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Statut</div>
-                      <div style={{fontSize:12,color:bc,fontWeight:800}}>{ok?"ACTIF":"PARTIEL"}</div>
-                    </div>}
+                {/* Token status inline */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8,padding:"0 4px"}}>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>
+                    Ex: <span onClick={()=>setAnnQ("552032534")} style={{color:"#A5B4FC",cursor:"pointer",textDecoration:"underline dotted"}}>552032534</span>
+                    {" · "}<span onClick={()=>setAnnQ("409935012")} style={{color:"#A5B4FC",cursor:"pointer",textDecoration:"underline dotted"}}>409935012</span>
+                    {" · "}<span onClick={()=>setAnnQ("572063480")} style={{color:"#A5B4FC",cursor:"pointer",textDecoration:"underline dotted"}}>572063480</span>
                   </div>
-
-                  {/* Infos entreprise */}
-                  {annRes.company&&(
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10,marginBottom:14}}>
-                      {[
-                        {l:"Raison sociale",v:annRes.company.name,c:"#fff"},
-                        {l:"SIREN",v:annRes.company.siren,c:"#A5B4FC"},
-                        {l:"SIRET (établ. principal)",v:annRes.company.siret,c:"#A5B4FC"},
-                        {l:"N° TVA",v:annRes.company.tva,c:"#67E8F9"},
-                        {l:"Activité (NAF)",v:annRes.company.naf,c:"rgba(255,255,255,0.6)"},
-                        {l:"Forme juridique",v:annRes.company.forme,c:"rgba(255,255,255,0.6)"},
-                      ].filter(i=>i.v).map(i=>(
-                        <div key={i.l} style={{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"8px 12px"}}>
-                          <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:0.8,marginBottom:3}}>{i.l}</div>
-                          <div style={{fontSize:12,fontWeight:600,color:i.c,fontFamily:i.l==="SIREN"||i.l==="SIRET"||i.l==="N° TVA"?"JetBrains Mono,monospace":"inherit"}}>{i.v}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Capacités e-invoicing */}
-                  {annRes.capabilities&&(
-                    <div>
-                      <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:8}}>Capacités e-invoicing</div>
-                      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                        {annRes.capabilities.map(cap=>{
-                          const unk=cap.unknown;
-                          const bg=unk?"rgba(245,158,11,0.07)":cap.ok?"rgba(34,197,94,0.1)":"rgba(148,163,184,0.08)";
-                          const br=unk?"rgba(245,158,11,0.2)":cap.ok?"rgba(34,197,94,0.25)":"rgba(148,163,184,0.15)";
-                          const col=unk?"#FCD34D":cap.ok?"#86EFAC":"rgba(255,255,255,0.35)";
-                          return(
-                          <div key={cap.label} style={{display:"flex",alignItems:"center",gap:6,background:bg,border:`1px solid ${br}`,borderRadius:7,padding:"6px 12px"}}>
-                            <span style={{fontSize:12}}>{unk?"🔑":cap.ok?"✅":"❌"}</span>
-                            <span style={{fontSize:11,color:col,fontWeight:600}}>{cap.label}</span>
-                            {unk&&<span style={{fontSize:8,color:"#F59E0B",background:"rgba(245,158,11,0.12)",borderRadius:3,padding:"1px 5px"}}>Token requis</span>}
-                          </div>
-                        );})}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bouton Chorus Pro + token setup */}
-                <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
-                  {annRes.chorusUrl&&(
-                    <a href={annRes.chorusUrl} target="_blank" rel="noopener noreferrer"
-                      style={{display:"flex",alignItems:"center",gap:8,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:8,padding:"8px 16px",color:"#93C5FD",textDecoration:"none",fontSize:12,fontWeight:700}}>
-                      🏛 Vérifier sur Chorus Pro →
-                    </a>
-                  )}
-                  {annRes.tokenMissing&&(
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    {annToken?(
+                      <span style={{fontSize:9,background:"rgba(34,197,94,0.12)",color:"#86EFAC",borderRadius:4,padding:"2px 8px",fontWeight:700}}>🔑 Token configuré</span>
+                    ):(
+                      <span style={{fontSize:9,background:"rgba(245,158,11,0.1)",color:"#FCD34D",borderRadius:4,padding:"2px 8px"}}>⚠️ Sans token : INSEE seul</span>
+                    )}
                     <button onClick={()=>setShowTokenSetup(v=>!v)}
-                      style={{display:"flex",alignItems:"center",gap:6,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:8,padding:"8px 14px",color:"#FCD34D",cursor:"pointer",fontSize:11,fontWeight:600}}>
-                      🔑 {showTokenSetup?"Masquer":"Configurer"} token Chorus Pro
+                      style={{fontSize:9,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:4,padding:"2px 8px",color:"rgba(255,255,255,0.5)",cursor:"pointer"}}>
+                      {showTokenSetup?"▲ Token":"⚙️ Token"}
                     </button>
-                  )}
+                  </div>
                 </div>
+                {/* Token setup panel */}
                 {showTokenSetup&&(
-                  <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"14px 16px",marginBottom:12}}>
-                    <div style={{fontSize:11,fontWeight:700,color:"#FCD34D",marginBottom:10}}>🔑 Configuration token OAuth2 Chorus Pro</div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12,fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.7}}>
-                      <div>
-                        <div style={{fontWeight:600,color:"rgba(255,255,255,0.8)",marginBottom:4}}>Méthode recommandée</div>
-                        <ol style={{paddingLeft:16,margin:0,display:"flex",flexDirection:"column",gap:4}}>
-                          <li>Connectez-vous sur <strong>chorus-pro.gouv.fr</strong> avec votre compte technique</li>
-                          <li>Allez dans <strong>Mon compte → API → Générer token</strong></li>
-                          <li>Copiez le Bearer token OAuth2</li>
-                          <li>Collez-le ci-dessous</li>
-                        </ol>
+                  <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"14px 16px",marginTop:10,textAlign:"left"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"#FCD34D",marginBottom:10}}>🔑 Token OAuth2 Chorus Pro — `rechercherDestinataire`</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.55)",lineHeight:1.8}}>
+                        <strong style={{color:"rgba(255,255,255,0.75)"}}>Procédure :</strong><br/>
+                        1. chorus-pro.gouv.fr → compte technique<br/>
+                        2. Mon compte → API → Générer token<br/>
+                        3. Copiez le Bearer token OAuth2<br/>
+                        <span style={{color:"rgba(255,255,255,0.3)",fontSize:9}}>⚠️ En prod → middleware serveur (CORS)</span>
                       </div>
-                      <div>
-                        <div style={{fontWeight:600,color:"rgba(255,255,255,0.8)",marginBottom:4}}>API utilisée</div>
-                        <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(0,0,0,0.3)",borderRadius:6,padding:"8px 10px",color:"#A5B4FC",lineHeight:1.8}}>
-                          POST /cpro/rechercherDestinataire/v1<br/>
-                          Host: api.chorus-pro.gouv.fr<br/>
-                          Auth: Bearer [token]<br/>
-                          Body: {"{"}"idType":"SIRET","idValue":"..."{"}"}<br/>
-                          → adresseFacturationActive: true/false<br/>
-                          → plateformesAgreees: [...]
-                        </div>
+                      <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,background:"rgba(0,0,0,0.3)",borderRadius:6,padding:"8px 10px",color:"#A5B4FC",lineHeight:1.9}}>
+                        POST /cpro/rechercherDestinataire/v1<br/>
+                        Auth: Bearer [token]<br/>
+                        → adresseFacturationActive<br/>
+                        → plateformesAgreees[]<br/>
+                        TTL cache: 6h
                       </div>
                     </div>
                     <div style={{display:"flex",gap:8,alignItems:"center"}}>
                       <input type="password" value={annToken} onChange={e=>setAnnToken(e.target.value)}
                         placeholder="Bearer eyJhbGciOiJSUzI1NiJ9..."
-                        style={{flex:1,background:"rgba(0,0,0,0.3)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:6,padding:"8px 12px",color:"#E2E8F0",fontSize:11,outline:"none",fontFamily:"JetBrains Mono,monospace"}}/>
-                      {annToken&&<span style={{fontSize:10,color:"#22C55E",fontWeight:700}}>✅ Token configuré</span>}
+                        style={{flex:1,background:"rgba(0,0,0,0.3)",border:`1px solid ${annToken?"rgba(34,197,94,0.4)":"rgba(245,158,11,0.3)"}`,borderRadius:6,padding:"7px 10px",color:"#E2E8F0",fontSize:10,outline:"none",fontFamily:"JetBrains Mono,monospace"}}/>
+                      {annToken&&<button onClick={()=>{setAnnToken("");setShowTokenSetup(false);}} style={{fontSize:10,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:5,padding:"5px 10px",color:"#FCA5A5",cursor:"pointer"}}>✕ Effacer</button>}
                     </div>
-                    <div style={{fontSize:9,color:"rgba(255,255,255,0.25)",marginTop:6}}>⚠️ Token stocké uniquement en mémoire de session, jamais transmis ailleurs que vers api.chorus-pro.gouv.fr</div>
+                    <div style={{fontSize:9,color:"rgba(255,255,255,0.2)",marginTop:6}}>Token stocké en mémoire session uniquement · Jamais transmis ailleurs que vers api.chorus-pro.gouv.fr</div>
                   </div>
                 )}
-                {/* Avertissement sur les limites */}
-                {notfound&&(
-                  <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"12px 16px"}}>
-                    <div style={{fontSize:10,fontWeight:700,color:"#FCD34D",marginBottom:6}}>⚠️ Ce que signifie "Non trouvé"</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.7}}>
-                      L'entreprise n'est <strong>pas encore inscrite</strong> dans l'Annuaire PPF ou n'a pas encore choisi sa PA.
-                      Cela signifie que vous <strong>ne pouvez pas lui envoyer de facture électronique</strong> via le réseau e-invoicing.
-                      Si l'entreprise est soumise à l'obligation (GE depuis sept 2026), elle doit s'inscrire via sa PA agréée.
+              </div>
+            </div>
+          </div>
+
+          <div style={{maxWidth:900,margin:"0 auto",padding:"24px 24px"}}>
+
+            {/* ── RÉSULTAT ── */}
+            {annRes&&(()=>{
+              // Statut visuel PPF
+              const STATUTS={
+                active:    {icon:"🟢",label:"PPF ACTIF",       color:"#22C55E",bg:"rgba(34,197,94,0.06)",  br:"rgba(34,197,94,0.25)"},
+                inactive:  {icon:"🟠",label:"NON TROUVÉ PPF",  color:"#F59E0B",bg:"rgba(245,158,11,0.06)",br:"rgba(245,158,11,0.25)"},
+                no_token:  {icon:"🔵",label:"INSEE SEUL",      color:"#3B82F6",bg:"rgba(59,130,246,0.06)", br:"rgba(59,130,246,0.25)"},
+                token_expired:{icon:"🔴",label:"TOKEN EXPIRÉ", color:"#EF4444",bg:"rgba(239,68,68,0.06)", br:"rgba(239,68,68,0.25)"},
+                cors_error:{icon:"⚫",label:"CORS / MIDDLEWARE",color:"#94A3B8",bg:"rgba(148,163,184,0.05)",br:"rgba(148,163,184,0.2)"},
+                api_error: {icon:"⚫",label:"ERREUR API",      color:"#94A3B8",bg:"rgba(148,163,184,0.05)",br:"rgba(148,163,184,0.2)"},
+                insee_only:{icon:"🔵",label:"INSEE SEUL",      color:"#3B82F6",bg:"rgba(59,130,246,0.06)", br:"rgba(59,130,246,0.25)"},
+                error:     {icon:"🔴",label:"ERREUR",          color:"#EF4444",bg:"rgba(239,68,68,0.06)", br:"rgba(239,68,68,0.25)"},
+              };
+              const st=STATUTS[annRes.ppfStatus||"error"]||STATUTS.error;
+
+              if(annRes.ppfStatus==="error") return(
+                <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:12,padding:"16px 18px",display:"flex",gap:12,alignItems:"center"}}>
+                  <span style={{fontSize:24}}>🔴</span>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:"#FCA5A5",marginBottom:4}}>Erreur</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>{annRes.errorMsg}</div>
+                  </div>
+                </div>
+              );
+
+              return(
+              <div style={{marginBottom:24}}>
+
+                {/* Cache badge */}
+                {annRes.fromCache&&<div style={{marginBottom:8,display:"flex",justifyContent:"flex-end"}}>
+                  <span style={{fontSize:9,background:"rgba(99,102,241,0.12)",color:"#A5B4FC",borderRadius:4,padding:"2px 8px"}}>📦 Cache ({annRes.cacheAge}min) · 6h TTL</span>
+                </div>}
+
+                {/* Carte statut principal */}
+                <div style={{background:st.bg,border:`2px solid ${st.br}`,borderRadius:14,padding:"18px 20px",marginBottom:14}}>
+                  <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:14}}>
+                    {/* Badge statut PPF */}
+                    <div style={{flexShrink:0,background:st.color+"18",border:`1px solid ${st.color}40`,borderRadius:10,padding:"10px 16px",textAlign:"center",minWidth:110}}>
+                      <div style={{fontSize:20,marginBottom:4}}>{st.icon}</div>
+                      <div style={{fontSize:9,fontWeight:800,color:st.color,textTransform:"uppercase",letterSpacing:0.8}}>{st.label}</div>
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:15,fontWeight:800,color:"#fff",marginBottom:4}}>{annRes.raison_sociale}</div>
+                      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+                        {[["SIREN",annRes.siren,"#A5B4FC"],["TVA",annRes.tva,"#67E8F9"],["NAF",annRes.naf,"rgba(255,255,255,0.5)"],["Forme",annRes.forme,"rgba(255,255,255,0.5)"],["Statut INSEE",annRes.statut_insee,annRes.statut_insee==="actif"?"#86EFAC":"#FCA5A5"]].filter(i=>i[1]&&i[1]!=="—").map(([l,v,c])=>(
+                          <div key={l} style={{background:"rgba(0,0,0,0.25)",borderRadius:6,padding:"4px 10px"}}>
+                            <span style={{fontSize:8,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:0.7,marginRight:5}}>{l}</span>
+                            <span style={{fontSize:10,fontWeight:600,color:c,fontFamily:l==="SIREN"||l==="TVA"?"JetBrains Mono,monospace":"inherit"}}>{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.6}}>{annRes.ppfMsg}</div>
                     </div>
                   </div>
-                )}
+
+                  {/* Règle métier e-invoicing */}
+                  {annRes.eInvRule&&(
+                    <div style={{background:"rgba(0,0,0,0.2)",borderRadius:9,padding:"10px 14px",marginBottom:12,display:"flex",gap:10,alignItems:"center"}}>
+                      <span style={{fontSize:16,flexShrink:0}}>{annRes.eInvRule.ok===true?"✅":annRes.eInvRule.ok===false?"📄":"❓"}</span>
+                      <div>
+                        <div style={{fontSize:11,fontWeight:700,color:annRes.eInvRule.ok===true?"#86EFAC":annRes.eInvRule.ok===false?"#FCD34D":"rgba(255,255,255,0.5)",marginBottom:2}}>{annRes.eInvRule.label}</div>
+                        <div style={{fontSize:10,color:"rgba(255,255,255,0.45)"}}>{annRes.eInvRule.detail}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PDP associées si connues */}
+                  {annRes.chorus?.pdp?.length>0&&(
+                    <div style={{marginBottom:12}}>
+                      <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,marginBottom:6,fontWeight:700}}>Plateformes Agréées rattachées</div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        {annRes.chorus.pdp.map(p=>(
+                          <span key={p} style={{fontSize:10,background:"rgba(16,185,129,0.12)",color:"#6EE7B7",border:"1px solid rgba(16,185,129,0.25)",borderRadius:5,padding:"3px 10px",fontWeight:600}}>{p}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <a href={annRes.chorusUrl} target="_blank" rel="noopener noreferrer"
+                      style={{display:"flex",alignItems:"center",gap:6,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:7,padding:"7px 14px",color:"#93C5FD",textDecoration:"none",fontSize:11,fontWeight:700}}>
+                      🏛 Vérifier sur Chorus Pro →
+                    </a>
+                    {annRes.tokenMissing&&(
+                      <button onClick={()=>setShowTokenSetup(true)}
+                        style={{display:"flex",alignItems:"center",gap:6,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:7,padding:"7px 12px",color:"#FCD34D",cursor:"pointer",fontSize:11,fontWeight:600}}>
+                        🔑 Configurer token OAuth2
+                      </button>
+                    )}
+                    {(annRes.ppfStatus==="token_expired")&&(
+                      <button onClick={()=>{setAnnToken("");setShowTokenSetup(true);}}
+                        style={{display:"flex",alignItems:"center",gap:6,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:7,padding:"7px 12px",color:"#FCA5A5",cursor:"pointer",fontSize:11,fontWeight:700}}>
+                        🔴 Token expiré — Régénérer
+                      </button>
+                    )}
+                    {annRes.ppfStatus==="cors_error"&&(
+                      <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(148,163,184,0.08)",border:"1px solid rgba(148,163,184,0.2)",borderRadius:7,padding:"7px 12px",fontSize:10,color:"rgba(255,255,255,0.4)"}}>
+                        ⚫ CORS : utilisez un middleware serveur en production
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Modèle JSON normalisé */}
+                <details style={{marginBottom:14}}>
+                  <summary style={{fontSize:10,color:"rgba(255,255,255,0.35)",cursor:"pointer",padding:"6px 0",userSelect:"none"}}>
+                    📋 Modèle normalisé (SAP / batch / agent IA)
+                  </summary>
+                  <pre style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"12px 14px",color:"#A5B4FC",overflow:"auto",marginTop:6,lineHeight:1.7}}>
+                    {JSON.stringify({
+                      siren:annRes.siren,siret:annRes.siret,
+                      raison_sociale:annRes.raison_sociale,
+                      statut_insee:annRes.statut_insee,
+                      naf:annRes.naf,
+                      chorus:{
+                        adresse_facturation_active:annRes.chorus?.adresse_facturation_active??null,
+                        ppf:annRes.chorus?.ppf??null,
+                        pdp:annRes.chorus?.pdp??null,
+                      },
+                      e_invoicing_rule:annRes.eInvRule?.ok??null,
+                      ts_cache:annRes.ts,
+                    },null,2)}
+                  </pre>
+                </details>
+
               </div>
               );
             })()}
 
-            {/* Historique recherches */}
+            {/* ── Historique ── */}
             {annHistory.length>0&&!annLoading&&(
-              <div style={{marginBottom:24}}>
-                <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Recherches récentes</div>
+              <div style={{marginBottom:22}}>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>Recherches récentes</div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {annHistory.map((h,i)=>(
-                    <button key={i} onClick={()=>{setAnnQ(h.q);setAnnRes(h.res);}}
-                      style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.03)",border:`1px solid ${h.res.status==="found"?"rgba(34,197,94,0.3)":h.res.status==="not_found"?"rgba(239,68,68,0.3)":"rgba(255,255,255,0.1)"}`,borderRadius:7,padding:"6px 12px",cursor:"pointer"}}>
-                      <span style={{fontSize:12}}>{h.res.status==="found"?"✅":h.res.status==="not_found"?"❌":"⚠️"}</span>
-                      <span style={{fontSize:11,color:"rgba(255,255,255,0.6)",fontFamily:"JetBrains Mono,monospace"}}>{h.q}</span>
-                      {h.res.company?.name&&<span style={{fontSize:10,color:"rgba(255,255,255,0.35)"}}>{h.res.company.name.substring(0,20)}</span>}
+                  {annHistory.map((h,i)=>{
+                    const c={active:"#22C55E",inactive:"#F59E0B",no_token:"#3B82F6",error:"#EF4444",token_expired:"#EF4444"}[h.res.ppfStatus]||"#94A3B8";
+                    const ic={active:"🟢",inactive:"🟠",no_token:"🔵",error:"🔴",token_expired:"🔴"}[h.res.ppfStatus]||"⚫";
+                    return(
+                    <button key={i} onClick={()=>doAnnuaire()}
+                      style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.03)",border:`1px solid ${c}30`,borderRadius:7,padding:"5px 10px",cursor:"pointer"}}
+                      onMouseEnter={()=>setAnnQ(h.q)}>
+                      <span style={{fontSize:11}}>{ic}</span>
+                      <span style={{fontSize:10,color:"rgba(255,255,255,0.6)",fontFamily:"JetBrains Mono,monospace"}}>{h.siren}</span>
+                      <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{h.res.raison_sociale}</span>
                     </button>
-                  ))}
-                  <button onClick={()=>setAnnHistory([])} style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:7,padding:"6px 10px",color:"rgba(239,68,68,0.6)",cursor:"pointer",fontSize:10}}>✕ Effacer</button>
+                  );})}
+                  <button onClick={()=>setAnnHistory([])} style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:7,padding:"5px 9px",color:"rgba(239,68,68,0.6)",cursor:"pointer",fontSize:9}}>✕</button>
                 </div>
               </div>
             )}
 
-            {/* Explication fonctionnement */}
+            {/* ── État vide — infos ── */}
             {!annRes&&!annLoading&&(
               <div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:24}}>
-                  {[
-                    {icon:"🏛",t:"Qu'est-ce que l'Annuaire PPF ?",c:"#8B5CF6",d:"Le Portail Public de Facturation (PPF) gère un annuaire central qui associe chaque entreprise française (SIRET) à sa Plateforme Agréée (PA). Sans inscription dans l'Annuaire, une entreprise ne peut pas recevoir de factures électroniques dans le réseau e-invoicing 2026."},
-                    {icon:"🔍",t:"Que vérifie cet outil ?",c:"#06B6D4",d:"2 sources réelles : (1) API Sirene INSEE (publique) → raison sociale, SIREN, NAF, forme juridique. (2) API Chorus Pro rechercherDestinataire (OAuth2 requis) → adresse de facturation active, PA agréée rattachée."},
-                    {icon:"📋",t:"Comment s'inscrire dans l'Annuaire ?",c:"#10B981",d:"L'inscription dans l'Annuaire PPF se fait automatiquement lorsqu'une entreprise choisit une PA agréée (Pagero, Tradeshift, Chorus Pro...). La PA enregistre l'endpoint de l'entreprise (SIREN+PA) dans le répertoire central."},
-                    {icon:"⚠️",t:"Limites de cet outil",c:"#F59E0B",d:"L'API rechercherDestinataire Chorus Pro nécessite un token OAuth2 (compte technique Chorus Pro). Sans token : seules les données Sirene INSEE sont disponibles. Cliquez 'Vérifier sur Chorus Pro' pour accès direct au portail officiel."},
-                  ].map(p=>(
-                    <div key={p.t} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${p.c}20`,borderRadius:10,padding:"14px 16px"}}>
-                      <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:8}}>
-                        <span style={{fontSize:20}}>{p.icon}</span>
-                        <div style={{fontSize:12,fontWeight:700,color:p.c}}>{p.t}</div>
-                      </div>
-                      <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.7}}>{p.d}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Bulk check info */}
-                <div style={{background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:12,padding:"16px 20px",display:"flex",gap:16,alignItems:"center"}}>
-                  <div style={{fontSize:32}}>📋</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:13,fontWeight:700,color:"#A5B4FC",marginBottom:4}}>Vérification en lot — Radar Annuaire</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.6}}>Pour vérifier tous vos clients et fournisseurs en masse, contactez votre PA (Pagero ou Tradeshift). Ils peuvent requêter l'Annuaire PPF pour toute votre base tiers SAP et vous livrer un rapport de conformité.</div>
+                {/* Architecture cible */}
+                <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:12,padding:"16px 18px",marginBottom:16}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"#A5B4FC",marginBottom:10}}>🏗 Architecture cible (prod / SAP / batch)</div>
+                  <div style={{display:"flex",alignItems:"center",gap:0,flexWrap:"wrap",fontSize:10}}>
+                    {["User / AI Agent","API Middleware","INSEE Sirene (open)","Chorus Pro OAuth2","Cache 6h–7j","SAP / IDoc"].map((n,i,arr)=>(
+                      <React.Fragment key={n}>
+                        <div style={{background:"rgba(99,102,241,0.12)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:6,padding:"5px 10px",color:"#C4B5FD",fontWeight:600,whiteSpace:"nowrap"}}>{n}</div>
+                        {i<arr.length-1&&<div style={{color:"rgba(255,255,255,0.25)",padding:"0 6px"}}>→</div>}
+                      </React.Fragment>
+                    ))}
                   </div>
-                  <div style={{flexShrink:0,textAlign:"center",background:"rgba(99,102,241,0.15)",borderRadius:8,padding:"10px 16px",border:"1px solid rgba(99,102,241,0.3)"}}>
-                    <div style={{fontSize:10,color:"#A5B4FC",fontWeight:700,marginBottom:2}}>Via</div>
-                    <div style={{fontSize:12,color:"#C4B5FD",fontWeight:700}}>Pagero / Tradeshift</div>
+                </div>
+                {/* 4 cas métier */}
+                <div style={{marginBottom:16}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Cas métier Coty à gérer</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    {[
+                      {cas:"SIREN OK, pas PPF",impact:"Client non prêt",action:"Fallback e-reporting / PDF",c:"#F59E0B"},
+                      {cas:"PDP différente",impact:"Routing à adapter",action:"Vérifier PA dans Chorus Pro",c:"#8B5CF6"},
+                      {cas:"SIRET ≠ siège",impact:"Mapping SAP à contrôler",action:"Vérifier SIRET établissement",c:"#06B6D4"},
+                      {cas:"Entité inactive INSEE",impact:"Bloquer la facture",action:"Mettre à jour master data SAP",c:"#EF4444"},
+                    ].map(r=>(
+                      <div key={r.cas} style={{background:"rgba(0,0,0,0.2)",border:`1px solid ${r.c}20`,borderRadius:8,padding:"10px 12px"}}>
+                        <div style={{fontSize:10,fontWeight:700,color:r.c,marginBottom:4}}>{r.cas}</div>
+                        <div style={{fontSize:10,color:"rgba(255,255,255,0.6)",marginBottom:3}}>Impact : {r.impact}</div>
+                        <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>→ {r.action}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Bulk */}
+                <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"12px 16px",display:"flex",gap:12,alignItems:"center"}}>
+                  <div style={{fontSize:28}}>📋</div>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#6EE7B7",marginBottom:3}}>Vérification en lot — via Pagero ou Tradeshift</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",lineHeight:1.6}}>Pour vérifier toute votre base tiers SAP en masse : demandez à Laurent Malzac (Pagero) ou Edgar Palau (Tradeshift) un rapport de conformité Annuaire PPF sur votre fichier de clients/fournisseurs.</div>
                   </div>
                 </div>
               </div>
@@ -4392,7 +4488,6 @@ function App(){
           </div>
         </div>
       )}
-
 
       {tab==="cal"&&(
         <div style={{overflow:"auto",padding:"18px 22px",flex:1}}>
