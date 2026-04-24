@@ -1803,10 +1803,10 @@ function App(){
             {/* LEFT — list */}
             <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               {/* Sort header — 5 cols: bar | code | designation | statut | acteur */}
-              <div style={{display:"grid",gridTemplateColumns:"3px 18px 72px 1fr 46px 65px 80px 75px 140px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 18px 72px 1fr 52px 85px 85px 150px",padding:"5px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
                 <div></div>
                 <div></div>
-                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["a","ACTEUR"],["flux","FLUX"],["bt","BT"],["path","PUF / XML"]].map(([k,lbl])=>(
+                {[["id","CODE"],["fr","DESIGNATION"],["m","STATUS"],["dir","AR/AP"],["flux","FLUX"],["bt","BT"],["path","PUF / XML"]].map(([k,lbl])=>(
                   <div key={k} onClick={()=>{if(erSort===k)setErSortDir(d=>d==="asc"?"desc":"asc");else{setErSort(k);setErSortDir("asc");}}}
                     style={{fontSize:9,fontWeight:700,color:erSort===k?"#F59E0B":k==="sap"?"#34D399":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,cursor:"pointer",userSelect:"none",display:"flex",alignItems:"center",gap:2}}>
                     {lbl}{erSort===k&&<span style={{fontSize:8}}>{erSortDir==="asc"?"▲":"▼"}</span>}
@@ -1824,7 +1824,7 @@ function App(){
                   const AC=f.a==="PA"?"#6366F1":"#06B6D4";
                   return(
                   <div key={f.id} onClick={()=>setSelER(selER?.id===f.id?null:f)}
-                    style={{display:"grid",gridTemplateColumns:"3px 18px 72px 1fr 46px 65px 80px 75px 140px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                    style={{display:"grid",gridTemplateColumns:"3px 18px 72px 1fr 52px 85px 85px 150px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                       background:selER?.id===f.id?SC+"18":"transparent",transition:"background 0.1s"}}
                     onMouseEnter={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                     onMouseLeave={e=>{if(selER?.id!==f.id)e.currentTarget.style.background="transparent";}}>
