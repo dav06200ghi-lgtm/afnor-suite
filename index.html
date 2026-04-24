@@ -2115,10 +2115,10 @@ function App(){
             </div>
 
             {/* Sortable column header */}
-            <div style={{display:"grid",gridTemplateColumns:"3px 150px 1fr 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0}}>
+            <div style={{display:"grid",gridTemplateColumns:"3px 150px 1fr 80px 72px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0}}>
               <div></div>
-              {[["id","CHAMP BT"],["l","DESIGNATION"],["m","STATUS"]].map(([k,lbl])=>(
-                <div key={k} onClick={()=>{setSortBy(k);setSortDir(d=>d==="asc"?"desc":"asc");}} style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8,cursor:"pointer",userSelect:"none"}}>
+              {[["id","CHAMP BT"],["l","DÉSIGNATION"],["tt_er","E-REPORT. TT"],["m","STATUS"]].map(([k,lbl])=>(
+                <div key={k} onClick={()=>{setSortBy(k);setSortDir(d=>d==="asc"?"desc":"asc");}} style={{fontSize:9,fontWeight:700,color:sortBy===k?"#F59E0B":"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.8,cursor:"pointer",userSelect:"none"}}>
                   {lbl}{sortBy===k&&(sortDir==="asc"?" ▲":" ▼")}
                 </div>
               ))}
@@ -2129,7 +2129,7 @@ function App(){
               <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",padding:"4px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>{filtBT.length} champs</div>
               {filtBT.map(f=>(
                 <div key={f.id} onClick={()=>setSelBT(selBT?.id===f.id?null:f)}
-                  style={{display:"grid",gridTemplateColumns:"3px 150px 1fr 72px",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
+                  style={{display:"grid",gridTemplateColumns:"3px 150px 1fr 80px 72px",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:6,alignItems:"center",cursor:"pointer",
                     background:selBT?.id===f.id?(GC[f.g]||"#6366F1")+"18":"transparent",transition:"background 0.1s"}}
                   onMouseEnter={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
                   onMouseLeave={e=>{if(selBT?.id!==f.id)e.currentTarget.style.background="transparent";}}>
@@ -2138,11 +2138,19 @@ function App(){
                     <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,color:GC[f.g]||"#6366F1",flexShrink:0}}>{f.id}</span>
                   </div>
                   <div style={{fontSize:13,color:"rgba(255,255,255,0.88)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.fr}</div>
+                  <div style={{display:"flex",alignItems:"center"}}>
+                    {f.tt_er?(
+                      <span onClick={e=>{e.stopPropagation();const er=ER.find(x=>x.tt===f.tt_er);if(er){setSelER(er);setTab("er");}}}
+                        style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#F59E0B",background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",fontWeight:700,cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2,whiteSpace:"nowrap"}}
+                        title={"→ E-Reporting: "+f.tt_er}>
+                        {f.tt_er}
+                      </span>
+                    ):<span style={{fontSize:9,color:"rgba(255,255,255,0.12)"}}>—</span>}
+                  </div>
                   <div style={{display:"flex",gap:3,justifyContent:"flex-end"}}>
                     {f.m?<span style={{fontSize:9,background:"rgba(239,68,68,0.18)",color:"#FCA5A5",borderRadius:4,padding:"1px 5px",fontWeight:700}}>REQ</span>
                     :f.cgi_upgrade?<span style={{fontSize:9,background:"rgba(245,158,11,0.18)",color:"#FCD34D",borderRadius:4,padding:"1px 5px",fontWeight:700}}>OBL.🇫🇷</span>
                     :<span style={{fontSize:9,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)",borderRadius:4,padding:"1px 5px"}}>OPT</span>}
-                    
                   </div>
                 </div>
               ))}
@@ -2194,7 +2202,11 @@ function App(){
                   <div style={{fontSize:9,color:"#67E8F9",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>🏷️ XML Tags</div>
                   {selBT.tt_er&&<div style={{marginBottom:6}}>
                     <span style={{fontSize:9,color:"rgba(255,255,255,0.35)",fontWeight:600,display:"block",marginBottom:2}}>CODE TT — Flux 10 e-reporting</span>
-                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#F59E0B",background:"rgba(245,158,11,0.1)",borderRadius:4,padding:"2px 8px",fontWeight:700}}>{selBT.tt_er}</code>
+                    <code onClick={()=>{const er=ER.find(x=>x.tt===selBT.tt_er);if(er){setSelER(er);setTab("er");}}}
+                      style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#F59E0B",background:"rgba(245,158,11,0.1)",borderRadius:4,padding:"2px 8px",fontWeight:700,cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}}
+                      title={"→ E-Reporting: "+selBT.tt_er}>
+                      {selBT.tt_er} <span style={{fontSize:9,opacity:0.6}}>→ E-Reporting</span>
+                    </code>
                   </div>}
                   {(selBT.puf_req||selBT.puf_path)&&(
                     <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:9,padding:"10px 14px",marginBottom:10}}>
