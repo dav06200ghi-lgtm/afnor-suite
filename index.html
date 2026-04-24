@@ -511,24 +511,24 @@ const ILC=[
   {code:"200",famille:"technique",l:"Déposée",en:"Submitted",m:true,actor:"PA Supplier",
    ts:"Sending",modif:"Automatique",coty:"Y",
    d:"Le fournisseur dépose sa facture ou son avoir sur sa plateforme. Statut généré après les contrôles. Point d'entrée obligatoire pour toutes les e-factures.",
-   c:"#3B82F6",next:["201","213"],fix:null,cdarCodes:null},
+   c:"#3B82F6",next:["201","213"],fix:null,cdarCodes:null,pagero_code:"SUBMITTED"},
   {code:"201",famille:"technique",l:"Émise par la plateforme",en:"Sent",m:false,actor:"PA Supplier",
    ts:"Sent",modif:"Automatique",coty:"Y",
    d:"La facture a été prise en charge par la plateforme du fournisseur et est émise à destination de l'acheteur.",
-   c:"#06B6D4",next:["202","213"],fix:null,cdarCodes:null},
+   c:"#06B6D4",next:["202","213"],fix:null,cdarCodes:null,pagero_code:"ISSUED_BY_PLATFORM"},
   {code:"202",famille:"technique",l:"Reçue par la plateforme",en:"Received",m:false,actor:"PA Customer AP",
    ts:"Received",modif:"Automatique",coty:"Y",
    d:"La facture est reçue par la plateforme de l'acheteur (ou du destinataire) mais n'est pas encore mise à disposition de son client.",
-   c:"#6366F1",next:["203","213"],fix:null,cdarCodes:null},
+   c:"#6366F1",next:["203","213"],fix:null,cdarCodes:null,pagero_code:"RECEIVED_BY_PLATFORM"},
   {code:"203",famille:"technique",l:"Mise à disposition",en:"Received",m:false,actor:"PA Customer AP",
    ts:"Received",modif:"Automatique",coty:"Y",
    d:"La facture est mise à disposition de l'acheteur sur sa plateforme.",
-   c:"#8B5CF6",next:["204","207","213"],fix:null,cdarCodes:null},
+   c:"#8B5CF6",next:["204","207","213"],fix:null,cdarCodes:null,pagero_code:"MADE_AVAILABLE"},
   {code:"204",famille:"business",l:"Prise en charge",en:"Business Delivered",m:false,actor:"PA Customer AP",
    ts:"Business Delivered",modif:"Manuelle",coty:"Y",
    d:"La facture est prise en charge par l'acheteur pour procéder à son traitement.",
    c:"#10B981",next:["205","206","207","210"],fix:null,cdarCodes:[
-     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrigé selon bon de commande.",vim:"00",vim_label:"Created",coty_ap_val:"BusinessDelivered",coty_note:"Coty AP to send BusinessDelivered. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF."},
+     {code:"REF-01",l:"Prix incorrect",fix:"Avoir + nouvelle facture avec prix corrigé selon bon de commande.",vim:"00",vim_label:"Created",coty_ap_val:"BusinessDelivered",coty_note:"Coty AP to send BusinessDelivered. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"IN_PROCESS"},
      {code:"REF-02",l:"Quantité incorrecte",fix:"Avoir + nouvelle facture avec quantité correcte."},
      {code:"REF-03",l:"Destinataire incorrect",fix:"Vérifier BT-44 / BT-49 dans l'Annuaire PPF."},
      {code:"REF-04",l:"Adresse de livraison incorrecte",fix:"Vérifier BT-75..BT-80."},
@@ -539,16 +539,16 @@ const ILC=[
   {code:"205",famille:"business",l:"Approuvée",en:"Accepted",m:false,actor:"PA Customer AP",
    ts:"Accepted",modif:"Manuelle",coty:"Y",
    d:"La facture est acceptée dans son intégralité par l'acheteur mandataire (co-traitance) ou le titulaire (sous-traitance).",
-   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null,vim:"15",vim_label:"Posted",coty_ap_val:"BusinessAccept",coty_note:"Coty AP to send BusinessAccept. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF."},
+   c:"#22C55E",next:["211","212"],fix:null,cdarCodes:null,vim:"15",vim_label:"Posted",coty_ap_val:"BusinessAccept",coty_note:"Coty AP to send BusinessAccept. PS team retrieves from Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"ACCEPTED"},
   {code:"206",famille:"business",l:"Approuvée partiellement",en:"Partially approved",m:false,actor:"PA Customer AP",
    ts:"To be added",modif:"Manuelle",coty:"N",
    d:"La facture est acceptée partiellement par l'acheteur. Ce traitement peut donner lieu à un avoir.",
-   c:"#84CC16",next:["211","210"],fix:null,cdarCodes:null},
+   c:"#84CC16",next:["211","210"],fix:null,cdarCodes:null,pagero_code:"PARTIALLY_ACCEPTED"},
   {code:"207",famille:"business",l:"En litige",en:"Disputed",m:false,actor:"PA Customer AP",
    ts:"Disputed",modif:"Manuelle",coty:"N",
    d:"Un différend est constaté sur la facture. Ce désaccord peut se solder par un refus ou par une approbation de l'acheteur.",
    c:"#F59E0B",next:["210","205"],fix:null,cdarCodes:[
-     {code:"AB",l:"Destinataire introuvable dans l'Annuaire",fix:"Client doit s'enregistrer via sa PA."},
+     {code:"AB",l:"Destinataire introuvable dans l'Annuaire",fix:"Client doit s'enregistrer via sa PA.",pagero_code:"UNDER_QUERY"},
      {code:"RE",l:"Règles métier non respectées",fix:"Corriger les champs BT signalés."},
      {code:"CA",l:"Annulation demandée",fix:"Émettre un avoir BT-3=381."},
      {code:"AP",l:"Approbation partielle",fix:"Émettre un avoir pour la partie contestée."},
@@ -559,35 +559,35 @@ const ILC=[
   {code:"208",famille:"technique",l:"Suspendue",en:"Suspended",m:false,actor:"PA Customer AP",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Le traitement de la facture peut être suspendu lorsqu'une ou plusieurs pièces justificatives sont manquantes. Les données restent inchangées.",
-   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:[{code:"JUSTIF_ABS",l:"Justificatif absent",en:"Missing attachment"},{code:"COORD_BANC_ERR",l:"Erreur coordonnées bancaires",en:"Incorrect bank details",vim:"21"},{code:"CMD_ERR",l:"N° de commande incorrect",en:"Incorrect PO number",vim:"12,13"},{code:"SIRET_ERR",l:"SIRET erroné ou absent",en:"Incorrect/missing SIRET",vim:"09"},{code:"CODE_ROUTAGE_ERR",l:"Code routage erroné",en:"Incorrect routing code"},{code:"REF_CT_ABSENT",l:"Référence contractuelle manquante",en:"Missing contract reference",vim:"07"}]},
+   c:"#94A3B8",next:["209","210"],fix:null,cdarCodes:[{code:"JUSTIF_ABS",l:"Justificatif absent",en:"Missing attachment",pagero_code:"ON_HOLD"},{code:"COORD_BANC_ERR",l:"Erreur coordonnées bancaires",en:"Incorrect bank details",vim:"21"},{code:"CMD_ERR",l:"N° de commande incorrect",en:"Incorrect PO number",vim:"12,13"},{code:"SIRET_ERR",l:"SIRET erroné ou absent",en:"Incorrect/missing SIRET",vim:"09"},{code:"CODE_ROUTAGE_ERR",l:"Code routage erroné",en:"Incorrect routing code"},{code:"REF_CT_ABSENT",l:"Référence contractuelle manquante",en:"Missing contract reference",vim:"07"}]},
   {code:"209",famille:"business",l:"Complétée",en:"Completed",m:false,actor:"PA Customer AP",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"La facture est complétée lorsque le fournisseur ajoute une pièce jointe ou un commentaire à une facture au statut suspendue.",
-   c:"#A78BFA",next:["204","205"],fix:null,cdarCodes:null},
+   c:"#A78BFA",next:["204","205"],fix:null,cdarCodes:null,pagero_code:"INFORMATION_PROVIDED"},
   {code:"210",famille:"business",l:"Refusée (business reject)",en:"Rejected",m:true,actor:"PA Customer AP",
    ts:"Rejected",modif:"Manuelle",coty:"Y",
    d:"La facture est refusée par le destinataire pour des raisons métiers.",
    c:"#EF4444",next:[],fix:null,cdarCodes:[
-     {code:"AB",l:"Destinataire introuvable",fix:"Vérifier BT-49 dans l'Annuaire PPF.",vim:"95",vim_label:"BusinessReject",coty_ap_val:"BusinessReject",coty_note:"Coty to send BusinessReject + provide Reject reason code. PS team retrieves + reason from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF."},
+     {code:"AB",l:"Destinataire introuvable",fix:"Vérifier BT-49 dans l'Annuaire PPF.",vim:"95",vim_label:"BusinessReject",coty_ap_val:"BusinessReject",coty_note:"Coty to send BusinessReject + provide Reject reason code. PS team retrieves + reason from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"REJECTED"},
      {code:"RE",l:"Règles métier non respectées",fix:"Corriger selon les règles BR-FR signalées."},
      {code:"CA",l:"Annulation demandée",fix:"Émettre un avoir BT-3=381 référençant la facture originale BT-25."},
      {code:"ZZZ",l:"Autre motif",fix:"Texte libre."}]},
   {code:"211",famille:"business",l:"Paiement transmis",en:"Marked as paid",m:false,actor:"PA Customer AP",
    ts:"Marked as paid",modif:"Manuelle",coty:"Y",
    d:"Le flux de virement a été envoyé au fournisseur.",
-   c:"#10B981",next:["212"],fix:null,cdarCodes:null,vim:"Z3",vim_label:"BusinessPaid",coty_ap_val:"BusinessPaid",coty_note:"Coty to send BusinessPaid. PS team retrieves from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF."},
+   c:"#10B981",next:["212"],fix:null,cdarCodes:null,vim:"Z3",vim_label:"BusinessPaid",coty_ap_val:"BusinessPaid",coty_note:"Coty to send BusinessPaid. PS team retrieves from Coty Document Manager → pushes to Buyer PA → Seller PA & PPF.",pagero_code:"PAYMENT_INITIATED"},
   {code:"212",famille:"paiement",l:"Encaissée",en:"Paid",m:true,actor:"PA Supplier",
    ts:"Paid",modif:"Manuelle",coty:"Y",
    d:"Le fournisseur a reçu le paiement de la facture. Statut obligatoire pour les prestations de services (hors TVA sur les débits et hors opérations auto-liquidées).",
-   c:"#16A34A",next:[],fix:null,cdarCodes:null},
+   c:"#16A34A",next:[],fix:null,cdarCodes:null,pagero_code:"PAYMENT_RECEIVED"},
   {code:"213",famille:"technique",l:"Rejetée (technical reject)",en:"Rejected (technical)",m:true,actor:"TS PA / PPF",
    ts:"Rejected",modif:"Automatique",coty:"Y",
    d:"La facture pourra être rejetée automatiquement pour des raisons techniques (ex : format non conforme à la norme).",
-   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:[{code:"REJ_SEMAN",l:"Erreur sémantique",en:"Semantic error"},{code:"REJ_UNI",l:"Contrôle unicité",en:"Uniqueness check"},{code:"REJ_COH",l:"Cohérence de données",en:"Data consistency"},{code:"REJ_ADR",l:"Contrôle adressage",en:"Addressing control"},{code:"MONTANTTOTAL_ERR",l:"Montant Total Erroné",en:"Incorrect total amount",vim:"16,17,19"},{code:"CALCUL_ERR",l:"Erreur de calcul",en:"Calculation error"},{code:"DOUBLON",l:"Facture en doublon",en:"Duplicate invoice",vim:"05"}]},
+   c:"#EF4444",next:[],fix:"Corriger le format et les champs obligatoires, puis redéposer.",cdarCodes:[{code:"REJ_SEMAN",l:"Erreur sémantique",en:"Semantic error",pagero_code:"VALIDATION_FAILURE"},{code:"REJ_UNI",l:"Contrôle unicité",en:"Uniqueness check"},{code:"REJ_COH",l:"Cohérence de données",en:"Data consistency"},{code:"REJ_ADR",l:"Contrôle adressage",en:"Addressing control"},{code:"MONTANTTOTAL_ERR",l:"Montant Total Erroné",en:"Incorrect total amount",vim:"16,17,19"},{code:"CALCUL_ERR",l:"Erreur de calcul",en:"Calculation error"},{code:"DOUBLON",l:"Facture en doublon",en:"Duplicate invoice",vim:"05"}]},
   {code:"214",famille:"business",l:"Visée",en:"Stamped / Approved (B2G)",m:false,actor:"PA Supplier / Mandataire Gouvernement",
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Statut utilisé uniquement dans le cadre de la co-traitance B2U ou B2G (hors marchés de travaux) pour viser une facture. Joint contracting not subcontracting.",
-   c:"#EC4899",next:["205"],fix:null,cdarCodes:null},
+   c:"#EC4899",next:["205"],fix:null,cdarCodes:null,pagero_code:"ENDORSED"},
 ];
 const UC=[
   // ── NOMINAL FLOWS ────────────────────────────────────────────────────────
@@ -1161,6 +1161,115 @@ const PUF_EXAMPLES={
   sales_b2bi: {label:"Ventes B2Bi Cross-border — Flux 10.1",desc:"Facture B2B international (INVOICE). Vendeur FR → Acheteur IT. Exonération VATEX-EU-151. BT-23=S1.",type:"INVOICE",flux:"10.1",dir:"AR (Ventes)",sections:[{sec:"🔑 Extension PUF Pagero",fields:[{f:"puf:entryType",v:"INVOICE",d:"Type de reporting — INVOICE pour B2B-INT",req:"Obligatoire",actor:"PA",tt:"TT-15"},{f:"puf:issuerAssignedReportId",v:"Issuer assigned report id",d:"Identifiant rapport émetteur",req:"Optionnel",actor:"Coty",tt:"TT-16"},{f:"puf:reportPeriodStart",v:"2025-02-01",d:"Début de période de déclaration",req:"Obligatoire",actor:"Coty",tt:"TT-17"},{f:"puf:reportPeriodEnd",v:"2025-02-28",d:"Fin de période de déclaration",req:"Obligatoire",actor:"Coty",tt:"TT-18"}]},{sec:"📄 En-tête facture",fields:[{f:"BT-24 / CustomizationID",v:"urn:pagero.com:puf:billing:2.0",d:"Spec PUF v2.0",req:"Obligatoire",actor:"PA",tt:"TT-29"},{f:"BT-23 / ProfileID",v:"urn:pagero.com:puf:billing:1.0",d:"Profil billing (ventes AR)",req:"Obligatoire",actor:"PA",tt:"TT-28"},{f:"BT-1 / ID",v:"INV123456",d:"Numéro facture vendeur",req:"Obligatoire",actor:"Coty",tt:"TT-19"},{f:"BT-2 / IssueDate",v:"2026-01-01",d:"Date émission facture",req:"Obligatoire",actor:"Coty",tt:"TT-20"},{f:"BT-9 / DueDate",v:"2026-01-31",d:"Date d'échéance paiement",req:"Optionnel",actor:"Coty",tt:"TT-201"},{f:"BT-3 / InvoiceTypeCode",v:"380",d:"Code type 380 = Facture commerciale UNCL1001",req:"Obligatoire",actor:"Coty",tt:"TT-21"},{f:"BT-23 / InvoiceTypeCode @name",v:"S1",d:"Cadre de facturation AFNOR: S1=Services, B1=Biens, M1=Mixte",req:"Obligatoire",actor:"Coty",tt:"TT-28"},{f:"BT-22 / Note + BT-21",v:"#AAB#Les réglements reçus...",d:"Note facture — code type BT-21 entre ## (AAB=Escompte)",req:"Optionnel",actor:"Coty",tt:"TT-27"},{f:"BT-5 / DocumentCurrencyCode",v:"EUR",d:"Devise",req:"Obligatoire",actor:"Coty",tt:"TT-22"},{f:"BT-73 / InvoicePeriod StartDate",v:"2025-12-01",d:"Début période service/livraison",req:"Optionnel",actor:"Coty",tt:"TT-42"},{f:"BT-74 / InvoicePeriod EndDate",v:"2026-01-31",d:"Fin période service/livraison",req:"Optionnel",actor:"Coty",tt:"TT-43"},{f:"BT-8 / Description UNTDID 2475",v:"3",d:"Code date exigibilité TVA: 3=Date livraison",req:"Optionnel",actor:"Coty",tt:"TT-24"}]},{sec:"🏢 Vendeur FR (BG-4)",fields:[{f:"BT-40 / Pays vendeur",v:"FR",d:"Code pays vendeur France",req:"Obligatoire",actor:"Coty",tt:"TT-35"},{f:"BT-31 / TVA vendeur",v:"FR00123456789",d:"N° TVA intracommunautaire vendeur",req:"Obligatoire",actor:"Coty",tt:"TT-34"},{f:"BT-30 / SIREN schemeID=0002",v:"123456789",d:"SIREN vendeur, schemeID 0002 = SIREN France",req:"Obligatoire",actor:"Coty",tt:"TT-33"},{f:"BT-27 / Seller name",v:"Company Name",d:"Nom légal vendeur",req:"Obligatoire",actor:"Coty",tt:"TT-30"}]},{sec:"🛒 Acheteur IT (BG-7)",fields:[{f:"BT-55 / Pays acheteur",v:"IT",d:"Code pays acheteur Italie",req:"Obligatoire",actor:"Coty",tt:"TT-39"},{f:"BT-48 / TVA acheteur",v:"IT12345678912",d:"N° TVA acheteur étranger",req:"Obligatoire",actor:"Coty",tt:"TT-38"},{f:"BT-47 / ID acheteur schemeID=0223",v:"123456789",d:"ID légal acheteur UE — schemeID 0223 = UE hors FR",req:"Obligatoire",actor:"Coty",tt:"TT-36"},{f:"BT-44 / Buyer name",v:"Buyer company Name",d:"Nom légal acheteur",req:"Obligatoire",actor:"Coty",tt:"TT-37"}]},{sec:"🚚 Livraison (BG-13/BG-15)",fields:[{f:"BT-72 / ActualDeliveryDate",v:"2026-01-01",d:"Date livraison réelle",req:"Optionnel",actor:"Coty",tt:"TT-41"},{f:"BT-75 / StreetName",v:"Street name",d:"Rue livraison",req:"Optionnel",actor:"Coty",tt:"TT-103"},{f:"BT-77 / CityName",v:"City Name",d:"Ville livraison",req:"Optionnel",actor:"Coty",tt:"TT-106"},{f:"BT-78 / PostalZone",v:"12345",d:"Code postal livraison",req:"Optionnel",actor:"Coty",tt:"TT-107"},{f:"BT-80 / Pays livraison",v:"IT",d:"Pays de livraison",req:"Obligatoire si BG-15",actor:"Coty",tt:"TT-44"}]},{sec:"🧾 TVA",fields:[{f:"BT-110 / TaxAmount total",v:"0.00",d:"TVA totale = 0 (exonéré intra-UE)",req:"Obligatoire",actor:"PA + Coty",tt:"TT-52"},{f:"BT-116 / TaxableAmount",v:"100.00",d:"Base imposable HT",req:"Obligatoire",actor:"Coty",tt:"TT-54"},{f:"BT-117 / TaxAmount",v:"0.00",d:"TVA par catégorie",req:"Obligatoire",actor:"PA + Coty",tt:"TT-55"},{f:"BT-118 / TaxCategory ID",v:"E",d:"Code catégorie TVA: E = Exonéré",req:"Obligatoire",actor:"Coty",tt:"TT-56"},{f:"BT-119 / Percent",v:"0",d:"Taux TVA 0%",req:"Obligatoire",actor:"Coty",tt:"TT-57"},{f:"BT-121 / VATEX code",v:"VATEX-EU-151",d:"Code motif exonération intra-UE art 262 CGI",req:"Obligatoire si E",actor:"Coty",tt:"TT-59"},{f:"BT-120 / TaxExemptionReason",v:"Exonération de TVA selon Art 262 du CGI",d:"Texte motif exonération",req:"Recommandé",actor:"Coty",tt:"TT-58"}]},{sec:"💰 Totaux",fields:[{f:"BT-109 / TaxExclusiveAmount",v:"100.00",d:"Montant total HT",req:"Obligatoire",actor:"PA + Coty",tt:"TT-51"},{f:"BT-115 / PayableAmount",v:"100.00",d:"Montant total dû",req:"Obligatoire",actor:"PA + Coty",tt:"TT-53"}]},{sec:"📦 Ligne facture",fields:[{f:"BT-126 / Line ID",v:"1",d:"Numéro ligne",req:"Obligatoire",actor:"PA",tt:"TT-60"},{f:"BT-129 / Qty unitCode=NAR",v:"1",d:"Quantité (NAR=Each/Unité)",req:"Obligatoire",actor:"Coty",tt:"TT-62"},{f:"BT-131 / LineExtensionAmount",v:"100.00",d:"Montant net ligne",req:"Obligatoire",actor:"Coty",tt:"TT-63"},{f:"BT-153 / Item Name",v:"Item name",d:"Désignation article/service",req:"Obligatoire",actor:"Coty",tt:"TT-76"},{f:"BT-151 / ClassifiedTaxCategory",v:"E",d:"Code TVA ligne",req:"Obligatoire",actor:"Coty",tt:"TT-70"},{f:"BT-152 / Percent",v:"0",d:"Taux TVA ligne",req:"Obligatoire",actor:"Coty",tt:"TT-71"},{f:"BT-146 / PriceAmount",v:"100.00",d:"Prix unitaire net HT",req:"Obligatoire",actor:"Coty",tt:"TT-69"}]}]},
   purchase_b2bi: {label:"Achats Bi2B Cross-border — Flux 10.1 AP",desc:"Facture achat B2B international (INVOICE). Acheteur FR ← Vendeur DE. TVA 20% autoliquidation. BT-23=B1. Profil purchase.",type:"INVOICE",flux:"10.1",dir:"AP (Achats)",sections:[{sec:"🔑 Extension PUF Pagero",fields:[{f:"puf:entryType",v:"INVOICE",d:"Type reporting — INVOICE achat B2B-INT",req:"Obligatoire",actor:"PA",tt:"TT-15"},{f:"puf:issuerAssignedReportId",v:"Issuer assigned report id",d:"Identifiant rapport émetteur",req:"Optionnel",actor:"Coty",tt:"TT-16"},{f:"puf:reportPeriodStart",v:"2025-02-01",d:"Début de période",req:"Obligatoire",actor:"Coty",tt:"TT-17"},{f:"puf:reportPeriodEnd",v:"2025-02-28",d:"Fin de période",req:"Obligatoire",actor:"Coty",tt:"TT-18"}]},{sec:"📄 En-tête facture",fields:[{f:"BT-24 / CustomizationID",v:"urn:pagero.com:puf:billing:2.0",d:"Spec PUF v2.0",req:"Obligatoire",actor:"PA",tt:"TT-29"},{f:"BT-23 / ProfileID",v:"urn:pagero.com:puf:purchase:1.0",d:"⚠️ Profil purchase (AP) — différent du billing AR",req:"Obligatoire",actor:"PA",tt:"TT-28"},{f:"BT-1 / ID",v:"INV123456",d:"Numéro facture fournisseur",req:"Obligatoire",actor:"Coty",tt:"TT-19"},{f:"BT-2 / IssueDate",v:"2026-01-01",d:"Date émission",req:"Obligatoire",actor:"Coty",tt:"TT-20"},{f:"BT-9 / DueDate",v:"2026-01-31",d:"Date d'échéance",req:"Optionnel",actor:"Coty",tt:"TT-201"},{f:"BT-3 / InvoiceTypeCode",v:"380",d:"Code type 380 = Facture commerciale",req:"Obligatoire",actor:"Coty",tt:"TT-21"},{f:"BT-23 / InvoiceTypeCode @name",v:"B1",d:"Cadre facturation: B1=Biens",req:"Obligatoire",actor:"Coty",tt:"TT-28"},{f:"BT-22 / Note + BT-21",v:"#AAA#Module électronique...",d:"Note — code type #AAA# (AAA=Description marchandise douane)",req:"Optionnel",actor:"Coty",tt:"TT-27"},{f:"BT-5 / DocumentCurrencyCode",v:"EUR",d:"Devise",req:"Obligatoire",actor:"Coty",tt:"TT-22"},{f:"BT-73 / StartDate",v:"2025-12-01",d:"Début période facturation",req:"Optionnel",actor:"Coty",tt:"TT-42"},{f:"BT-74 / EndDate",v:"2026-01-31",d:"Fin période facturation",req:"Optionnel",actor:"Coty",tt:"TT-43"},{f:"BT-8 / Description",v:"3",d:"Code exigibilité TVA UNTDID 2475",req:"Optionnel",actor:"Coty",tt:"TT-24"}]},{sec:"🏢 Vendeur DE (BG-4)",fields:[{f:"BT-40 / Pays vendeur",v:"DE",d:"Code pays fournisseur Allemagne",req:"Obligatoire",actor:"Coty",tt:"TT-35"},{f:"BT-31 / TVA fournisseur",v:"DE00123123123",d:"N° TVA intracom fournisseur",req:"Obligatoire",actor:"Coty",tt:"TT-34"},{f:"BT-30 / ID fournisseur schemeID=0223",v:"123123123",d:"ID légal fournisseur UE — schemeID 0223",req:"Obligatoire",actor:"Coty",tt:"TT-33"},{f:"BT-27 / Seller name",v:"Seller company Name",d:"Nom légal fournisseur",req:"Obligatoire",actor:"Coty",tt:"TT-30"}]},{sec:"🛒 Acheteur FR (BG-7)",fields:[{f:"BT-55 / Pays acheteur",v:"FR",d:"Code pays acheteur France (déclarant)",req:"Obligatoire",actor:"Coty",tt:"TT-39"},{f:"BT-48 / TVA acheteur FR",v:"FR00323456789",d:"N° TVA acheteur français",req:"Obligatoire",actor:"Coty",tt:"TT-38"},{f:"BT-47 / SIREN acheteur schemeID=0002",v:"323456789",d:"SIREN acheteur FR — schemeID 0002 = SIREN France",req:"Obligatoire",actor:"Coty",tt:"TT-36"},{f:"BT-44 / Buyer name",v:"Buyer Company Name",d:"Nom légal acheteur",req:"Obligatoire",actor:"Coty",tt:"TT-37"}]},{sec:"🚚 Livraison (BG-15)",fields:[{f:"BT-72 / ActualDeliveryDate",v:"2026-01-01",d:"Date livraison",req:"Optionnel",actor:"Coty",tt:"TT-41"},{f:"BT-75 / StreetName",v:"ZAC du Cornillon Nord",d:"Rue",req:"Optionnel",actor:"Coty",tt:"TT-103"},{f:"BT-77 / CityName",v:"Saint-Denis",d:"Ville",req:"Optionnel",actor:"Coty",tt:"TT-106"},{f:"BT-78 / PostalZone",v:"93216",d:"Code postal",req:"Optionnel",actor:"Coty",tt:"TT-107"},{f:"BT-80 / Pays livraison",v:"FR",d:"Livraison en France",req:"Obligatoire si BG-15",actor:"Coty",tt:"TT-44"}]},{sec:"🧾 TVA — Autoliquidation 20%",fields:[{f:"BT-110 / TaxAmount total",v:"400.00",d:"TVA totale 20% autoliquidée en France",req:"Obligatoire",actor:"PA + Coty",tt:"TT-52"},{f:"BT-116 / TaxableAmount",v:"2000.00",d:"Base HT 2000€",req:"Obligatoire",actor:"Coty",tt:"TT-54"},{f:"BT-117 / TaxAmount",v:"400.00",d:"TVA 20% = 400€",req:"Obligatoire",actor:"PA + Coty",tt:"TT-55"},{f:"BT-118 / TaxCategory ID",v:"S",d:"S = Standard (autoliquidation côté acheteur FR)",req:"Obligatoire",actor:"Coty",tt:"TT-56"},{f:"BT-119 / Percent",v:"20",d:"Taux 20%",req:"Obligatoire",actor:"Coty",tt:"TT-57"}]},{sec:"💰 Totaux",fields:[{f:"BT-109 / TaxExclusiveAmount",v:"2000.00",d:"Montant total HT",req:"Obligatoire",actor:"PA + Coty",tt:"TT-51"},{f:"BT-115 / PayableAmount",v:"2000.00",d:"Montant dû",req:"Obligatoire",actor:"PA + Coty",tt:"TT-53"}]},{sec:"📦 Ligne facture",fields:[{f:"BT-126 / Line ID",v:"1",d:"Numéro ligne",req:"Obligatoire",actor:"PA",tt:"TT-60"},{f:"BT-129 / Qty unitCode=NAR",v:"100",d:"Quantité 100 unités",req:"Obligatoire",actor:"Coty",tt:"TT-62"},{f:"BT-131 / LineExtensionAmount",v:"2000.00",d:"Montant net = 100 × 20€",req:"Obligatoire",actor:"Coty",tt:"TT-63"},{f:"BT-153 / Item Name",v:"Livraison de modules",d:"Désignation marchandise",req:"Obligatoire",actor:"Coty",tt:"TT-76"},{f:"BT-151 / ClassifiedTaxCategory",v:"S",d:"Code TVA ligne",req:"Obligatoire",actor:"Coty",tt:"TT-70"},{f:"BT-152 / Percent",v:"20",d:"Taux 20%",req:"Obligatoire",actor:"Coty",tt:"TT-71"},{f:"BT-146 / PriceAmount",v:"20.00",d:"Prix unitaire HT 20€/unité",req:"Obligatoire",actor:"Coty",tt:"TT-69"}]}]}
 };
+const PAGERO_RESPONSE_CODES=[
+  {pagero:"SUBMITTED",fr:"200",desc:"Submitted",usage:"Invoice has been submitted to the issuer's platform (PA) and transmitted to the public portal (PPF). Initial entry point into the e-invoicing system.",producer:"Platform"},
+  {pagero:"ISSUED_BY_PLATFORM",fr:"201",desc:"Issued by the platform",usage:"Invoice has been successfully issued/sent out by the issuer's platform. Confirms the invoice is in circulation.",producer:"Platform"},
+  {pagero:"RECEIVED_BY_PLATFORM",fr:"202",desc:"Received by the platform",usage:"Invoice has arrived at the recipient's platform (PA). Confirms delivery to recipient's system.",producer:"Platform"},
+  {pagero:"MADE_AVAILABLE",fr:"203",desc:"Made available",usage:"Invoice has been made accessible to the recipient. Ready for the recipient to view and process.",producer:"Platform"},
+  {pagero:"IN_PROCESS",fr:"204",desc:"In-hand",usage:"Recipient acknowledges receipt and has taken the invoice into their processing workflow. Basic acknowledgment without approval/rejection.",producer:"Receiver"},
+  {pagero:"ACCEPTED",fr:"205",desc:"Approved",usage:"Recipient has fully approved the invoice for payment. Green light for the entire invoice amount.",producer:"Receiver"},
+  {pagero:"PARTIALLY_ACCEPTED",fr:"206",desc:"Partially Approved",usage:"Recipient approves only part of the invoice (e.g., some line items disputed, partial quantity accepted).",producer:"Receiver"},
+  {pagero:"UNDER_QUERY",fr:"207",desc:"Disputed",usage:"Recipient contests the invoice due to disagreement on amounts, services, or other terms. Requires resolution.",producer:"Receiver"},
+  {pagero:"ON_HOLD",fr:"208",desc:"On-hold",usage:"Invoice processing is temporarily on hold, pending additional information or clarification.",producer:"Receiver"},
+  {pagero:"INFORMATION_PROVIDED",fr:"209",desc:"Complemented",usage:"Issuer has added supplementary information or corrections to the invoice in response to recipient's request.",producer:"Issuer"},
+  {pagero:"REJECTED",fr:"210",desc:"Refused",usage:"Recipient formally rejects the entire invoice. Also notified to the public portal (PPF).",producer:"Receiver"},
+  {pagero:"PAYMENT_INITIATED",fr:"211",desc:"Payment transmitted",usage:"Buyer confirms that payment has been sent to the seller. Payment is in transit.",producer:"Receiver"},
+  {pagero:"PAYMENT_RECEIVED",fr:"212",desc:"Payment received",usage:"Seller confirms receipt and cashing of the payment. Transaction financially complete.",producer:"Issuer"},
+  {pagero:"VALIDATION_FAILURE",fr:"213",desc:"Rejected",usage:"Invoice rejected due to technical errors or non-compliance, either at reception (by PA) or at emission (by PA). Requires correction and resubmission.",producer:"Platform"},
+  {pagero:"ENDORSED",fr:"214",desc:"Endorsed",usage:"Invoice has been endorsed. Message created by the Seller Agent or Buyer Agent, addressed to the Recipient (C4) and the Issuer (C1), transmitted via PA-R and PA-E which make it available to both parties.",producer:"Seller Agent or Buyer Agent"},
+  {pagero:"CANCELLED",fr:"220",desc:"Cancelled",usage:"Invoice has been cancelled by the issuer following the creation of a corrective invoice. Message created by the Issuer (C1) and transmitted to the Recipient (C4) via PA-E and PA-R.",producer:"Issuer"},
+  {pagero:"REQUEST_PAYMENT",fr:"224",desc:"Direct payment request",usage:"Seller (e.g. a sub-contractor) requests direct payment from the buyer for an invoice. Message created by the Seller and addressed to the final Buyer.",producer:"Issuer"},
+  {pagero:"FACTORED",fr:"225",desc:"Factored",usage:"Invoice has been factored. Message created by the Seller addressed to the Factor (AFFACTUREUR) and the Buyer, transmitted via PA-E (for the Factor) and PA-R (for the Buyer).",producer:"Issuer"},
+  {pagero:"FACTORED_CONFIDENTIAL",fr:"226",desc:"Factored (confidential)",usage:"Invoice has been factored under a confidential factoring arrangement. Message created by the Seller and addressed to the Factor only, transmitted via PA-E.",producer:"Issuer"},
+  {pagero:"ACCOUNT_CHANGED",fr:"227",desc:"Account changed",usage:"Seller notifies the Buyer and the Factor of a change in the payment account. Message transmitted via PA-E (for the Factor) and PA-R (for the Buyer).",producer:"Issuer"},
+  {pagero:"FACTORING_CANCELLED",fr:"228",desc:"Factoring cancelled",usage:"Invoice factoring has been cancelled. Message created by the Seller addressed to the Factor and the Buyer (unless confidential factoring), transmitted via PA-E and PA-R.",producer:"Issuer"}
+];
+const PAGERO_REASON_CODES=[
+  {code:"MONTANTTOTAL_ERR",label:"Incorrect Total Amount",desc:"One of the invoice total amounts is incorrect, for example Net payable",statuts:["207","210"]},
+  {code:"CALCUL_ERR",label:"Invoice calculation error",desc:"Either detected at schematron, or afterwards (for lines, or rounding not accepted)",statuts:["207","210"]},
+  {code:"NON_CONFORME",label:"Missing legal information",desc:"Any missing legal information that hasn't been checked by systematic validations.",statuts:["207","210"]},
+  {code:"DOUBLON",label:"Duplicate invoice (already issued / received)",desc:"Duplicate invoice (same number, same supplier and same year of invoice date)",statuts:["207","210"]},
+  {code:"DEST_ERR",label:"Recipient error",desc:"The legal entity recipient of the invoice is not the correct one (recipient's SIREN number). For example in case of multi-company within a group, and the billed company is not the one that should have been.",statuts:["207","210"]},
+  {code:"TRANSAC_INC",label:"Unknown transaction",desc:"The invoice does not correspond to a delivery made or a service rendered.",statuts:["207","210"]},
+  {code:"EMMET_INC",label:"Unknown issuer",desc:"The invoice issuer is unknown to the Recipient (anti-spam)",statuts:["207","210"]},
+  {code:"CONTRAT_TERM",label:"Contract terminated",desc:"Contract terminated, no more invoicing possible",statuts:["207","210"]},
+  {code:"DOUBLE_FACT",label:"Double invoice",desc:"Service or delivery already invoiced on another invoice",statuts:["207","210"]},
+  {code:"CMD_ERR",label:"Incorrect or missing order number",desc:"Order number incorrect, non-existent or already invoiced. Can only be used together with rejected (210) status if the order number was provided by the buyer before invoicing.",statuts:["206","207","208","210"]},
+  {code:"ADR_ERR",label:"Incorrect electronic billing address",desc:"The recipient's electronic billing address (BT-49 or BT-34) is absent or incorrect",statuts:["207"]},
+  {code:"SIRET_ERR",label:"Incorrect or missing SIRET",desc:"The recipient's SIRET is incorrect or missing when required",statuts:["206","207","208"]},
+  {code:"CODE_ROUTAGE_ERR",label:"Incorrect or missing ROUTING_CODE",desc:"The recipient's ROUTING_CODE is incorrect or missing when required",statuts:["206","207","208"]},
+  {code:"REF_CT_ABSENT",label:"Contractual reference required for invoice processing is missing",desc:"Contractually required reference is absent (list to be defined) and to be identified in the lifecycle: BT-12 (Contract number), Delivery note number (BT-16), Buyer reference (BT-10), Invoiced object (BT-18), Project reference (BT-11), Previous invoice (BG-3) etc.",statuts:["206","207","208","210"]},
+  {code:"REF_ERR",label:"Incorrect reference",desc:"The specific incorrect reference is identified in the other data fields",statuts:["206","207","208"]},
+  {code:"PU_ERR",label:"Incorrect unit prices",desc:"A unit price is not as expected",statuts:["206","207"]},
+  {code:"REM_ERR",label:"Incorrect discount",desc:"A discount is missing or is not as expected",statuts:["206","207"]},
+  {code:"QTE_ERR",label:"Incorrect invoiced quantity",desc:"An invoiced quantity is not as expected",statuts:["206","207"]},
+  {code:"ART_ERR",label:"Incorrect invoiced item",desc:"An invoiced item is incorrect",statuts:["206","207"]},
+  {code:"MODPAI_ERR",label:"Incorrect payment terms",desc:"The payment terms (e.g., due date) are not as expected",statuts:["206","207"]},
+  {code:"QUALITE_ERR",label:"Incorrect quality of delivered item",desc:"One (or more) of the delivered items is defective",statuts:["206","207"]},
+  {code:"LIVR_INCOMP",label:"Delivery problem",desc:"Incomplete or non-compliant delivery",statuts:["206","207"]}
+];
+const PAGERO_AMOUNT_TYPES=[
+  {code:"MEN",defn:"Amount collected (incl. tax)"},
+  {code:"MPA",defn:"Amount paid"},
+  {code:"RAP",defn:"Remaining to pay (in case of partial payment)"},
+  {code:"ESC",defn:"Discount granted"},
+  {code:"RAB",defn:"Rebate granted"},
+  {code:"REM",defn:"Reduction granted"},
+  {code:"MAP",defn:"Net Amount Approved"},
+  {code:"MAPTTC",defn:"Gross Amount Approved (incl. tax)"},
+  {code:"MNA",defn:"Net Amount NOT Approved"},
+  {code:"MNATTC",defn:"Gross Amount NOT Approved (incl. tax)"},
+  {code:"CBB",defn:"Beneficiary Bank Details to modify"},
+  {code:"DIV",defn:"Invalid Data"},
+  {code:"DVA",defn:"Valid Data expected"},
+  {code:"MAJ",defn:"Data to replace for processing (Completed/Complement status)"}
+];
+const PAGERO_ACTION_CODES=[
+  {code:"NOA",defn:"No action required",usage:"No action required"},
+  {code:"PIN",defn:"Additional information required",usage:"Missing information requested without re-issuing invoice"},
+  {code:"NIN",defn:"Create a Corrected Invoice",usage:"Request to re-issue a corrected invoice"},
+  {code:"CNF",defn:"Create a Full Credit Note",usage:"Request to fully cancel the referenced invoice with a credit note"},
+  {code:"CNP",defn:"Create a Partial Credit Note",usage:"Request to issue partial credit note for corrections only"},
+  {code:"CNA",defn:"Refund Invoice Payment",usage:"Request to repay the amount paid on the invoice"},
+  {code:"OTH",defn:"Other",usage:"Requested action is not defined by code"}
+];
+const PAGERO_LC_FIELDS=[
+  {field:"Document Level",desc:"",oblig:"",mdt:"",puf:"",comment:""},
+  {field:"Customization ID",desc:"Document specification identifier. Used to determine the type/direction of response (buyer --> seller or seller --> buyer).",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cbc:CustomizationID",comment:"The mandatory nature depends on the integration with Pagero Online. Generally a requirement to include."},
+  {field:"Document number",desc:"A unique  sequential  number that identify each Document (e.g response number)",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cbc:ID",comment:"The document number must never exceed 20 characters, due to technical limitations."},
+  {field:"Issue date",desc:"Date of issuance",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cbc:IssueDate",comment:""},
+  {field:"Issue time",desc:"Time of issuance",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cbc:IssueTime",comment:""},
+  {field:"Sender Information",desc:"A group of business terms providing information about the Sender.",oblig:"M",mdt:"",puf:"ApplicationResponse/cac:SenderParty/",comment:""},
+  {field:"Trading name",desc:"A name by which the Sender is known.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:SenderParty/cac:PartyName/cbc:Name",comment:""},
+  {field:"SIRET",desc:"The Sender's SIRET identifier.",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:SenderParty/cac:PartyIdentification/cbc:ID[@schemeID = '0009']",comment:""},
+  {field:"SIREN",desc:"The Sender's SIREN identifier.",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:SenderParty/cac:PartyLegalEntity/cbc:CompanyID[@schemeID = '0002']",comment:""},
+  {field:"VAT identifier",desc:"The Sender's VAT identifier (also known as Sender VAT identification number)",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:SenderParty/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID = 'VAT']/cbc:CompanyID",comment:"Useful to include for responses relating to cross-border invoices."},
+  {field:"Receiver Information",desc:"A group of business terms providing information about the Receiver.",oblig:"M",mdt:"",puf:"ApplicationResponse/cac:ReceiverParty/",comment:""},
+  {field:"Trading name",desc:"A name by which the Receiver is known.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cac:PartyName/cbc:Name",comment:""},
+  {field:"SIRET",desc:"The Receiver's SIRET identifier.",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cac:PartyIdentification/cbc:ID[@schemeID = '0009']",comment:"Recommended to include if applicable"},
+  {field:"Routing Code",desc:"The Receiver's Routing Code.",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cac:PartyIdentification/cbc:ID[@schemeID = '0024']",comment:"If the Receiver has requested delivery to a specific routing code, include it here."},
+  {field:"SIREN",desc:"The Receiver's SIREN identifier.",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cac:PartyLegalEntity/cbc:CompanyID[@schemeID = '0002']",comment:""},
+  {field:"VAT identifier",desc:"The Receiver's VAT identifier (also known as Receiver VAT identification number)",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID = 'VAT']/cbc:CompanyID",comment:"If it is a foreign (EU) receiver, VAT number is typically used."},
+  {field:"Endpoint ID",desc:"Full addressing line endpoint for the Receiver.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cbc:EndpointID",comment:"Not a requirement as Pagero can route on other IDs to find the correct endpoint. However, if you want to provide the exact endpoint to maintain full c"},
+  {field:"Unique identifier of the recipient (customer number)",desc:"Customer number",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:ReceiverParty/cac:PartyIdentification/cbc:ID",comment:"Can be used to route documents to a recipient in Pagero Online.  — Particularly useful if you want Pagero Online to handle party identifiers such as SIR"},
+  {field:"Document response",desc:"A group of business terms providing information about the response to a specific document.",oblig:"M",mdt:"",puf:"ApplicationResponse/cac:DocumentResponse",comment:""},
+  {field:"Referenced document matching identifier",desc:"The unique Pagero ID used to match the response to an Invoice (or other document).",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:1.0:PageroE",comment:"This unique Pagero ID can be sent to facilitate a matching/connection between the response to the Invoice in Pagero Online. — See section 2.5. Document"},
+  {field:"Referenced document number",desc:"The identification of an Document that was previously sent by the Seller.",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:DocumentReference/cbc:ID",comment:"Mandatory to include, but Pagero will add if \"Referenced document matching identifier\" is used."},
+  {field:"Referenced document issue date",desc:"Issue date of the referenced document",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:DocumentReference/cbc:IssueDate",comment:"Mandatory to include, but Pagero will add if \"Referenced document matching identifier\" is used."},
+  {field:"Referenced document type code",desc:"Document type of the referenced document",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:DocumentReference/cbc:DocumentTypeCode",comment:"Mandatory to include, but Pagero will add if \"Referenced document matching identifier\" is used."},
+  {field:"Response Code",desc:"Response code associated with the response",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cbc:ResponseCode",comment:"In France, a long list of business statuses can be sent and received. See Response Codes for full list."},
+  {field:"Statuses",desc:"A group of business terms providing detailed statuses.",oblig:"O",mdt:"",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status",comment:"This group can be repeated, e.g. if you want to include both a response to and an expected action by the recipient."},
+  {field:"Reason code",desc:"A code defining a clarification given for the invoice status.",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/cbc:StatusReasonCode[@listID = 'OPStatusReason']",comment:"Mandatory when refusing an invoice to explain why. — See Reason Codes for details on available codes."},
+  {field:"Reason text",desc:"Text field for reasons for the given status.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/cbc:StatusReason",comment:""},
+  {field:"Expected action code",desc:"Action that the Buyer requests from the Seller.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/cbc:StatusReasonCode[@listID = 'OPStatusAction']",comment:"Code should follow the list available in Action Codes sheet."},
+  {field:"Amounts",desc:"A group of business terms providing the monetary amounts relating to the status.",oblig:"CM",mdt:"",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status",comment:"This group can be repeated, e.g. if you want to provide multiple VAT rates or different type of amounts (discounts, payments, etc.)"},
+  {field:"Amount type",desc:"The type of amount that is being specified.",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"See Amount Types for a list of available types."},
+  {field:"Total amount",desc:"The total amount (incl. taxes) for the specified Amount type",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Mandatory for certain statuses, e.g. Payment Received. — In France, amounts should always be in EUR."},
+  {field:"Net amount",desc:"The net amount (excl. taxes) for the specified Amount type",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:""},
+  {field:"VAT rate",desc:"The VAT rate applicable for the specified Amount type",oblig:"CM",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Mandatory for certain statuses, e.g. Payment Received. — In France, amounts should always be in EUR."},
+  {field:"Currency",desc:"The currency used for the amounts.",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Must be EUR in France."},
+  {field:"Date",desc:"A date associated with the amount entry, such as the payment collection date.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Used for amount types MEN and MPA to signify the date of payment collection."}
+];
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
@@ -1788,6 +1897,7 @@ function App(){
                       <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#22C55E"}}>{selER.ex}</code>
                     </div>
                   )}
+
                 </div>
               );})():
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
@@ -1893,6 +2003,7 @@ function App(){
                         <span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.actor}</span>
                         {selILC.modif&&<span style={{fontSize:10,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",borderRadius:5,padding:"3px 10px"}}>{selILC.modif}</span>}
                         {selILC.coty&&<span style={{fontSize:10,background:selILC.coty==="Y"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",color:selILC.coty==="Y"?"#22C55E":"rgba(255,255,255,0.3)",border:"1px solid "+(selILC.coty==="Y"?"rgba(34,197,94,0.3)":"rgba(255,255,255,0.1)"),borderRadius:5,padding:"3px 10px",fontWeight:700}}>Coty AP: {selILC.coty}</span>}
+                        {selILC.pagero_code&&<span style={{fontSize:10,background:"rgba(16,185,129,0.12)",color:"#34D399",border:"1px solid rgba(16,185,129,0.3)",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>Pagero: {selILC.pagero_code}</span>}
                         {selILC.coty_ap_val&&<span style={{fontSize:10,background:"rgba(245,158,11,0.1)",color:"#FCD34D",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>TS→SAP: {selILC.coty_ap_val}</span>}
                         {selILC.vim&&<span style={{fontSize:10,background:"rgba(139,92,246,0.1)",color:"#C4B5FD",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace"}}>VIM: {selILC.vim} ({selILC.vim_label})</span>}
                         {selILC.ts&&<span style={{fontSize:10,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px"}}>TS: {selILC.ts}</span>}
@@ -1938,6 +2049,58 @@ function App(){
                       </div>
                     </div>
                   )}
+                  {/* Pagero Response Codes Reference */}
+                  {(()=>{
+                    const rc = PAGERO_RESPONSE_CODES.find(r=>r.fr===selILC.code);
+                    return rc?(
+                      <div style={{background:"rgba(16,185,129,0.04)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:9,padding:"12px 14px",marginTop:10}}>
+                        <div style={{fontSize:9,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1,marginBottom:6,fontWeight:700}}>📡 Pagero (PA) — Best Practice v1.6</div>
+                        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+                          <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:12,color:"#34D399",background:"rgba(52,211,153,0.1)",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{rc.pagero_code||rc.pagero}</span>
+                          <span style={{fontSize:11,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",borderRadius:5,padding:"3px 10px"}}>Produit par: {rc.producer}</span>
+                        </div>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",lineHeight:1.7}}>{rc.desc}</div>
+                        {rc.usage&&<div style={{fontSize:11,color:"rgba(255,255,255,0.5)",marginTop:6,fontStyle:"italic"}}>{rc.usage}</div>}
+                      </div>
+                    ):null;
+                  })()}
+
+                  {/* Reason codes applicable */}
+                  {(()=>{
+                    const codes = PAGERO_REASON_CODES.filter(r=>r.statuts.includes(selILC.code));
+                    return codes.length>0?(
+                      <div style={{background:"rgba(239,68,68,0.04)",border:"1px solid rgba(239,68,68,0.18)",borderRadius:9,padding:"12px 14px",marginTop:10}}>
+                        <div style={{fontSize:9,color:"#FCA5A5",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>🚫 Codes motif applicables (Pagero)</div>
+                        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                          {codes.map(c=>(
+                            <div key={c.code} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                              <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#EF4444",background:"rgba(239,68,68,0.1)",borderRadius:4,padding:"1px 7px",fontWeight:700,flexShrink:0,minWidth:140}}>{c.code}</code>
+                              <div>
+                                <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",fontWeight:600}}>{c.label}</div>
+                                {c.desc&&<div style={{fontSize:10,color:"rgba(255,255,255,0.45)",lineHeight:1.5}}>{c.desc}</div>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ):null;
+                  })()}
+
+                  {/* Amount types for payment statuses */}
+                  {(selILC.code==="211"||selILC.code==="212")&&(
+                    <div style={{background:"rgba(245,158,11,0.04)",border:"1px solid rgba(245,158,11,0.18)",borderRadius:9,padding:"12px 14px",marginTop:10}}>
+                      <div style={{fontSize:9,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>💰 Types de montants (Pagero)</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                        {PAGERO_AMOUNT_TYPES.map(a=>(
+                          <div key={a.code} style={{background:"rgba(245,158,11,0.08)",borderRadius:5,padding:"4px 10px"}}>
+                            <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#FCD34D",fontWeight:700}}>{a.code}</code>
+                            <span style={{fontSize:10,color:"rgba(255,255,255,0.55)",marginLeft:6}}>{a.defn}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               );})():
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
@@ -2218,7 +2381,16 @@ function App(){
           <div style={{maxWidth:1000,margin:"0 auto"}}>
             <div style={{marginBottom:20}}>
               <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:18,margin:0}}>Contexte <span style={{color:"#F59E0B"}}>Coty France</span></h2>
-              <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4}}>Entités légales · Annuaire PPF · Flux ICO hors périmètre · Routing code · Source: Tracker 22/04/2026</p>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                {PAGERO_ACTION_CODES.map(a=>(
+                  <div key={a.code} title={a.usage} style={{background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:5,padding:"2px 8px",cursor:"default"}}>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:"#A5B4FC",fontWeight:700}}>{a.code}</code>
+                    <span style={{fontSize:9,color:"rgba(255,255,255,0.4)",marginLeft:5}}>{a.defn}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4}}>Entités légales · Annuaire PPF · Flux ICO hors périmètre · Routing code · Source: Tracker 22/04/2026</p>
             </div>
 
             {/* Entities */}
@@ -2303,7 +2475,8 @@ function App(){
               </div>
             </div>
 
-                            <div style={{fontSize:12,fontWeight:700,color:"#A5B4FC",marginBottom:8}}>🔀 Routing Code Logic</div>
+            <div style={{background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,padding:"14px 16px"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#A5B4FC",marginBottom:8}}>🔀 Routing Code Logic</div>
               <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.75,marginBottom:8}}>
                 Répliquer la logique de routing code existante depuis la <strong>Pologne</strong>.
               </div>
