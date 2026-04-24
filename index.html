@@ -1407,7 +1407,7 @@ const PUF_LC_EXAMPLES=[
   {id:"uc13_direct_payment",label:"Demande Paiement Direct (224) — UC13",code:"224",cdar:"REQUEST_PAYMENT",dir:"Subcontractor → Buyer + Main Contractor (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC13",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"REQUEST_PAYMENT",note:"Code 224 = Demande de Paiement Direct. Sous-traitant court-circuite le titulaire."},{k:"BT-23",v:"S5",note:"⚠️ Sous-traitant = S5. Autoliquidation VATEX-FR-AE sur la facture F1."},{k:"Distribution duale",v:"Acheteur final + Titulaire",note:"⚠️ Message envoyé aux 2 parties. cac:ReceiverParty = Acheteur final."},{k:"B2G",v:"Obligatoire marchés publics",note:"Optionnel en B2B privé. Obligatoire si B2G (appel depuis Chorus Pro)."},{k:"IBAN sous-traitant",v:"Via cbc:Note",note:"Coordonnées bancaires du sous-traitant pour le paiement direct."}]},
   {id:"uc14_endorsed",label:"Visée (214) — UC14 Co-traitance",code:"214",cdar:"ENDORSED",dir:"Lead Contractor → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC14",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"ENDORSED",note:"Code 214 = Visée. Chef de file valide la facture du co-traitant."},{k:"BT-23",v:"S6",note:"Co-traitant = S6. Le chef de file \"vise\" pour grouper le paiement."},{k:"Condition",v:"PA-R doit supporter les droits délégués",note:"L'acheteur doit avoir accordé accès délégué au chef de file sur sa PA-R."},{k:"Initiateur",v:"Agent vendeur ou acheteur → Pagero",note:"Sides = AR+AP (chef de file agit pour les 2 parties)."}]}
 ];
-const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -1489,6 +1489,7 @@ function App(){
   const [erSort,setErSort]=useState('id');
   const [erSortDir,setErSortDir]=useState('asc');
   const [selILC,setSelILC]=useState(ILC[0]);
+  const [ilcView,setIlcView]=useState('statuts');
   const [motifCat,setMotifCat]=useState('all');
   const [motifSt,setMotifSt]=useState('all');
   const [selMotif,setSelMotif]=useState(CODES_MOTIF[0]);
@@ -2205,7 +2206,14 @@ function App(){
           <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
               <div>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
                 <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Cycle de vie <span style={{color:"#8B5CF6"}}>ILC / CDAR</span></h2>
+                <div style={{display:"flex",gap:4}}>
+                  {[["statuts","🔄 Statuts ILC"],["motif","🚫 Codes Motif"]].map(([v,l])=>(
+                    <button key={v} onClick={()=>setIlcView(v)} style={{fontSize:10,padding:"3px 10px",borderRadius:5,cursor:"pointer",fontWeight:ilcView===v?700:400,border:`1px solid ${ilcView===v?"#8B5CF6":"rgba(255,255,255,0.12)"}`,background:ilcView===v?"rgba(139,92,246,0.15)":"transparent",color:ilcView===v?"#C4B5FD":"rgba(255,255,255,0.4)"}}>{l}</button>
+                  ))}
+                </div>
+              </div>
                 <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>14 statuts · XP Z12-012 · Invoice Lifecycle Code</p>
               </div>
               <div style={{display:"flex",gap:3}}>
@@ -2216,6 +2224,7 @@ function App(){
             </div>
           </div>
 
+          {ilcView==="statuts"&&(<>
           {/* Two-column layout */}
           <div style={{display:"grid",gridTemplateColumns:"780px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
@@ -2436,6 +2445,97 @@ function App(){
               </div>}
             </div>
           </div>
+          </>)}
+          {ilcView==="motif"&&(
+          <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
+              <div>
+                <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Codes Motif <span style={{color:"#EF4444"}}>CDV / Reject Reason Codes</span></h2>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>45 codes · Coty FR Tracker 22/04/2026 · Tradeshift + VIM OpenText</p>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center"}}>CATÉGORIE:</span>
+              {[["all","Tous","#6366F1"],["metier","🔴 Métier","#EF4444"],["systeme","🟡 Système","#F59E0B"],["technique","🔵 Technique","#3B82F6"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setMotifCat(v)} style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",border:"1px solid "+(motifCat===v?c:"rgba(255,255,255,0.1)"),background:motifCat===v?c+"20":"transparent",color:motifCat===v?c:"rgba(255,255,255,0.35)",fontWeight:motifCat===v?700:400}}>{l}</button>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center"}}>STATUT:</span>
+              {[["all","Tous","#6366F1"],["210","210 Refusée","#EF4444"],["207","207 Litige","#F59E0B"],["208","208 Suspendue","#94A3B8"],["206","206 Part.Appr.","#84CC16"],["213_EMISSION","213 Rejet émission","#8B5CF6"],["213_RECEPTION","213 Rejet réception","#06B6D4"],["200","200 Déposée","#3B82F6"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setMotifSt(v)} style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",border:"1px solid "+(motifSt===v?c:"rgba(255,255,255,0.1)"),background:motifSt===v?c+"20":"transparent",color:motifSt===v?c:"rgba(255,255,255,0.35)",fontWeight:motifSt===v?700:400}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"460px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+            {/* LEFT — list */}
+            <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 220px 1fr 70px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+                <div></div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>CODE MOTIF</div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>LIBELLÉ</div>
+                <div style={{fontSize:9,fontWeight:700,color:"#34D399",textTransform:"uppercase",letterSpacing:0.7}}>VIM RTV</div>
+              </div>
+              <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
+                {CODES_MOTIF.filter(f=>(motifCat==="all"||f.cat===motifCat)&&(motifSt==="all"||f.statuts.includes(motifSt))).map(f=>{
+                  const CC={"metier":"#EF4444","systeme":"#F59E0B","technique":"#3B82F6"}[f.cat]||"#6366F1";
+                  return(
+                  <div key={f.code} onClick={()=>setSelMotif(f)}
+                    style={{display:"grid",gridTemplateColumns:"3px 220px 1fr 70px",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                      background:selMotif?.code===f.code?CC+"18":"transparent",transition:"background 0.1s"}}
+                    onMouseEnter={e=>{if(selMotif?.code!==f.code)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
+                    onMouseLeave={e=>{if(selMotif?.code!==f.code)e.currentTarget.style.background="transparent";}}>
+                    <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:CC,minHeight:16}}></div>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:CC,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.code}</code>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#34D399",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.vim||"—"}</div>
+                  </div>
+                );})}
+              </div>
+            </div>
+
+            {/* RIGHT — detail */}
+            <div key={selMotif?.code} style={{overflow:"auto",padding:22,background:"rgba(0,0,0,0.12)"}}>
+              {selMotif?(()=>{
+                const CC={"metier":"#EF4444","systeme":"#F59E0B","technique":"#3B82F6"}[selMotif.cat]||"#6366F1";
+                const CL={"metier":"🔴 Métier","systeme":"🟡 Système","technique":"🔵 Technique"}[selMotif.cat]||"";
+                return(<div>
+                  <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:18}}>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:16,color:CC,fontWeight:900,background:CC+"12",border:"1px solid "+CC+"35",borderRadius:8,padding:"8px 14px",flexShrink:0}}>{selMotif.code}</code>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>{selMotif.l}</div>
+                      {selMotif.en&&<div style={{fontSize:12,color:"rgba(255,255,255,0.4)",fontStyle:"italic"}}>{selMotif.en}</div>}
+                    </div>
+                    <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
+                      <span style={{fontSize:10,background:CC+"18",color:CC,border:"1px solid "+CC+"35",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{CL}</span>
+                      {selMotif.vim&&<span style={{fontSize:10,background:"rgba(52,211,153,0.12)",color:"#34D399",border:"1px solid rgba(52,211,153,0.3)",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>VIM RTV: {selMotif.vim}</span>}
+                      {selMotif.vim_desc&&<span style={{fontSize:10,background:"rgba(52,211,153,0.06)",color:"#6EE7B7",borderRadius:5,padding:"3px 10px",fontStyle:"italic"}}>{selMotif.vim_desc}</span>}
+                    </div>
+                  </div>
+                  {selMotif.d&&<div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.75}}>{selMotif.d}</div>}
+                  {selMotif.statuts&&selMotif.statuts.length>0&&(
+                    <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:10,padding:"12px 16px"}}>
+                      <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:10,fontWeight:700}}>📋 Statuts ILC applicables</div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        {selMotif.statuts.map(s=>{
+                          const sc={"210":"#EF4444","207":"#F59E0B","208":"#94A3B8","206":"#84CC16","213_EMISSION":"#8B5CF6","213_RECEPTION":"#06B6D4","200":"#3B82F6","ROUTAGE":"#EC4899","IRRECEVABLE":"#F97316"}[s]||"#6366F1";
+                          const sl={"210":"210 Refusée","207":"207 En litige","208":"208 Suspendue","206":"206 Part. Approuvée","213_EMISSION":"213 Rejet à émission","213_RECEPTION":"213 Rejet à réception","200":"200 Déposée","ROUTAGE":"Erreur routage","IRRECEVABLE":"Irrecevable"}[s]||s;
+                          return(<span key={s} style={{fontSize:11,background:sc+"15",color:sc,border:"1px solid "+sc+"30",borderRadius:6,padding:"4px 10px",fontWeight:600,cursor:"pointer"}} onClick={()=>{}} title="Voir le statut ILC">{sl}</span>);
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>);
+              })():<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
+                <div style={{fontSize:40}}>🚫</div>
+                <div style={{fontSize:13}}>Sélectionnez un code motif</div>
+              </div>}
+            </div>
+          </div>
+        </div>
+          )}
         </div>
       )}
       {tab==="uc"&&(
@@ -2888,6 +2988,96 @@ function App(){
             </div>
 
           </div>
+          {ilcView==="motif"&&(
+          <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
+              <div>
+                <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Codes Motif <span style={{color:"#EF4444"}}>CDV / Reject Reason Codes</span></h2>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:3}}>45 codes · Coty FR Tracker 22/04/2026 · Tradeshift + VIM OpenText</p>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center"}}>CATÉGORIE:</span>
+              {[["all","Tous","#6366F1"],["metier","🔴 Métier","#EF4444"],["systeme","🟡 Système","#F59E0B"],["technique","🔵 Technique","#3B82F6"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setMotifCat(v)} style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",border:"1px solid "+(motifCat===v?c:"rgba(255,255,255,0.1)"),background:motifCat===v?c+"20":"transparent",color:motifCat===v?c:"rgba(255,255,255,0.35)",fontWeight:motifCat===v?700:400}}>{l}</button>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",alignSelf:"center"}}>STATUT:</span>
+              {[["all","Tous","#6366F1"],["210","210 Refusée","#EF4444"],["207","207 Litige","#F59E0B"],["208","208 Suspendue","#94A3B8"],["206","206 Part.Appr.","#84CC16"],["213_EMISSION","213 Rejet émission","#8B5CF6"],["213_RECEPTION","213 Rejet réception","#06B6D4"],["200","200 Déposée","#3B82F6"]].map(([v,l,c])=>(
+                <button key={v} onClick={()=>setMotifSt(v)} style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",border:"1px solid "+(motifSt===v?c:"rgba(255,255,255,0.1)"),background:motifSt===v?c+"20":"transparent",color:motifSt===v?c:"rgba(255,255,255,0.35)",fontWeight:motifSt===v?700:400}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"460px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+            {/* LEFT — list */}
+            <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+              <div style={{display:"grid",gridTemplateColumns:"3px 220px 1fr 70px",padding:"5px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.3)",flexShrink:0,gap:5}}>
+                <div></div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>CODE MOTIF</div>
+                <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7}}>LIBELLÉ</div>
+                <div style={{fontSize:9,fontWeight:700,color:"#34D399",textTransform:"uppercase",letterSpacing:0.7}}>VIM RTV</div>
+              </div>
+              <div style={{flex:1,overflow:"auto",padding:"3px 4px"}}>
+                {CODES_MOTIF.filter(f=>(motifCat==="all"||f.cat===motifCat)&&(motifSt==="all"||f.statuts.includes(motifSt))).map(f=>{
+                  const CC={"metier":"#EF4444","systeme":"#F59E0B","technique":"#3B82F6"}[f.cat]||"#6366F1";
+                  return(
+                  <div key={f.code} onClick={()=>setSelMotif(f)}
+                    style={{display:"grid",gridTemplateColumns:"3px 220px 1fr 70px",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:5,alignItems:"center",cursor:"pointer",
+                      background:selMotif?.code===f.code?CC+"18":"transparent",transition:"background 0.1s"}}
+                    onMouseEnter={e=>{if(selMotif?.code!==f.code)e.currentTarget.style.background="rgba(255,255,255,0.03)";}}
+                    onMouseLeave={e=>{if(selMotif?.code!==f.code)e.currentTarget.style.background="transparent";}}>
+                    <div style={{width:3,borderRadius:2,alignSelf:"stretch",background:CC,minHeight:16}}></div>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,fontWeight:700,color:CC,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.code}</code>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.l}</div>
+                    <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#34D399",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.vim||"—"}</div>
+                  </div>
+                );})}
+              </div>
+            </div>
+
+            {/* RIGHT — detail */}
+            <div key={selMotif?.code} style={{overflow:"auto",padding:22,background:"rgba(0,0,0,0.12)"}}>
+              {selMotif?(()=>{
+                const CC={"metier":"#EF4444","systeme":"#F59E0B","technique":"#3B82F6"}[selMotif.cat]||"#6366F1";
+                const CL={"metier":"🔴 Métier","systeme":"🟡 Système","technique":"🔵 Technique"}[selMotif.cat]||"";
+                return(<div>
+                  <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:18}}>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:16,color:CC,fontWeight:900,background:CC+"12",border:"1px solid "+CC+"35",borderRadius:8,padding:"8px 14px",flexShrink:0}}>{selMotif.code}</code>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>{selMotif.l}</div>
+                      {selMotif.en&&<div style={{fontSize:12,color:"rgba(255,255,255,0.4)",fontStyle:"italic"}}>{selMotif.en}</div>}
+                    </div>
+                    <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
+                      <span style={{fontSize:10,background:CC+"18",color:CC,border:"1px solid "+CC+"35",borderRadius:5,padding:"3px 10px",fontWeight:700}}>{CL}</span>
+                      {selMotif.vim&&<span style={{fontSize:10,background:"rgba(52,211,153,0.12)",color:"#34D399",border:"1px solid rgba(52,211,153,0.3)",borderRadius:5,padding:"3px 10px",fontFamily:"JetBrains Mono,monospace",fontWeight:700}}>VIM RTV: {selMotif.vim}</span>}
+                      {selMotif.vim_desc&&<span style={{fontSize:10,background:"rgba(52,211,153,0.06)",color:"#6EE7B7",borderRadius:5,padding:"3px 10px",fontStyle:"italic"}}>{selMotif.vim_desc}</span>}
+                    </div>
+                  </div>
+                  {selMotif.d&&<div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,fontSize:13,color:"rgba(255,255,255,0.82)",lineHeight:1.75}}>{selMotif.d}</div>}
+                  {selMotif.statuts&&selMotif.statuts.length>0&&(
+                    <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.18)",borderRadius:10,padding:"12px 16px"}}>
+                      <div style={{fontSize:9,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:1,marginBottom:10,fontWeight:700}}>📋 Statuts ILC applicables</div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        {selMotif.statuts.map(s=>{
+                          const sc={"210":"#EF4444","207":"#F59E0B","208":"#94A3B8","206":"#84CC16","213_EMISSION":"#8B5CF6","213_RECEPTION":"#06B6D4","200":"#3B82F6","ROUTAGE":"#EC4899","IRRECEVABLE":"#F97316"}[s]||"#6366F1";
+                          const sl={"210":"210 Refusée","207":"207 En litige","208":"208 Suspendue","206":"206 Part. Approuvée","213_EMISSION":"213 Rejet à émission","213_RECEPTION":"213 Rejet à réception","200":"200 Déposée","ROUTAGE":"Erreur routage","IRRECEVABLE":"Irrecevable"}[s]||s;
+                          return(<span key={s} style={{fontSize:11,background:sc+"15",color:sc,border:"1px solid "+sc+"30",borderRadius:6,padding:"4px 10px",fontWeight:600,cursor:"pointer"}} onClick={()=>{}} title="Voir le statut ILC">{sl}</span>);
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>);
+              })():<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
+                <div style={{fontSize:40}}>🚫</div>
+                <div style={{fontSize:13}}>Sélectionnez un code motif</div>
+              </div>}
+            </div>
+          </div>
+        </div>
+          )}
         </div>
       )}
       {tab==="motif"&&(
