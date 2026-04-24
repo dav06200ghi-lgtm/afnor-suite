@@ -1407,7 +1407,7 @@ const PUF_LC_EXAMPLES=[
   {id:"uc13_direct_payment",label:"Demande Paiement Direct (224) — UC13",code:"224",cdar:"REQUEST_PAYMENT",dir:"Subcontractor → Buyer + Main Contractor (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC13",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"REQUEST_PAYMENT",note:"Code 224 = Demande de Paiement Direct. Sous-traitant court-circuite le titulaire."},{k:"BT-23",v:"S5",note:"⚠️ Sous-traitant = S5. Autoliquidation VATEX-FR-AE sur la facture F1."},{k:"Distribution duale",v:"Acheteur final + Titulaire",note:"⚠️ Message envoyé aux 2 parties. cac:ReceiverParty = Acheteur final."},{k:"B2G",v:"Obligatoire marchés publics",note:"Optionnel en B2B privé. Obligatoire si B2G (appel depuis Chorus Pro)."},{k:"IBAN sous-traitant",v:"Via cbc:Note",note:"Coordonnées bancaires du sous-traitant pour le paiement direct."}]},
   {id:"uc14_endorsed",label:"Visée (214) — UC14 Co-traitance",code:"214",cdar:"ENDORSED",dir:"Lead Contractor → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC14",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"ENDORSED",note:"Code 214 = Visée. Chef de file valide la facture du co-traitant."},{k:"BT-23",v:"S6",note:"Co-traitant = S6. Le chef de file \"vise\" pour grouper le paiement."},{k:"Condition",v:"PA-R doit supporter les droits délégués",note:"L'acheteur doit avoir accordé accès délégué au chef de file sur sa PA-R."},{k:"Initiateur",v:"Agent vendeur ou acheteur → Pagero",note:"Sides = AR+AP (chef de file agit pour les 2 parties)."}]}
 ];
-const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"ilc_ex",i:"🔄",l:"Cas ILC"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -2188,7 +2188,6 @@ function App(){
                       <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#22C55E"}}>{selER.ex}</code>
                     </div>
                   )}
-
                 </div>
               );})():
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
@@ -2589,7 +2588,38 @@ function App(){
                       </div>
                     </div>
                   )}
-                </div>
+                    {/* Cas PUF Pagero — exemples normatifsdes fichiers AR */}
+                  {(()=>{
+                    const allEx=PUF_LC_EXAMPLES.filter(e=>e.code===selILC.code);
+                    if(!allEx.length) return null;
+                    const c=selILC.code==="212"?"#22C55E":selILC.code==="210"?"#EF4444":selILC.code==="211"?"#3B82F6":"#F59E0B";
+                    return(
+                      <div style={{background:"rgba(0,0,0,0.15)",border:`1px solid ${c}25`,borderRadius:9,padding:"12px 14px",marginTop:10}}>
+                        <div style={{fontSize:9,color:c,textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>📄 Cas PUF Pagero ({allEx.length} exemple{allEx.length>1?"s":""})</div>
+                        {allEx.map((ex,ei)=>(
+                          <div key={ex.id} style={{marginBottom:ei<allEx.length-1?14:0,paddingBottom:ei<allEx.length-1?14:0,borderBottom:ei<allEx.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
+                            <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6,flexWrap:"wrap"}}>
+                              <span style={{fontSize:11,fontWeight:700,color:c}}>{ex.label}</span>
+                              {ex.mandatory_ppf&&<span style={{fontSize:8,color:"#FCA5A5",background:"rgba(239,68,68,0.1)",borderRadius:3,padding:"1px 6px",fontWeight:600}}>→ PPF obligatoire</span>}
+                              {ex.uc&&<span style={{fontSize:8,color:"rgba(255,255,255,0.4)",background:"rgba(255,255,255,0.05)",borderRadius:3,padding:"1px 6px"}}>{ex.uc}</span>}
+                              <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",fontStyle:"italic"}}>{ex.customization.includes("invoice_response")?"Invoice Response (Acheteur→Vendeur)":"Document Status (Vendeur→Acheteur)"}</span>
+                            </div>
+                            <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                              {ex.key_points.map((kp,i)=>(
+                                <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"3px 0",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                                  <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:9,color:c,minWidth:130,flexShrink:0,fontWeight:600}}>{kp.k.replace("⚠️ ","")}</code>
+                                  <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:"#FCD34D",background:"rgba(245,158,11,0.08)",borderRadius:3,padding:"1px 6px",flexShrink:0,maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} title={kp.v}>{kp.v}</code>
+                                  <span style={{color:"rgba(255,255,255,0.65)",lineHeight:1.5,fontSize:11,flex:1}}>{kp.note}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                        <div style={{marginTop:6,fontSize:9,color:"rgba(255,255,255,0.25)"}}>Source: Pagero PUF France AR Lifecycle + AFNOR XP Z12-014 Annexe A V1.3</div>
+                      </div>
+                    );
+                  })()}
+              </div>
               );})():
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,color:"rgba(255,255,255,0.2)"}}>
                 <div style={{fontSize:40}}>📋</div>
@@ -3095,83 +3125,6 @@ function App(){
 
               </div>);
             })()}
-          </div>
-        </div>
-      )}
-      {tab==="ilc_ex"&&(
-        <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
-          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
-            <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Exemples PUF <span style={{color:"#06B6D4"}}>ApplicationResponse</span> <span style={{fontSize:12,color:"rgba(255,255,255,0.35)",fontWeight:400}}>— Pagero France AR Lifecycle</span></h2>
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4,marginBottom:0}}>10 cas normatifsdes fichiers Pagero — Encaissée, Refus, Escompte, Retenue, Annulation, Troc, Affacturage, Sous-traitance, Co-traitance</p>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"320px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
-            {/* Left list */}
-            <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",overflow:"auto"}}>
-              {PUF_LC_EXAMPLES.map(ex=>{
-                const active = lcEx?.id===ex.id;
-                const c = ex.code==="212"?"#22C55E":ex.code==="210"?"#EF4444":ex.code==="211"?"#3B82F6":"#F59E0B";
-                return(
-                <div key={ex.id} onClick={()=>setLcEx(ex)}
-                  style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)",cursor:"pointer",
-                    background:active?"rgba(6,182,212,0.06)":"transparent",
-                    borderLeft:`3px solid ${active?c:"transparent"}`}}>
-                  <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
-                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:c,background:c+"15",borderRadius:3,padding:"1px 5px",fontWeight:700}}>{ex.code}</code>
-                    {ex.mandatory_ppf&&<span style={{fontSize:8,color:"#FCA5A5",background:"rgba(239,68,68,0.1)",borderRadius:3,padding:"1px 5px",fontWeight:600}}>→PPF</span>}
-                    {ex.uc&&<span style={{fontSize:8,color:"rgba(255,255,255,0.35)",background:"rgba(255,255,255,0.05)",borderRadius:3,padding:"1px 5px"}}>{ex.uc}</span>}
-                  </div>
-                  <div style={{fontSize:12,color:active?"#fff":"rgba(255,255,255,0.7)",fontWeight:active?600:400,lineHeight:1.4}}>{ex.label}</div>
-                  <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>{ex.dir.split('(')[1]?.replace(')','')}</div>
-                </div>);
-              })}
-            </div>
-            {/* Right detail */}
-            <div style={{overflow:"auto",padding:"16px 20px"}}>
-              {lcEx&&(()=>{
-                const c = lcEx.code==="212"?"#22C55E":lcEx.code==="210"?"#EF4444":lcEx.code==="211"?"#3B82F6":"#F59E0B";
-                return(
-                <div>
-                  <div style={{marginBottom:14}}>
-                    <h3 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0,color:c}}>{lcEx.label}</h3>
-                    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
-                      <span style={{fontSize:11,background:c+"15",color:c,borderRadius:5,padding:"3px 10px",fontWeight:700}}>CDAR {lcEx.code} · {lcEx.cdar}</span>
-                      <span style={{fontSize:11,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px"}}>{lcEx.dir}</span>
-                      {lcEx.mandatory_ppf&&<span style={{fontSize:11,background:"rgba(239,68,68,0.1)",color:"#FCA5A5",borderRadius:5,padding:"3px 10px",fontWeight:600}}>⚠️ Déclaration PPF obligatoire</span>}
-                    </div>
-                  </div>
-                  {/* CustomizationID */}
-                  <div style={{background:"rgba(0,0,0,0.2)",borderRadius:7,padding:"8px 12px",marginBottom:12,fontSize:10}}>
-                    <span style={{color:"rgba(255,255,255,0.4)"}}>CustomizationID: </span>
-                    <code style={{fontFamily:"JetBrains Mono,monospace",color:"#34D399"}}>{lcEx.customization}</code>
-                    <span style={{marginLeft:12,fontSize:9,color:lcEx.customization.includes('invoice_response')?"#F59E0B":"#22C55E",fontWeight:600}}>
-                      {lcEx.customization.includes('invoice_response')?"→ Invoice Response (Buyer→Seller)":"→ Document Status (Seller→Buyer)"}
-                    </span>
-                  </div>
-                  {/* Key points */}
-                  <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:8}}>Points clés PUF</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                    {lcEx.key_points.map((kp,i)=>(
-                      <div key={i} style={{background:kp.k.includes('⚠️')?"rgba(245,158,11,0.05)":"rgba(255,255,255,0.02)",border:`1px solid ${kp.k.includes('⚠️')?"rgba(245,158,11,0.2)":"rgba(255,255,255,0.06)"}`,borderRadius:7,padding:"8px 12px",display:"flex",gap:10,alignItems:"flex-start"}}>
-                        <div style={{minWidth:160,flexShrink:0}}>
-                          <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:c,fontWeight:700}}>{kp.k}</code>
-                        </div>
-                        <div style={{minWidth:100,flexShrink:0}}>
-                          <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#FCD34D",background:"rgba(245,158,11,0.08)",borderRadius:4,padding:"1px 7px"}}>{kp.v}</code>
-                        </div>
-                        <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.6,flex:1}}>{kp.note}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Structure note */}
-                  <div style={{marginTop:12,background:"rgba(6,182,212,0.04)",border:"1px solid rgba(6,182,212,0.15)",borderRadius:8,padding:"10px 14px",fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.7}}>
-                    <span style={{color:"#67E8F9",fontWeight:700}}>Structure XML: </span>
-                    ApplicationResponse → cac:DocumentResponse → cac:Response → cbc:ResponseCode: <code style={{fontFamily:"JetBrains Mono,monospace",color:c}}>{lcEx.cdar}</code>
-                    {lcEx.mandatory_ppf&&<span> + cac:Status/puf:StatusExtension/puf:Amounts avec <code style={{fontFamily:"JetBrains Mono,monospace",color:"#FCD34D"}}>MEN</code> obligatoire</span>}
-                    <div style={{marginTop:4,fontSize:10,color:"rgba(255,255,255,0.35)"}}>Source: Pagero PUF France AR Lifecycle examples + README France Invoice Response + AFNOR XP Z12-014 Annexe A V1.3</div>
-                  </div>
-                </div>);
-              })()}
-            </div>
           </div>
         </div>
       )}
