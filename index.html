@@ -1925,27 +1925,35 @@ function App(){
     }
 
     try{
-      // ── 1. INSEE Sirene (publique) ─────────────────────────────────
+      // ── 1. Recherche Entreprises API (api.gouv.fr — publique, sans token) ──
       let insee=null;
       try{
-        const r=await fetch(`https://api.insee.fr/entreprises/sirene/V3.11/siren/${siren}`,{headers:{Accept:"application/json"}});
+        const url=`https://recherche-entreprises.api.gouv.fr/search?q=${siren}&page=1&per_page=1`;
+        const r=await fetch(url,{headers:{Accept:"application/json"}});
         if(r.ok){
           const d=await r.json();
-          const u=d.uniteLegale;
-          const p=u?.periodesUniteLegale?.[0]||{};
-          const cleTVA=((12+(3*(parseInt(siren)%97)))%97).toString().padStart(2,"0");
-          insee={
-            siren:u?.siren||siren,
-            siret:u?.siretSiegeFormatted||siren+"00000",
-            raison_sociale:p.denominationUniteLegale||p.nomUniteLegale||"—",
-            naf:p.activitePrincipaleUniteLegale||"—",
-            forme:p.categorieJuridiqueUniteLegale||"—",
-            tva:`FR${cleTVA}${siren}`,
-            statut_insee:u?.etatAdministratifUniteLegale==="A"?"actif":"cessé",
-          };
-        }else if(r.status===404){insee={siren,statut_insee:"inconnu",raison_sociale:"SIREN non trouvé dans Sirene"};}
-      }catch(e){insee={siren,statut_insee:"erreur_api",raison_sociale:"API Sirene indisponible"};}
-
+          const e=d.results?.[0];
+          if(e){
+            const cleTVA=((12+(3*(parseInt(siren)%97)))%97).toString().padStart(2,"0");
+            insee={
+              siren:e.siren||siren,
+              siret:e.siege?.siret||siren+"00000",
+              raison_sociale:e.nom_complet||e.nom_raison_sociale||"—",
+              naf:(e.activite_principale||e.siege?.activite_principale||"—"),
+              forme:e.nature_juridique||"—",
+              tva:`FR${cleTVA}${siren}`,
+              statut_insee:e.etat_administratif==="A"?"actif":e.etat_administratif==="C"?"cessé":"inconnu",
+              adresse:[e.siege?.adresse,e.siege?.code_postal,e.siege?.libelle_commune].filter(Boolean).join(" "),
+            };
+          }else{
+            insee={siren,statut_insee:"inconnu",raison_sociale:"SIREN non trouvé"};
+          }
+        }else{
+          insee={siren,statut_insee:"erreur_api",raison_sociale:"Service temporairement indisponible ("+r.status+")"};
+        }
+      }catch(e){
+        insee={siren,statut_insee:"erreur_api",raison_sociale:"Service temporairement indisponible"};
+      }
       // ── 2. Chorus Pro rechercherDestinataire ───────────────────────
       let chorus=null;
       const token=annToken?.trim()||"";
@@ -4400,7 +4408,7 @@ function App(){
                   </summary>
                   <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:6}}>
                     {[
-                      ["API INSEE",annRes.statut_insee==="erreur_api"?"Temporairement indisponible":"OK"],
+                      ["Recherche Entreprises API",annRes.statut_insee==="erreur_api"?"Temporairement indisponible":"OK (api.gouv.fr)"],
                       ["API Chorus Pro",annRes.tokenMissing?"Non connectée":annRes.ppfStatus==="token_expired"?"Session expirée":annRes.chorus?.error?"Erreur: "+annRes.chorus.error:"OK"],
                       ["Endpoint","rechercherDestinataire v1"],
                       ["Cache",annRes.fromCache?`Oui — actualisé il y a ${annRes.cacheAge} min (TTL 6h)`:"Non — réponse fraîche"],
