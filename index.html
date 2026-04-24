@@ -3420,89 +3420,130 @@ function App(){
 
             {/* SVG Y-Model interactif */}
             <div style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:14,padding:16,marginBottom:22,overflow:"hidden"}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#67E8F9",marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>📐 Schéma Y-Model — Double flux facture électronique</div>
-              <svg viewBox="0 0 860 320" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxHeight:320}}>
-                <defs>
-                  <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#6366F1"/></marker>
-                  <marker id="ab" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3B82F6"/></marker>
-                  <marker id="ao" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#F59E0B"/></marker>
-                  <marker id="ag" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#22C55E"/></marker>
-                </defs>
-                {/* === ACTEURS === */}
-                {/* Vendeur / SAP */}
-                <rect x="20" y="120" width="110" height="56" rx="10" fill="rgba(99,102,241,0.15)" stroke="#6366F1" strokeWidth="1.5"/>
-                <text x="75" y="144" textAnchor="middle" fill="#A5B4FC" fontSize="11" fontWeight="bold">🏢 VENDEUR</text>
-                <text x="75" y="160" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">SAP S/4H</text>
-                <text x="75" y="172" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="8">Coty FR</text>
-                {/* PA Vendeur = Pagero */}
-                <rect x="200" y="100" width="120" height="60" rx="10" fill="rgba(6,182,212,0.1)" stroke="#06B6D4" strokeWidth="1.5"/>
-                <text x="260" y="124" textAnchor="middle" fill="#67E8F9" fontSize="11" fontWeight="bold">📡 PA VENDEUR</text>
-                <text x="260" y="140" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Pagero (AR)</text>
-                <text x="260" y="153" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="8">Laurent Malzac</text>
-                {/* PPF */}
-                <rect x="370" y="90" width="120" height="62" rx="10" fill="rgba(139,92,246,0.12)" stroke="#8B5CF6" strokeWidth="2"/>
-                <text x="430" y="116" textAnchor="middle" fill="#C4B5FD" fontSize="11" fontWeight="bold">🏛 PPF</text>
-                <text x="430" y="131" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Portail Public</text>
-                <text x="430" y="144" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="8">Annuaire + routage</text>
-                {/* PA Acheteur = Tradeshift */}
-                <rect x="550" y="100" width="120" height="60" rx="10" fill="rgba(6,182,212,0.1)" stroke="#06B6D4" strokeWidth="1.5"/>
-                <text x="610" y="124" textAnchor="middle" fill="#67E8F9" fontSize="11" fontWeight="bold">📡 PA ACHETEUR</text>
-                <text x="610" y="140" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Tradeshift (AP)</text>
-                <text x="610" y="153" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="8">Edgar Palau</text>
-                {/* Acheteur */}
-                <rect x="730" y="120" width="110" height="56" rx="10" fill="rgba(59,130,246,0.12)" stroke="#3B82F6" strokeWidth="1.5"/>
-                <text x="785" y="144" textAnchor="middle" fill="#93C5FD" fontSize="11" fontWeight="bold">🏢 ACHETEUR</text>
-                <text x="785" y="160" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Client FR</text>
-                <text x="785" y="172" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="8">BT-47 SIRET</text>
-                {/* DGFiP */}
-                <rect x="370" y="220" width="120" height="52" rx="10" fill="rgba(245,158,11,0.1)" stroke="#F59E0B" strokeWidth="1.5"/>
-                <text x="430" y="243" textAnchor="middle" fill="#FCD34D" fontSize="11" fontWeight="bold">🏦 DGFiP</text>
-                <text x="430" y="258" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Flux 10 uniquement</text>
-                <text x="430" y="270" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="8">Données TVA agrégées</text>
+              <div style={{fontSize:11,fontWeight:700,color:"#67E8F9",marginBottom:4,textTransform:"uppercase",letterSpacing:1}}>📐 Architecture Coty — Flux AR (vente) et AP (achat)</div>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:12}}>Pagero = PA Coty côté AR uniquement · Tradeshift = PA Coty côté AP uniquement · E-reporting = Pagero → DGFiP</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
 
-                {/* === FLUX E-INVOICING (haut) === */}
-                {/* Vendeur → PA Vendeur */}
-                <line x1="130" y1="148" x2="198" y2="130" stroke="#6366F1" strokeWidth="1.5" markerEnd="url(#ah)" strokeDasharray="0"/>
-                <text x="164" y="133" textAnchor="middle" fill="#A5B4FC" fontSize="8">UBL/CII</text>
-                <text x="164" y="143" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7">BT-1..153</text>
-                {/* PA Vendeur → PPF */}
-                <line x1="320" y1="126" x2="368" y2="120" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#ab)"/>
-                <text x="344" y="115" textAnchor="middle" fill="#93C5FD" fontSize="8">Flux 2</text>
-                <text x="344" y="125" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7">Annuaire BT-49</text>
-                {/* PPF → PA Acheteur */}
-                <line x1="490" y1="120" x2="548" y2="126" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#ab)"/>
-                <text x="519" y="113" textAnchor="middle" fill="#93C5FD" fontSize="8">CDAR 200</text>
-                {/* PA Acheteur → Acheteur */}
-                <line x1="670" y1="130" x2="728" y2="148" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#ab)"/>
-                <text x="699" y="133" textAnchor="middle" fill="#93C5FD" fontSize="8">Livraison</text>
+                {/* ── SCHÉMA AR ── */}
+                <div style={{background:"rgba(16,185,129,0.03)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:12}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#6EE7B7",marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>📤 FLUX AR — Coty vend (e-invoicing + e-reporting)</div>
+                  <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" style={{width:"100%"}}>
+                    <defs>
+                      <marker id="mar1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#10B981"/></marker>
+                      <marker id="mar2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#22C55E"/></marker>
+                      <marker id="mar3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#F59E0B"/></marker>
+                    </defs>
+                    {/* SAP Coty */}
+                    <rect x="5" y="85" width="80" height="50" rx="8" fill="rgba(99,102,241,0.2)" stroke="#6366F1" strokeWidth="1.5"/>
+                    <text x="45" y="106" textAnchor="middle" fill="#A5B4FC" fontSize="9" fontWeight="bold">🏢 COTY</text>
+                    <text x="45" y="119" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8">SAP S/4H</text>
+                    <text x="45" y="129" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7">Vendeur</text>
+                    {/* Pagero AR */}
+                    <rect x="110" y="75" width="90" height="54" rx="8" fill="rgba(16,185,129,0.12)" stroke="#10B981" strokeWidth="2"/>
+                    <text x="155" y="96" textAnchor="middle" fill="#6EE7B7" fontSize="9" fontWeight="bold">📡 PAGERO</text>
+                    <text x="155" y="109" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8">PA Coty AR</text>
+                    <text x="155" y="121" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7">e-inv + e-report</text>
+                    {/* PPF */}
+                    <rect x="225" y="75" width="80" height="54" rx="8" fill="rgba(139,92,246,0.12)" stroke="#8B5CF6" strokeWidth="1.5"/>
+                    <text x="265" y="96" textAnchor="middle" fill="#C4B5FD" fontSize="9" fontWeight="bold">🏛 PPF</text>
+                    <text x="265" y="109" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8">Annuaire</text>
+                    <text x="265" y="121" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7">Routage BT-49</text>
+                    {/* PA Client */}
+                    <rect x="320" y="55" width="75" height="42" rx="8" fill="rgba(6,182,212,0.08)" stroke="#06B6D4" strokeWidth="1.2"/>
+                    <text x="357" y="72" textAnchor="middle" fill="#67E8F9" fontSize="8" fontWeight="bold">PA CLIENT</text>
+                    <text x="357" y="84" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="7">variable</text>
+                    <text x="357" y="93" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="6">inconnu Coty</text>
+                    {/* Client */}
+                    <rect x="320" y="110" width="75" height="42" rx="8" fill="rgba(59,130,246,0.1)" stroke="#3B82F6" strokeWidth="1.2"/>
+                    <text x="357" y="127" textAnchor="middle" fill="#93C5FD" fontSize="8" fontWeight="bold">🏢 CLIENT</text>
+                    <text x="357" y="139" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="7">BT-47 SIRET</text>
+                    <text x="357" y="148" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="6">France</text>
+                    {/* DGFiP */}
+                    <rect x="110" y="185" width="90" height="42" rx="8" fill="rgba(245,158,11,0.1)" stroke="#F59E0B" strokeWidth="1.5"/>
+                    <text x="155" y="202" textAnchor="middle" fill="#FCD34D" fontSize="9" fontWeight="bold">🏦 DGFiP</text>
+                    <text x="155" y="215" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="7">Flux 10 / TVA</text>
+                    <text x="155" y="224" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="6">e-reporting seulement</text>
 
-                {/* RETOUR ILC (bas, sens inverse) */}
-                {/* Acheteur → PA Acheteur */}
-                <path d="M730 165 Q699 185 670 165" stroke="#22C55E" strokeWidth="1.2" fill="none" markerEnd="url(#ag)" strokeDasharray="4,2"/>
-                <text x="700" y="190" textAnchor="middle" fill="#86EFAC" fontSize="7.5">203/204/210/212</text>
-                {/* PA Acheteur → PPF retour */}
-                <path d="M550 155 Q519 175 490 155" stroke="#22C55E" strokeWidth="1.2" fill="none" markerEnd="url(#ag)" strokeDasharray="4,2"/>
-                <text x="520" y="178" textAnchor="middle" fill="#86EFAC" fontSize="7.5">Statuts ILC</text>
-                {/* PPF → PA Vendeur retour */}
-                <path d="M370 155 Q344 175 320 155" stroke="#22C55E" strokeWidth="1.2" fill="none" markerEnd="url(#ag)" strokeDasharray="4,2"/>
-                <text x="345" y="178" textAnchor="middle" fill="#86EFAC" fontSize="7.5">CDAR ILC</text>
+                    {/* Flèche Coty → Pagero */}
+                    <line x1="86" y1="107" x2="108" y2="102" stroke="#10B981" strokeWidth="1.5" markerEnd="url(#mar1)"/>
+                    <text x="97" y="98" textAnchor="middle" fill="#6EE7B7" fontSize="7">UBL/CII</text>
+                    {/* Flèche Pagero → PPF */}
+                    <line x1="201" y1="100" x2="223" y2="100" stroke="#10B981" strokeWidth="1.5" markerEnd="url(#mar1)"/>
+                    <text x="212" y="94" textAnchor="middle" fill="#6EE7B7" fontSize="7">Flux 2</text>
+                    {/* Flèche PPF → PA Client */}
+                    <line x1="306" y1="95" x2="319" y2="84" stroke="#10B981" strokeWidth="1.5" markerEnd="url(#mar1)"/>
+                    <text x="318" y="92" textAnchor="middle" fill="#6EE7B7" fontSize="6">routage</text>
+                    {/* Flèche PA Client → Client */}
+                    <line x1="357" y1="97" x2="357" y2="109" stroke="#10B981" strokeWidth="1.5" markerEnd="url(#mar1)"/>
+                    <text x="373" y="105" textAnchor="middle" fill="#6EE7B7" fontSize="6">livr.</text>
+                    {/* Retour ILC Client → Pagero (pointillé) */}
+                    <path d="M319 131 Q265 158 200 122" stroke="#22C55E" strokeWidth="1" fill="none" markerEnd="url(#mar2)" strokeDasharray="3,2"/>
+                    <text x="265" y="155" textAnchor="middle" fill="#86EFAC" fontSize="6.5">CDAR ILC 200→212</text>
+                    {/* E-reporting Pagero → DGFiP */}
+                    <line x1="155" y1="129" x2="155" y2="184" stroke="#F59E0B" strokeWidth="1.5" markerEnd="url(#mar3)" strokeDasharray="4,2"/>
+                    <text x="130" y="162" textAnchor="middle" fill="#FCD34D" fontSize="7">Flux 10</text>
+                    <text x="130" y="172" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="6">TVA agrégée</text>
+                  </svg>
+                </div>
 
-                {/* === FLUX E-REPORTING (bas, vers DGFiP) === */}
-                {/* PA Vendeur → DGFiP via PPF */}
-                <path d="M260 160 Q260 230 368 240" stroke="#F59E0B" strokeWidth="1.5" fill="none" markerEnd="url(#ao)" strokeDasharray="5,3"/>
-                <text x="260" y="220" textAnchor="middle" fill="#FCD34D" fontSize="8">Flux 10</text>
-                <text x="260" y="232" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7">TVA agrégée</text>
+                {/* ── SCHÉMA AP ── */}
+                <div style={{background:"rgba(59,130,246,0.03)",border:"1px solid rgba(59,130,246,0.15)",borderRadius:10,padding:12}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#93C5FD",marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>📥 FLUX AP — Coty achète (réception via Tradeshift)</div>
+                  <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" style={{width:"100%"}}>
+                    <defs>
+                      <marker id="map1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#3B82F6"/></marker>
+                      <marker id="map2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#22C55E"/></marker>
+                    </defs>
+                    {/* Fournisseur */}
+                    <rect x="5" y="85" width="80" height="50" rx="8" fill="rgba(148,163,184,0.1)" stroke="#94A3B8" strokeWidth="1.5"/>
+                    <text x="45" y="106" textAnchor="middle" fill="#CBD5E1" fontSize="9" fontWeight="bold">🏭 FOURN.</text>
+                    <text x="45" y="119" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="8">ERP propre</text>
+                    <text x="45" y="129" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7">FR / EU / monde</text>
+                    {/* PA Fournisseur */}
+                    <rect x="110" y="75" width="80" height="54" rx="8" fill="rgba(148,163,184,0.08)" stroke="#64748B" strokeWidth="1.2" strokeDasharray="4,2"/>
+                    <text x="150" y="97" textAnchor="middle" fill="#94A3B8" fontSize="9" fontWeight="bold">PA FOURN.</text>
+                    <text x="150" y="110" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="8">PA propre</text>
+                    <text x="150" y="122" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7">(non Pagero)</text>
+                    {/* PPF */}
+                    <rect x="213" y="75" width="80" height="54" rx="8" fill="rgba(139,92,246,0.12)" stroke="#8B5CF6" strokeWidth="1.5"/>
+                    <text x="253" y="96" textAnchor="middle" fill="#C4B5FD" fontSize="9" fontWeight="bold">🏛 PPF</text>
+                    <text x="253" y="109" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8">Annuaire</text>
+                    <text x="253" y="121" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7">Routage BT-49</text>
+                    {/* Tradeshift */}
+                    <rect x="315" y="75" width="80" height="54" rx="8" fill="rgba(59,130,246,0.15)" stroke="#3B82F6" strokeWidth="2"/>
+                    <text x="355" y="94" textAnchor="middle" fill="#93C5FD" fontSize="9" fontWeight="bold">📡 TRADE-</text>
+                    <text x="355" y="105" textAnchor="middle" fill="#93C5FD" fontSize="9" fontWeight="bold">SHIFT</text>
+                    <text x="355" y="117" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8">PA Coty AP</text>
+                    <text x="355" y="127" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7">Edgar Palau</text>
+                    {/* SAP Coty AP */}
+                    <rect x="315" y="155" width="80" height="50" rx="8" fill="rgba(99,102,241,0.2)" stroke="#6366F1" strokeWidth="1.5"/>
+                    <text x="355" y="175" textAnchor="middle" fill="#A5B4FC" fontSize="9" fontWeight="bold">🏢 COTY</text>
+                    <text x="355" y="188" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8">SAP S/4H</text>
+                    <text x="355" y="198" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7">Acheteur AP</text>
 
-                {/* === LABELS FLUX === */}
-                <rect x="20" y="14" width="120" height="20" rx="4" fill="rgba(59,130,246,0.12)" stroke="#3B82F6" strokeWidth="1"/>
-                <text x="80" y="28" textAnchor="middle" fill="#93C5FD" fontSize="9" fontWeight="bold">🔵 E-INVOICING — Flux 2</text>
-                <rect x="150" y="14" width="140" height="20" rx="4" fill="rgba(245,158,11,0.1)" stroke="#F59E0B" strokeWidth="1"/>
-                <text x="220" y="28" textAnchor="middle" fill="#FCD34D" fontSize="9" fontWeight="bold">🟠 E-REPORTING — Flux 10</text>
-                <rect x="300" y="14" width="130" height="20" rx="4" fill="rgba(34,197,94,0.1)" stroke="#22C55E" strokeWidth="1"/>
-                <text x="365" y="28" textAnchor="middle" fill="#86EFAC" fontSize="9" fontWeight="bold">🟢 Statuts ILC — Retour</text>
-              </svg>
+                    {/* Note: pas de e-reporting AP direct */}
+                    <rect x="5" y="185" width="190" height="48" rx="8" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.2)" strokeWidth="1" strokeDasharray="3,2"/>
+                    <text x="100" y="203" textAnchor="middle" fill="#FCD34D" fontSize="8" fontWeight="bold">ℹ️ E-Reporting AP</text>
+                    <text x="100" y="216" textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7">Déclaré par le fournisseur</text>
+                    <text x="100" y="227" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6.5">via sa propre PA → DGFiP</text>
+
+                    {/* Flèches */}
+                    <line x1="86" y1="107" x2="108" y2="102" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#map1)"/>
+                    <text x="97" y="96" textAnchor="middle" fill="#93C5FD" fontSize="7">UBL/CII</text>
+                    <line x1="191" y1="100" x2="211" y2="100" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#map1)"/>
+                    <text x="201" y="93" textAnchor="middle" fill="#93C5FD" fontSize="7">Flux 2</text>
+                    <line x1="294" y1="100" x2="313" y2="100" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#map1)"/>
+                    <text x="304" y="93" textAnchor="middle" fill="#93C5FD" fontSize="7">routage</text>
+                    {/* Tradeshift → SAP */}
+                    <line x1="355" y1="129" x2="355" y2="153" stroke="#3B82F6" strokeWidth="1.5" markerEnd="url(#map1)"/>
+                    <text x="373" y="143" textAnchor="middle" fill="#93C5FD" fontSize="6.5">VIM/IDOC</text>
+                    {/* Retour statuts ILC Tradeshift → PPF (pointillé) */}
+                    <path d="M313 115 Q253 148 211 115" stroke="#22C55E" strokeWidth="1" fill="none" markerEnd="url(#map2)" strokeDasharray="3,2"/>
+                    <text x="262" y="148" textAnchor="middle" fill="#86EFAC" fontSize="6.5">CDAR ILC 203/204/210</text>
+                  </svg>
+                </div>
+              </div>
             </div>
-
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:22}}>
               {[
                 {title:"🔵 E-INVOICING (Flux 2)",en:"Structured invoice sent to buyer via PA/PPF",color:"#3B82F6",desc:"Format: UBL 2.1 / CII / Factur-X (norme EN16931)\nDestinataire: L'acheteur via PA/PPF\nContenu: Facture complete avec toutes les lignes\nFrequence: A chaque facture emise\nRetour: Statuts ILC CDAR 200 -> 212",
