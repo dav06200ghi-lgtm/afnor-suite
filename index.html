@@ -1865,6 +1865,8 @@ function App(){
   const [annRes,setAnnRes]=useState(null);
   const [annLoading,setAnnLoading]=useState(false);
   const [annHistory,setAnnHistory]=useState([]);
+  const [annToken,setAnnToken]=useState('');
+  const [showTokenSetup,setShowTokenSetup]=useState(false);
   const [gq,setGq]=useState('');
   const [gres,setGres]=useState([]);
   const fileRef=useRef();
@@ -1901,60 +1903,96 @@ function App(){
     setAnnLoading(true);
     setAnnRes(null);
     try{
-      // Detect input type
       const isSIREN=/^\d{9}$/.test(q);
       const isSIRET=/^\d{14}$/.test(q);
-      const isTVA=/^FR\d{2}\d{9}$/i.test(q.replace(/\s/g,''));
-      const siren=isSIREN?q:isSIRET?q.substring(0,9):isTVA?q.slice(-9):q.replace(/\D/g,'').substring(0,9);
+      const isTVA=/^FR\d{11}$/i.test(q.replace(/[\s.]/g,''));
+      const siren=isSIREN?q:isSIRET?q.substring(0,9):isTVA?q.slice(-9).replace(/\D/g,''):null;
 
-      // Call Anthropic API to simulate annuaire check + get company info
-      const prompt=`Tu es un simulateur de l'Annuaire PPF (Portail Public de Facturation France 2026).
-L'utilisateur cherche: "${q}" (SIREN détecté: ${siren||'?'}, type: ${isSIREN?'SIREN':isSIRET?'SIRET':isTVA?'TVA':'autre'})
+      if(!siren||siren.length!==9){
+        setAnnRes({status:"error",message:"Format non reconnu. Entrez un SIREN (9 chiffres), SIRET (14 chiffres) ou TVA FR (FR + 11 chiffres).",company:null,capabilities:null});
+        setAnnLoading(false);
+        return;
+      }
 
-Réponds UNIQUEMENT avec un objet JSON valide (pas de markdown, pas de backticks), structure exacte:
-{
-  "status": "found"|"not_found"|"partial"|"error",
-  "message": "message explicatif court (2 phrases max)",
-  "company": {
-    "name": "Raison sociale",
-    "siren": "9 chiffres",
-    "siret": "14 chiffres siège",
-    "tva": "FR + clé + siren",
-    "naf": "code NAF + libellé",
-    "forme": "SAS/SA/SARL/etc"
-  },
-  "capabilities": [
-    {"label": "Réception e-invoicing", "ok": true|false},
-    {"label": "Émission e-invoicing (GE)", "ok": true|false},
-    {"label": "E-reporting Flux 10", "ok": true|false},
-    {"label": "Annuaire PPF enregistré", "ok": true|false},
-    {"label": "PA agréée associée", "ok": true|false}
-  ]
-}
+      // 1. API Sirene INSEE (publique, sans auth) — vraies données entreprise
+      let company=null;
+      try{
+        const sireneR=await fetch(`https://api.insee.fr/entreprises/sirene/V3.11/siren/${siren}`,{
+          headers:{"Accept":"application/json"}
+        });
+        if(sireneR.ok){
+          const sd=await sireneR.json();
+          const u=sd.uniteLegale;
+          const pd=u?.periodesUniteLegale?.[0];
+          company={
+            name:pd?.denominationUniteLegale||pd?.nomUniteLegale||"—",
+            siren:u?.siren||siren,
+            siret:u?.siretSiegeFormatted||siren+"00000",
+            tva:`FR${((12+(3*(parseInt(siren)%97)))%97).toString().padStart(2,"0")}${siren}`,
+            naf:pd?.activitePrincipaleUniteLegale||"—",
+            forme:pd?.categorieJuridiqueUniteLegale||"—",
+            etat:u?.etatAdministratifUniteLegale==="A"?"Actif":"Cessé",
+          };
+        }
+      }catch(e){/* Sirene indisponible */}
 
-Règles de simulation:
-- Si SIREN/SIRET ressemble à une vraie grande entreprise française connue (Total, LVMH, L'Oréal, Coty, Sephora, Amazon FR, etc.), status="found", simule des vraies données réalistes
-- Si le SIREN est valide (9 chiffres, checksum Luhn OK) mais inconnu, status="not_found" avec données minimales
-- Si format invalide, status="error"
-- Pour status "found": toutes les capabilities ok=true (GE inscrites depuis sept 2026)
-- Pour status "not_found": Annuaire PPF=false, PA=false, mais réception peut être true si GE
-- Génère des données réalistes (vrais codes NAF, vraies formes juridiques françaises)`;
+      // 2. API Chorus Pro rechercherDestinataire — nécessite token OAuth2
+      // Token non configuré → on indique le statut réel
+      const token=annToken||"";
+      let ppfStatus=null;
 
-      const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({system:"Tu es un simulateur d'annuaire PPF France. Réponds UNIQUEMENT en JSON valide, sans markdown.",
-          messages:[{role:"user",content:prompt}]})});
-      const data=await r.json();
-      const text=data.content?.map(i=>i.text||"").join("")||"{}";
-      const clean=text.replace(/```json|```/g,"").trim();
-      const parsed=JSON.parse(clean);
-      setAnnRes(parsed);
-      setAnnHistory(prev=>[{q,res:parsed},...prev.filter(h=>h.q!==q)].slice(0,6));
+      if(token){
+        try{
+          const cpR=await fetch("https://api.chorus-pro.gouv.fr/aife_prod/cpro/rechercherDestinataire/v1",{
+            method:"POST",
+            headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+            body:JSON.stringify({identifiantStructure:{idType:"SIRET",idValue:isSIRET?q:siren+"00000"}})
+          });
+          if(cpR.ok){
+            const cpd=await cpR.json();
+            ppfStatus=cpd;
+          }else if(cpR.status===401){
+            ppfStatus={error:"Token expiré ou invalide"};
+          }else{
+            ppfStatus={error:"Réponse inattendue: "+cpR.status};
+          }
+        }catch(e){ppfStatus={error:"API Chorus Pro inaccessible depuis ce navigateur (CORS)"};}
+      }
+
+      // 3. Construire résultat
+      const hasCompany=!!company;
+      const ppfActive=ppfStatus&&!ppfStatus.error&&ppfStatus.adresseFacturationActive;
+      const ppfKnown=ppfStatus&&!ppfStatus.error;
+      const tokenMissing=!token;
+
+      setAnnRes({
+        status:ppfActive?"found":ppfKnown?"not_found":hasCompany?"partial":"error",
+        message:ppfActive
+          ?"L'entreprise est inscrite dans l'Annuaire PPF avec une adresse de facturation active."
+          :ppfKnown
+          ?"L'entreprise existe dans Sirene mais n'a pas d'adresse de facturation active dans l'Annuaire PPF Chorus Pro."
+          :tokenMissing
+          ?"Données INSEE récupérées. Statut Annuaire PPF : token Chorus Pro requis (voir configuration ci-dessous)."
+          :"SIREN non trouvé dans Sirene INSEE. Vérifiez le numéro.",
+        company:company||{name:"SIREN "+siren,siren,siret:"—",tva:"—",naf:"—",forme:"—"},
+        ppfRaw:ppfStatus,
+        tokenMissing,
+        sireneOk:hasCompany,
+        capabilities:[
+          {label:"SIREN valide (Sirene INSEE)",ok:hasCompany},
+          {label:"Adresse facturation active (PPF)",ok:!!ppfActive,unknown:tokenMissing},
+          {label:"Plateforme agréée rattachée",ok:!!ppfStatus?.plateformesAgreees?.length,unknown:tokenMissing},
+          {label:"Réception e-invoicing possible",ok:!!ppfActive,unknown:tokenMissing},
+        ],
+        chorusUrl:`https://facturation.chorus-pro.gouv.fr/annuaire#!rechercheDestinataire?siren=${siren}`,
+      });
+      setAnnHistory(prev=>[{q,siren,res:{status:ppfActive?"found":hasCompany?"partial":"error",company:{name:company?.name||siren}}},...prev.filter(h=>h.q!==q)].slice(0,6));
     }catch(e){
-      setAnnRes({status:"error",message:"Erreur de connexion. Vérifiez votre connexion et réessayez.",company:null,capabilities:null});
+      setAnnRes({status:"error",message:"Erreur inattendue: "+e.message,company:null,capabilities:null});
     }finally{
       setAnnLoading(false);
     }
-  },[annQ]);
+  },[annQ,annToken]);
 
   const doVal=useCallback(()=>{setValidating(true);setTimeout(()=>{setRes(validateXML(xml));setValidating(false);},300);},[xml]);
 
@@ -4218,17 +4256,72 @@ Règles de simulation:
                     <div>
                       <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:8}}>Capacités e-invoicing</div>
                       <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                        {annRes.capabilities.map(cap=>(
-                          <div key={cap.label} style={{display:"flex",alignItems:"center",gap:6,background:`${cap.ok?"rgba(34,197,94,0.1)":"rgba(148,163,184,0.08)"}`,border:`1px solid ${cap.ok?"rgba(34,197,94,0.25)":"rgba(148,163,184,0.15)"}`,borderRadius:7,padding:"6px 12px"}}>
-                            <span style={{fontSize:12}}>{cap.ok?"✅":"⬜"}</span>
-                            <span style={{fontSize:11,color:cap.ok?"#86EFAC":"rgba(255,255,255,0.4)",fontWeight:cap.ok?600:400}}>{cap.label}</span>
+                        {annRes.capabilities.map(cap=>{
+                          const unk=cap.unknown;
+                          const bg=unk?"rgba(245,158,11,0.07)":cap.ok?"rgba(34,197,94,0.1)":"rgba(148,163,184,0.08)";
+                          const br=unk?"rgba(245,158,11,0.2)":cap.ok?"rgba(34,197,94,0.25)":"rgba(148,163,184,0.15)";
+                          const col=unk?"#FCD34D":cap.ok?"#86EFAC":"rgba(255,255,255,0.35)";
+                          return(
+                          <div key={cap.label} style={{display:"flex",alignItems:"center",gap:6,background:bg,border:`1px solid ${br}`,borderRadius:7,padding:"6px 12px"}}>
+                            <span style={{fontSize:12}}>{unk?"🔑":cap.ok?"✅":"❌"}</span>
+                            <span style={{fontSize:11,color:col,fontWeight:600}}>{cap.label}</span>
+                            {unk&&<span style={{fontSize:8,color:"#F59E0B",background:"rgba(245,158,11,0.12)",borderRadius:3,padding:"1px 5px"}}>Token requis</span>}
                           </div>
-                        ))}
+                        );})}
                       </div>
                     </div>
                   )}
                 </div>
 
+                {/* Bouton Chorus Pro + token setup */}
+                <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
+                  {annRes.chorusUrl&&(
+                    <a href={annRes.chorusUrl} target="_blank" rel="noopener noreferrer"
+                      style={{display:"flex",alignItems:"center",gap:8,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:8,padding:"8px 16px",color:"#93C5FD",textDecoration:"none",fontSize:12,fontWeight:700}}>
+                      🏛 Vérifier sur Chorus Pro →
+                    </a>
+                  )}
+                  {annRes.tokenMissing&&(
+                    <button onClick={()=>setShowTokenSetup(v=>!v)}
+                      style={{display:"flex",alignItems:"center",gap:6,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:8,padding:"8px 14px",color:"#FCD34D",cursor:"pointer",fontSize:11,fontWeight:600}}>
+                      🔑 {showTokenSetup?"Masquer":"Configurer"} token Chorus Pro
+                    </button>
+                  )}
+                </div>
+                {showTokenSetup&&(
+                  <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"14px 16px",marginBottom:12}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"#FCD34D",marginBottom:10}}>🔑 Configuration token OAuth2 Chorus Pro</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12,fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.7}}>
+                      <div>
+                        <div style={{fontWeight:600,color:"rgba(255,255,255,0.8)",marginBottom:4}}>Méthode recommandée</div>
+                        <ol style={{paddingLeft:16,margin:0,display:"flex",flexDirection:"column",gap:4}}>
+                          <li>Connectez-vous sur <strong>chorus-pro.gouv.fr</strong> avec votre compte technique</li>
+                          <li>Allez dans <strong>Mon compte → API → Générer token</strong></li>
+                          <li>Copiez le Bearer token OAuth2</li>
+                          <li>Collez-le ci-dessous</li>
+                        </ol>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:600,color:"rgba(255,255,255,0.8)",marginBottom:4}}>API utilisée</div>
+                        <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,background:"rgba(0,0,0,0.3)",borderRadius:6,padding:"8px 10px",color:"#A5B4FC",lineHeight:1.8}}>
+                          POST /cpro/rechercherDestinataire/v1<br/>
+                          Host: api.chorus-pro.gouv.fr<br/>
+                          Auth: Bearer [token]<br/>
+                          Body: {"{"}"idType":"SIRET","idValue":"..."{"}"}<br/>
+                          → adresseFacturationActive: true/false<br/>
+                          → plateformesAgreees: [...]
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <input type="password" value={annToken} onChange={e=>setAnnToken(e.target.value)}
+                        placeholder="Bearer eyJhbGciOiJSUzI1NiJ9..."
+                        style={{flex:1,background:"rgba(0,0,0,0.3)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:6,padding:"8px 12px",color:"#E2E8F0",fontSize:11,outline:"none",fontFamily:"JetBrains Mono,monospace"}}/>
+                      {annToken&&<span style={{fontSize:10,color:"#22C55E",fontWeight:700}}>✅ Token configuré</span>}
+                    </div>
+                    <div style={{fontSize:9,color:"rgba(255,255,255,0.25)",marginTop:6}}>⚠️ Token stocké uniquement en mémoire de session, jamais transmis ailleurs que vers api.chorus-pro.gouv.fr</div>
+                  </div>
+                )}
                 {/* Avertissement sur les limites */}
                 {notfound&&(
                   <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"12px 16px"}}>
@@ -4268,9 +4361,9 @@ Règles de simulation:
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:24}}>
                   {[
                     {icon:"🏛",t:"Qu'est-ce que l'Annuaire PPF ?",c:"#8B5CF6",d:"Le Portail Public de Facturation (PPF) gère un annuaire central qui associe chaque entreprise française (SIRET) à sa Plateforme Agréée (PA). Sans inscription dans l'Annuaire, une entreprise ne peut pas recevoir de factures électroniques dans le réseau e-invoicing 2026."},
-                    {icon:"🔍",t:"Que vérifie cet outil ?",c:"#06B6D4",d:"Cet outil interroge l'API publique de l'INSEE (Sirene) et simule une vérification d'inscription dans l'Annuaire PPF. En production, le vrai check se fait via l'API Annuaire de la DGFiP (accès PA uniquement)."},
+                    {icon:"🔍",t:"Que vérifie cet outil ?",c:"#06B6D4",d:"2 sources réelles : (1) API Sirene INSEE (publique) → raison sociale, SIREN, NAF, forme juridique. (2) API Chorus Pro rechercherDestinataire (OAuth2 requis) → adresse de facturation active, PA agréée rattachée."},
                     {icon:"📋",t:"Comment s'inscrire dans l'Annuaire ?",c:"#10B981",d:"L'inscription dans l'Annuaire PPF se fait automatiquement lorsqu'une entreprise choisit une PA agréée (Pagero, Tradeshift, Chorus Pro...). La PA enregistre l'endpoint de l'entreprise (SIREN+PA) dans le répertoire central."},
-                    {icon:"⚠️",t:"Limites de cet outil",c:"#F59E0B",d:"L'Annuaire PPF officiel n'est pas encore public en API ouverte (réforme sept 2026). Cet outil utilise l'API Sirene INSEE pour valider le SIREN et simule le statut Annuaire. Pour le vrai statut, utilisez votre PA (Pagero/Tradeshift)."},
+                    {icon:"⚠️",t:"Limites de cet outil",c:"#F59E0B",d:"L'API rechercherDestinataire Chorus Pro nécessite un token OAuth2 (compte technique Chorus Pro). Sans token : seules les données Sirene INSEE sont disponibles. Cliquez 'Vérifier sur Chorus Pro' pour accès direct au portail officiel."},
                   ].map(p=>(
                     <div key={p.t} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${p.c}20`,borderRadius:10,padding:"14px 16px"}}>
                       <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:8}}>
