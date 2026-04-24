@@ -629,6 +629,16 @@ const ILC=[
    ts:"TBD",modif:"Manuelle",coty:"N",
    d:"Statut utilisé uniquement dans le cadre de la co-traitance B2U ou B2G (hors marchés de travaux) pour viser une facture. Joint contracting not subcontracting.",
    c:"#EC4899",next:["205"],fix:null,cdarCodes:null,pagero_code:"ENDORSED",pa_ar:"Pagero: endorsement transmis à l'émetteur et au destinataire",pa_ap:"Tradeshift: notification d'endorsement reçue",initiateur:"Agent vendeur ou acheteur → Pagero",sides:"AR+AP"},
+,
+  {code:"224",l:"Demande de Paiement Direct",en:"Direct Payment Request",famille:"business",sides:"AR",pagero_code:"REQUEST_PAYMENT",desc:"Sous-traitant demande paiement direct au maître d'ouvrage, en court-circuitant le titulaire principal. Obligatoire en B2G (marchés publics), optionnel en B2B privé.",initiateur:"Pagero (vendeur/sous-traitant)",pa_ar:"Pagero transmet REQUEST_PAYMENT au vendeur (sous-traitant). Message distribué simultanément à l'acheteur final ET au titulaire principal (PA-R + PA-TR).",pa_ap:"Tradeshift: notification reçue côté acheteur final. BT-23=S5 sur la facture de référence.",cdar:"224",uc:"UC13"}
+,
+  {code:"225",l:"Affacturée",en:"Factored",famille:"business",sides:"AR",pagero_code:"FACTORED",desc:"Vendeur notifie l'acheteur que la facture a été cédée à un factor (affactureur). L'acheteur doit rediriger son paiement vers le factor.",initiateur:"Pagero (vendeur)",pa_ar:"Pagero transmet FACTORED au factor (PA-E) et à l'acheteur (PA-R). Coordonnées bancaires du factor communiquées via cbc:Note.",pa_ap:"Tradeshift: notification d'affacturage reçue. L'acheteur doit rediriger le paiement vers les coordonnées bancaires du factor.",cdar:"225",uc:"UC10"}
+,
+  {code:"226",l:"Affacturée Confidentiel",en:"Factored (Confidential)",famille:"business",sides:"AR",pagero_code:"FACTORED_CONFIDENTIAL",desc:"Affacturage confidentiel: vendeur notifie uniquement le factor, pas l'acheteur. L'acheteur continue à payer le vendeur qui reverse au factor.",initiateur:"Pagero (vendeur)",pa_ar:"Pagero transmet FACTORED_CONFIDENTIAL uniquement au factor (PA-E). L'acheteur n'est PAS notifié dans ce mode confidentiel.",pa_ap:"Tradeshift: pas de notification côté acheteur (mode confidentiel). L'acheteur continue à payer normalement le vendeur.",cdar:"226",uc:""}
+,
+  {code:"227",l:"Changement de Compte à payer",en:"Account Changed",famille:"business",sides:"AR",pagero_code:"ACCOUNT_CHANGED",desc:"Vendeur notifie l'acheteur et le factor d'un changement de coordonnées bancaires pour le paiement.",initiateur:"Pagero (vendeur)",pa_ar:"Pagero transmet ACCOUNT_CHANGED au factor (PA-E) et à l'acheteur (PA-R).",pa_ap:"Tradeshift: nouvelles coordonnées bancaires reçues. Mettre à jour les instructions de paiement dans VIM/SAP.",cdar:"227",uc:""}
+,
+  {code:"228",l:"Non Affacturée",en:"Factoring Cancelled",famille:"business",sides:"AR",pagero_code:"FACTORING_CANCELLED",desc:"Annulation de l'affacturage. Vendeur notifie l'acheteur et le factor que le contrat d'affacturage est annulé. L'acheteur reprend le paiement direct au vendeur.",initiateur:"Pagero (vendeur)",pa_ar:"Pagero transmet FACTORING_CANCELLED au factor et à l'acheteur (sauf affacturage confidentiel).",pa_ap:"Tradeshift: annulation affacturage reçue. Reprendre paiement vers le vendeur initial.",cdar:"228",uc:""}
 ];
 const UC=[
   // ── NOMINAL FLOWS ────────────────────────────────────────────────────────
@@ -1385,7 +1395,19 @@ const PAGERO_SCHEMES=[
   {code:"0229",desc:"TAHITI",length:"9-10 characters",endpoint:"No",party_id:"Yes",b2g:"Yes",notes:"T.A.H.I.T.I (traitement automatique hiérarchisé des institutions de Tahiti et des îles) business identifier"},
   {code:"0231",desc:"SIREN ASSUJETTI UNIQUE",length:"9 characters",endpoint:"No",party_id:"Yes",b2g:"No",notes:"SIREN for single taxable entity (Assujetti Unique). Only one value permitted."}
 ];
-const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
+const PUF_LC_EXAMPLES=[
+  {id:"generic_payment_received",label:"Encaissée (212) — Standard",code:"212",cdar:"PAYMENT_RECEIVED",dir:"Seller → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"Generic",mandatory_ppf:true,key_points:[{k:"ResponseCode",v:"PAYMENT_RECEIVED",note:"Code Pagero = PAYMENT_RECEIVED (≠ code CDAR 212 qui est le code français)"},{k:"CustomizationID",v:"urn:pagero.com:puf:document_status:1.0",note:"Document Status = vendeur→acheteur. ≠ invoice_response (acheteur→vendeur)"},{k:"puf:AmountType",v:"MEN",note:"Obligatoire pour PPF. MEN = montant encaissé TTC. Décomposer par taux TVA."},{k:"puf:Date",v:"2026-03-01",note:"Date d'encaissement (MDT-218, v1.6). Obligatoire pour MEN et MPA."},{k:"puf:TaxInclusiveAmount",v:"1200.00",note:"Montant TTC encaissé. Toujours en EUR pour la France."},{k:"cbc:Percent",v:"20",note:"Taux TVA. Un bloc puf:Amount par taux TVA présent sur la facture."},{k:"puf:DocumentMatchingID",v:"10000000001",note:"ID Pagero pour matcher la réponse à la facture. Fortement recommandé."},{k:"StatusReasonCode",v:"NON",note:"Code NON = pas de raison spécifique. Obligatoire même si informatif."}]},
+  {id:"generic_refused",label:"Refusée (210) + Reason + Action",code:"210",cdar:"RE",dir:"Buyer → Seller (Invoice Response)",customization:"urn:pagero.com:puf:invoice_response:1.0",uc:"Generic",mandatory_ppf:true,key_points:[{k:"ResponseCode",v:"RE",note:"Code Pagero court pour Refusée. Notifié aussi au PPF."},{k:"CustomizationID",v:"urn:pagero.com:puf:invoice_response:1.0",note:"Invoice Response = acheteur→vendeur."},{k:"StatusReasonCode (listID=OPStatusReason)",v:"CALCUL_ERR",note:"1er bloc cac:Status = reason code (22 codes FR possibles)."},{k:"StatusReasonCode (listID=OPStatusAction)",v:"NIN",note:"2ème bloc cac:Status = action code. NIN = émettre facture rectificative."},{k:"StatusReason (texte libre)",v:"Erreur de calcul...",note:"Texte explicatif en plus du code (O)."},{k:"2 blocs cac:Status",v:"Reason + Action",note:"⚠️ Obligatoire d'avoir les 2 blocs pour un refus. Reason code = obligatoire pour RE."}]},
+  {id:"payment_initiated",label:"Paiement Transmis (211)",code:"211",cdar:"PAYMENT_INITIATED",dir:"Buyer → Seller (Invoice Response)",customization:"urn:pagero.com:puf:invoice_response:1.0",uc:"Generic",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"PAYMENT_INITIATED",note:"Code Pagero pour Paiement Transmis (211)."},{k:"puf:AmountType",v:"MPA",note:"MPA = montant payé par l'acheteur (vs MEN = montant encaissé par le vendeur)."},{k:"puf:TaxInclusiveAmount",v:"1200.00",note:"Montant TTC du paiement transmis."}]},
+  {id:"uc22a_discount",label:"Encaissée avec Escompte (UC22a)",code:"212",cdar:"PAYMENT_RECEIVED",dir:"Seller → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC22a",mandatory_ppf:true,key_points:[{k:"MEN",v:"11760.00 EUR TTC @ 20%",note:"Montant réellement encaissé après remise (12 000 − 240 escompte). C'est ce montant qui sert au pré-remplissage DGFiP."},{k:"ESC",v:"240.00 EUR TTC @ 20%",note:"Escompte appliqué (informatif). Communique la remise non encaissée. Aucun avoir n'est nécessaire pour les services (TVA sur encaissements)."},{k:"2 blocs puf:Amount",v:"MEN + ESC",note:"Pattern escompte = 1 MEN (montant net) + 1 ESC (remise). Pas de note de crédit."},{k:"BT-23 requis",v:"S1",note:"Services → TVA sur encaissements → Encaissée obligatoire avec MEN = montant réel reçu."}]},
+  {id:"uc26_partial_retenue",label:"Encaissée partielle — Retenue de garantie (UC26)",code:"212",cdar:"PAYMENT_RECEIVED",dir:"Seller → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC26",mandatory_ppf:true,key_points:[{k:"MEN",v:"20900.00 EUR TTC @ 10%",note:"95% encaissé. Déclaré au DGFiP. BT-21/22=ABU/clause de réserve sur la facture."},{k:"RAP",v:"1100.00 EUR TTC @ 10%",note:"5% retenue de garantie (restant à payer). Informatif — indique le solde conditionnel."},{k:"2ème Encaissée",v:"À émettre si clause levée",note:"Si la retenue est libérée → 2ème Encaissée pour 1 100€. Sinon → avoir."},{k:"⚠️ Facture émise plein montant",v:"22 000 EUR TTC",note:"La facture reste pour le montant total. La retenue est exprimée uniquement en note BT-22."}]},
+  {id:"uc34_cancellation",label:"Annulation Encaissée — MEN négatif (UC34)",code:"212",cdar:"PAYMENT_RECEIVED",dir:"Seller → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC34",mandatory_ppf:true,key_points:[{k:"ResponseCode",v:"PAYMENT_RECEIVED",note:"⚠️ Le code reste PAYMENT_RECEIVED même pour une annulation. C'est le montant négatif qui signale la correction."},{k:"MEN",v:"-1200.00 EUR TTC @ 20%",note:"MEN NÉGATIF = annulation de l'Encaissée précédente. Doit correspondre exactement au montant positif précédent."},{k:"puf:Date",v:"2026-03-01",note:"Date du virement de retour (date de confirmation du rejet bancaire, pas la date du paiement original)."},{k:"Effet net",v:"(+1200) + (-1200) = 0",note:"La facture revient à l'état \"en attente de paiement\" dans les données DGFiP."},{k:"Cas d'usage",v:"Virement de retour, erreur, accord mutuel",note:"Utiliser aussi pour: erreur de saisie Encaissée, virement rappelé, annulation d'un paiement."}]},
+  {id:"uc41_barter",label:"Encaissée Troc / Échange (UC41)",code:"212",cdar:"PAYMENT_RECEIVED",dir:"Seller → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC41",mandatory_ppf:true,key_points:[{k:"MEN Entry 1",v:"+12000.00 EUR @ 20%",note:"Montant TTC total \"encaissé\" (échange en nature + TVA cash). Taux TVA normal."},{k:"MEN Entry 2",v:"-10000.00 EUR @ 0%",note:"Déduction de la composante troc (non cash). Taux 0% = signal que cette déduction n'impacte pas la TVA."},{k:"Net DGFiP",v:"12000 - 10000 = 2000 EUR",note:"Seul le montant cash (TVA) est déclaré. Conforme: BT-115 = 2 000 EUR sur la facture."},{k:"Dual MEN pattern",v:"Positif @ taux TVA + Négatif @ 0%",note:"Technique pour les paiements mixtes cash/nature. Le 0% signale que la déduction n'est pas une réduction de recette TVA."},{k:"BT-113 (PrepaidAmount)",v:"10000 EUR HT",note:"Sur la facture de référence: BT-113 = valeur HT compensée en nature."}]},
+  {id:"uc10_factoring",label:"Affacturée (225) — UC10",code:"225",cdar:"FACTORED",dir:"Seller → Buyer + Factor (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC10",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"FACTORED",note:"Code 225 = Affacturée. Vendeur cède la créance au factor."},{k:"Distribution duale",v:"Acheteur + Factor",note:"Message envoyé simultanément à l'acheteur (PA-R) ET au factor (PA-E)."},{k:"cbc:Note",v:"Coordonnées bancaires factor",note:"Communiquer IBAN/BIC du factor dans la Note. L'acheteur doit rediriger le paiement."},{k:"BT-23",v:"B1/S1/M1",note:"Standard. Codes 226 (confidentiel), 227 (changement compte), 228 (annulation) liés."}]},
+  {id:"uc13_direct_payment",label:"Demande Paiement Direct (224) — UC13",code:"224",cdar:"REQUEST_PAYMENT",dir:"Subcontractor → Buyer + Main Contractor (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC13",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"REQUEST_PAYMENT",note:"Code 224 = Demande de Paiement Direct. Sous-traitant court-circuite le titulaire."},{k:"BT-23",v:"S5",note:"⚠️ Sous-traitant = S5. Autoliquidation VATEX-FR-AE sur la facture F1."},{k:"Distribution duale",v:"Acheteur final + Titulaire",note:"⚠️ Message envoyé aux 2 parties. cac:ReceiverParty = Acheteur final."},{k:"B2G",v:"Obligatoire marchés publics",note:"Optionnel en B2B privé. Obligatoire si B2G (appel depuis Chorus Pro)."},{k:"IBAN sous-traitant",v:"Via cbc:Note",note:"Coordonnées bancaires du sous-traitant pour le paiement direct."}]},
+  {id:"uc14_endorsed",label:"Visée (214) — UC14 Co-traitance",code:"214",cdar:"ENDORSED",dir:"Lead Contractor → Buyer (Document Status)",customization:"urn:pagero.com:puf:document_status:1.0",uc:"UC14",mandatory_ppf:false,key_points:[{k:"ResponseCode",v:"ENDORSED",note:"Code 214 = Visée. Chef de file valide la facture du co-traitant."},{k:"BT-23",v:"S6",note:"Co-traitant = S6. Le chef de file \"vise\" pour grouper le paiement."},{k:"Condition",v:"PA-R doit supporter les droits délégués",note:"L'acheteur doit avoir accordé accès délégué au chef de file sur sa PA-R."},{k:"Initiateur",v:"Agent vendeur ou acheteur → Pagero",note:"Sides = AR+AP (chef de file agit pour les 2 parties)."}]}
+];
+const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"ilc_ex",i:"🔄",l:"Cas ILC"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
 const SXML=`<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID><cbc:ID>FA-2026-00123</cbc:ID><cbc:IssueDate>2026-09-01</cbc:IssueDate><cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode><cbc:Note subjectCode="BAR">CHORUS_PRO</cbc:Note><cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode><cac:AccountingSupplierParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Acme France SAS</cbc:RegistrationName><cbc:CompanyID schemeID="0009">12345678900010</cbc:CompanyID></cac:PartyLegalEntity><cac:PartyTaxScheme><cbc:CompanyID>FR12345678900</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme></cac:Party></cac:AccountingSupplierParty><cac:AccountingCustomerParty><cac:Party><cac:PartyLegalEntity><cbc:RegistrationName>Client Corp SARL</cbc:RegistrationName><cbc:CompanyID schemeID="0009">98765432100024</cbc:CompanyID></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty><cac:TaxTotal><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">1000.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="EUR">200.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:LegalMonetaryTotal><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="EUR">1000.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="EUR">1200.00</cbc:TaxInclusiveAmount><cbc:PayableAmount currencyID="EUR">1200.00</cbc:PayableAmount></cac:LegalMonetaryTotal><cac:InvoiceLine><cbc:ID>1</cbc:ID><cbc:InvoicedQuantity unitCode="HUR">20</cbc:InvoicedQuantity><cbc:LineExtensionAmount currencyID="EUR">1000.00</cbc:LineExtensionAmount><cac:Item><cbc:Name>Prestation de conseil</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item><cac:Price><cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount></cac:Price></cac:InvoiceLine></Invoice>`;
@@ -1476,6 +1498,7 @@ function App(){
   const [bfrCat,setBfrCat]=useState('all');
   const [bfrQ,setBfrQ]=useState('');
   const [pufType,setPufType]=useState('sales_b2bi');
+  const [lcEx,setLcEx]=useState(PUF_LC_EXAMPLES[0]);
   const [ilcFam,setIlcFam]=useState('all');
   const [selUC,setSelUC]=useState(UC[0]);
   const [ucCat,setUcCat]=useState("all");
@@ -3072,6 +3095,83 @@ function App(){
 
               </div>);
             })()}
+          </div>
+        </div>
+      )}
+      {tab==="ilc_ex"&&(
+        <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0}}>
+            <h2 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0}}>Exemples PUF <span style={{color:"#06B6D4"}}>ApplicationResponse</span> <span style={{fontSize:12,color:"rgba(255,255,255,0.35)",fontWeight:400}}>— Pagero France AR Lifecycle</span></h2>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4,marginBottom:0}}>10 cas normatifsdes fichiers Pagero — Encaissée, Refus, Escompte, Retenue, Annulation, Troc, Affacturage, Sous-traitance, Co-traitance</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"320px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
+            {/* Left list */}
+            <div style={{borderRight:"1px solid rgba(255,255,255,0.07)",overflow:"auto"}}>
+              {PUF_LC_EXAMPLES.map(ex=>{
+                const active = lcEx?.id===ex.id;
+                const c = ex.code==="212"?"#22C55E":ex.code==="210"?"#EF4444":ex.code==="211"?"#3B82F6":"#F59E0B";
+                return(
+                <div key={ex.id} onClick={()=>setLcEx(ex)}
+                  style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)",cursor:"pointer",
+                    background:active?"rgba(6,182,212,0.06)":"transparent",
+                    borderLeft:`3px solid ${active?c:"transparent"}`}}>
+                  <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:c,background:c+"15",borderRadius:3,padding:"1px 5px",fontWeight:700}}>{ex.code}</code>
+                    {ex.mandatory_ppf&&<span style={{fontSize:8,color:"#FCA5A5",background:"rgba(239,68,68,0.1)",borderRadius:3,padding:"1px 5px",fontWeight:600}}>→PPF</span>}
+                    {ex.uc&&<span style={{fontSize:8,color:"rgba(255,255,255,0.35)",background:"rgba(255,255,255,0.05)",borderRadius:3,padding:"1px 5px"}}>{ex.uc}</span>}
+                  </div>
+                  <div style={{fontSize:12,color:active?"#fff":"rgba(255,255,255,0.7)",fontWeight:active?600:400,lineHeight:1.4}}>{ex.label}</div>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>{ex.dir.split('(')[1]?.replace(')','')}</div>
+                </div>);
+              })}
+            </div>
+            {/* Right detail */}
+            <div style={{overflow:"auto",padding:"16px 20px"}}>
+              {lcEx&&(()=>{
+                const c = lcEx.code==="212"?"#22C55E":lcEx.code==="210"?"#EF4444":lcEx.code==="211"?"#3B82F6":"#F59E0B";
+                return(
+                <div>
+                  <div style={{marginBottom:14}}>
+                    <h3 style={{fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,margin:0,color:c}}>{lcEx.label}</h3>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
+                      <span style={{fontSize:11,background:c+"15",color:c,borderRadius:5,padding:"3px 10px",fontWeight:700}}>CDAR {lcEx.code} · {lcEx.cdar}</span>
+                      <span style={{fontSize:11,background:"rgba(99,102,241,0.1)",color:"#A5B4FC",borderRadius:5,padding:"3px 10px"}}>{lcEx.dir}</span>
+                      {lcEx.mandatory_ppf&&<span style={{fontSize:11,background:"rgba(239,68,68,0.1)",color:"#FCA5A5",borderRadius:5,padding:"3px 10px",fontWeight:600}}>⚠️ Déclaration PPF obligatoire</span>}
+                    </div>
+                  </div>
+                  {/* CustomizationID */}
+                  <div style={{background:"rgba(0,0,0,0.2)",borderRadius:7,padding:"8px 12px",marginBottom:12,fontSize:10}}>
+                    <span style={{color:"rgba(255,255,255,0.4)"}}>CustomizationID: </span>
+                    <code style={{fontFamily:"JetBrains Mono,monospace",color:"#34D399"}}>{lcEx.customization}</code>
+                    <span style={{marginLeft:12,fontSize:9,color:lcEx.customization.includes('invoice_response')?"#F59E0B":"#22C55E",fontWeight:600}}>
+                      {lcEx.customization.includes('invoice_response')?"→ Invoice Response (Buyer→Seller)":"→ Document Status (Seller→Buyer)"}
+                    </span>
+                  </div>
+                  {/* Key points */}
+                  <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:8}}>Points clés PUF</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {lcEx.key_points.map((kp,i)=>(
+                      <div key={i} style={{background:kp.k.includes('⚠️')?"rgba(245,158,11,0.05)":"rgba(255,255,255,0.02)",border:`1px solid ${kp.k.includes('⚠️')?"rgba(245,158,11,0.2)":"rgba(255,255,255,0.06)"}`,borderRadius:7,padding:"8px 12px",display:"flex",gap:10,alignItems:"flex-start"}}>
+                        <div style={{minWidth:160,flexShrink:0}}>
+                          <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:10,color:c,fontWeight:700}}>{kp.k}</code>
+                        </div>
+                        <div style={{minWidth:100,flexShrink:0}}>
+                          <code style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:"#FCD34D",background:"rgba(245,158,11,0.08)",borderRadius:4,padding:"1px 7px"}}>{kp.v}</code>
+                        </div>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",lineHeight:1.6,flex:1}}>{kp.note}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Structure note */}
+                  <div style={{marginTop:12,background:"rgba(6,182,212,0.04)",border:"1px solid rgba(6,182,212,0.15)",borderRadius:8,padding:"10px 14px",fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.7}}>
+                    <span style={{color:"#67E8F9",fontWeight:700}}>Structure XML: </span>
+                    ApplicationResponse → cac:DocumentResponse → cac:Response → cbc:ResponseCode: <code style={{fontFamily:"JetBrains Mono,monospace",color:c}}>{lcEx.cdar}</code>
+                    {lcEx.mandatory_ppf&&<span> + cac:Status/puf:StatusExtension/puf:Amounts avec <code style={{fontFamily:"JetBrains Mono,monospace",color:"#FCD34D"}}>MEN</code> obligatoire</span>}
+                    <div style={{marginTop:4,fontSize:10,color:"rgba(255,255,255,0.35)"}}>Source: Pagero PUF France AR Lifecycle examples + README France Invoice Response + AFNOR XP Z12-014 Annexe A V1.3</div>
+                  </div>
+                </div>);
+              })()}
+            </div>
           </div>
         </div>
       )}
