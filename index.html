@@ -339,7 +339,7 @@ const ER=[
   {id:"TG-14",l:"ACHETEUR",fr:"ACHETEUR",m:false,s:"B2B-INT",dir:"AR + AP",t:"",a:"Déclarant",
    d:"Groupe de termes métiers fournissant des informations sur l'Acheteur.",tt:"TG-14",path:"/TransactionsReport/Invoice/Buyer",ex:"",sap:"",flux:"10.1",bt:"BG-7",rules:"G6.07 : B2C —  — Mention obligatoire de facture prévue par les textes (article 242 nonies A ann.II au CGI) qui n'est pas exigée dans le cadre du e-reporting B2C (art. 242 nonies M ann.II au CGI).",puf_input:"cac:AccountingCustomerParty",puf_input_note:"TG-14 = groupement ACHETEUR. S'active automatiquement — toujours présent car l'acheteur est obligatoire. Coty fournit BG-7 (BT-44 nom, BT-47 SIREN, BT-48 TVA, BT-55 pays). Pagero génère TG-14. Source: AFNOR XP Z12-012.",children:"TT-37 à TT-44"},
   {id:"TT-36",l:"Identifiant de l'acheteur",fr:"Identifiant de l'acheteur",m:false,s:"B2B-INT",dir:"AR + AP",t:"IDENTIFIANT",a:"Déclarant",
-   d:"Identifiant délivré par un organisme d’enregistrement officiel, qui identifie l'Acheteur comme une entité juridique ou une personne morale.",tt:"TT-36",path:"/TransactionsReport/Invoice/Buyer/CompanyId",ex:"",sap:"",flux:"10.1",bt:"BT-47",rules:"G1.66 : Code SIREN —  — Transaction B2B international : Si l'acheteur est assujetti à la TVA en France, l'indication de son SIREN est obligatoire et doit être connu de la base INSEE. —  — Règle de gestion mét | G6.14 : Données obligatoires - Trajectoire \"DEMARRAGE\" —  — Transaction B2B international : Cette donnée est obligatoire à partir du 01/09/2026 lorsque la donnée doit être mentionnée sur "},
+   d:"Identifiant délivré par un organisme d’enregistrement officiel, qui identifie l'Acheteur comme une entité juridique ou une personne morale.",tt:"TT-36",path:"/TransactionsReport/Invoice/Buyer/CompanyId",ex:"",sap:"",flux:"10.1",bt:"BT-47",rules:"G1.66 : Code SIREN —  — Transaction B2B international : Si l'acheteur est assujetti à la TVA en France, l'indication de son SIREN est obligatoire et doit être connu de la base INSEE. —  — Règle de gestion mét | G6.14 : Données obligatoires - Trajectoire \"DEMARRAGE\" —  — Transaction B2B international : Cette donnée est obligatoire à partir du 01/09/2026 lorsque la donnée doit être mentionnée sur ",puf_input_note:"⚠️ LOGIQUE AR vs AP — ce champ change de sens selon le côté déclarant :\n\n🔵 E-REPORTING AR (Coty vend à un client EU/non-EU) : TT-36 = identifiant du CLIENT ÉTRANGER. Appliquer règle ICD BT-47 : client UE ≠ FR → schemeID 0223 + TVA complète (ex: DE123456789) | client sans TVA UE → schemeID 0227 + code pays + raison sociale 14 car | NC → 0228 | PF → 0229.\n\n🟠 E-REPORTING AP (Coty achète auprès d'un fournisseur EU/non-EU) : TT-36 = identifiant de COTY FRANCE (l'acheteur c'est vous). → schemeID 0002 + SIREN Coty (ex: 123456789). Le fournisseur étranger est le vendeur (TT-33/TT-34), pas l'acheteur.\n\n📌 Règle G1.66 : si l'acheteur est assujetti TVA France → SIREN obligatoire (côté AP = Coty → toujours 0002 + SIREN Coty)."},
   {id:"TT-37",l:"Identifiant du schéma",fr:"Identifiant du schéma",m:true,s:"B2B-INT",dir:"AR + AP",t:"CODE",a:"Déclarant",
    d:"Identifiant du schéma de l'identifiant de l'acheteur",tt:"TT-37",path:"/TransactionsReport/Invoice/Buyer/CompanyId/@schemeId",ex:"",sap:"",flux:"10.1",bt:"BT-47-1",vals:"Valeurs issues de l'ISO 6523 (ICD) : - 0002 pour un SIREN - 0228 pour RIDET - 0229 pour TAHITI - 0223 pour UE_HORS_FRANCE - 0227 pour HORS_UE",rules:"G6.07 : B2C —  — Mention obligatoire de facture prévue par les textes (article 242 nonies A ann.II au CGI) qui n'est pas exigée dans le cadre du e-reporting B2C (art. 242 nonies M ann.II au CGI). | G2.19 : Identifiant du Vendeur et de l'Acheteur —  — L'identifiant du Vendeur (TT-33-1) renseigné est défini par le qualifiant (issu du référentiel ICD 6523) : — - \"0002\" --> SIREN sur 9 caractères nu"},
   {id:"TT-38",l:"Identifiant à la TVA de l'acheteur",fr:"Identifiant à la TVA de l'acheteur",m:false,s:"B2B-INT",dir:"AR + AP",t:"IDENTIFIANT",a:"Déclarant",
@@ -2576,12 +2576,31 @@ function App(){
                         </div>
                       )}
                       <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",lineHeight:1.7}}>
-                        {selER.puf_input_note.split('Source:').map((part,i)=>
-                          i===0 ? <span key={i}>{part}</span>
-                          : <span key={i}>
-                              <span style={{color:"#FCD34D",fontWeight:600,fontSize:11}}>📚 Source: </span>
-                              <span style={{color:"#FCD34D",fontSize:11}}>{part}</span>
-                            </span>
+                        {selER.puf_input_note.includes("🔵 E-REPORTING AR")||selER.puf_input_note.includes("🟠 E-REPORTING AP")?(
+                          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                            {selER.puf_input_note.split("\n\n").map((block,i)=>{
+                              if(!block.trim()) return null;
+                              const isAR=block.startsWith("🔵");
+                              const isAP=block.startsWith("🟠");
+                              const isNote=block.startsWith("📌");
+                              const isWarn=block.startsWith("⚠️");
+                              const bg=isAR?"rgba(16,185,129,0.06)":isAP?"rgba(245,158,11,0.06)":isNote?"rgba(99,102,241,0.06)":"rgba(255,255,255,0.02)";
+                              const br=isAR?"rgba(16,185,129,0.2)":isAP?"rgba(245,158,11,0.2)":isNote?"rgba(99,102,241,0.15)":"rgba(255,255,255,0.06)";
+                              return(
+                                <div key={i} style={{background:bg,border:`1px solid ${br}`,borderRadius:7,padding:"8px 12px",fontSize:11,lineHeight:1.7,whiteSpace:"pre-wrap"}}>
+                                  {block}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ):(
+                          selER.puf_input_note.split('Source:').map((part,i)=>
+                            i===0 ? <span key={i}>{part}</span>
+                            : <span key={i}>
+                                <span style={{color:"#FCD34D",fontWeight:600,fontSize:11}}>📚 Source: </span>
+                                <span style={{color:"#FCD34D",fontSize:11}}>{part}</span>
+                              </span>
+                          )
                         )}
                       </div>
                       {selER.puf_input&&<div style={{marginTop:6,fontSize:10,color:"rgba(255,255,255,0.35)",fontStyle:"italic"}}>
