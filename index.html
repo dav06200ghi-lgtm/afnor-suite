@@ -1847,7 +1847,13 @@ function App(){
                     </div>
                     {/* PUF / XML Path */}
                     <div style={{overflow:"hidden",padding:"0 4px",display:"flex",alignItems:"center"}}>
-                      {f.path?<code style={{fontSize:9,color:"rgba(52,211,153,0.8)",fontFamily:"JetBrains Mono,monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block",lineHeight:1.3}} title={f.path}>{f.path.split('/').slice(-2).join('/')}</code>
+                      {f.path?(()=>{
+                        const isTG = f.id&&f.id.startsWith('TG-');
+                        const isTB = f.id&&f.id.startsWith('TB-');
+                        const c = isTB?"#C4B5FD":isTG?"#FCD34D":"#34D399";
+                        const bg = isTB?"rgba(139,92,246,0.1)":isTG?"rgba(245,158,11,0.1)":"rgba(52,211,153,0.08)";
+                        return <code style={{fontSize:9,color:c,background:bg,borderRadius:3,padding:"1px 5px",fontFamily:"JetBrains Mono,monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block",lineHeight:1.3}} title={f.path}>{f.path.split('/').slice(-2).join('/')}</code>;
+                      })()
                       :<span style={{fontSize:9,color:"rgba(255,255,255,0.15)"}}>—</span>}
                     </div>
                     {/* Désignation FR */}
