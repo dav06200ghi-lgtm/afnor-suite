@@ -1271,18 +1271,18 @@ const PAGERO_LC_FIELDS=[
   {field:"Date",desc:"A date associated with the amount entry, such as the payment collection date.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Used for amount types MEN and MPA to signify the date of payment collection."}
 ];
 const CADRE_FACTURATION=[
-  {code:"B1",perim:"B2B",fr:"Dépôt d'une facture de bien",en:"Submission of a goods invoice",scope:"TBD",
-   note:"Facture standard de biens. Le plus courant côté AP Coty (achats de marchandises, matières premières)."},
-  {code:"S1",perim:"B2B",fr:"Dépôt d'une facture de prestation de service",en:"Submission of a services invoice",scope:"TBD",
-   note:"Facture de services (honoraires, prestations intellectuelles, maintenance). Très courant côté AP Coty."},
-  {code:"M1",perim:"B2B",fr:"Dépôt d'une facture mixte (biens + services non accessoires)",en:"Submission of a mixed invoice",scope:"TBD",
-   note:"Facture mixte biens + services non accessoires. Cas fréquent pour fournisseurs avec livraison + installation."},
-  {code:"B2/S2/M2",perim:"B2B",fr:"Facture prepayment de bien/service/mixte",en:"Prepayment invoice",scope:"TBD",
-   note:"Facture d'acompte. Applicable si Coty verse des acomptes fournisseurs (F-47/F-48 SAP). Vérifier usage Coty."},
-  {code:"B4/S4/M4",perim:"B2B",fr:"Facture définitive (après acompte)",en:"Final invoice (after advance payment)",scope:"TBD",
-   note:"Facture solde après acompte. Lié à B2/S2/M2. Applicable si les acomptes sont utilisés chez Coty AP."},
-  {code:"B7/S7",perim:"B2B",fr:"Facture soumise à e-reporting (TVA déjà collectée)",en:"Invoice subject to e-reporting (VAT already collected)",scope:"TBD",
-   note:"Facture sous e-reporting — TVA déjà collectée via encaissements (régime option). Cas spécifique à vérifier."},
+  {code:"B1",perim:"B2B",fr:"Dépôt d'une facture de bien",en:"Submission of a goods invoice",scope:"Yes",
+   note:"✅ Core AP scope — Factures standard de biens. Le plus courant côté AP Coty (achats de marchandises, matières premières, composants)."},
+  {code:"S1",perim:"B2B",fr:"Dépôt d'une facture de prestation de service",en:"Submission of a services invoice",scope:"Yes",
+   note:"✅ Core AP scope — Factures de services (honoraires, prestations intellectuelles, maintenance). Cas par défaut si appel de fonds sans TVA → reste S1."},
+  {code:"M1",perim:"B2B",fr:"Dépôt d'une facture mixte (biens + services non accessoires)",en:"Submission of a mixed invoice",scope:"Yes",
+   note:"✅ Core AP scope — Factures mixtes biens + services non accessoires (ex: livraison + installation)."},
+  {code:"B2/S2/M2",perim:"B2B",fr:"Facture prepayment de bien/service/mixte",en:"Prepayment invoice",scope:"Yes",
+   note:"✅ In scope (advance payment scenarios) — Factures d'acompte. Applicable quand Coty verse des avances fournisseurs (SAP F-47/F-48)."},
+  {code:"B4/S4/M4",perim:"B2B",fr:"Facture définitive (après acompte)",en:"Final invoice (after advance payment)",scope:"Yes",
+   note:"✅ In scope (advance payment scenarios) — Facture solde après acompte. Liée à B2/S2/M2 — applicable quand les avances sont utilisées."},
+  {code:"B7/S7",perim:"B2B",fr:"Facture soumise à e-reporting (TVA déjà collectée)",en:"Invoice subject to e-reporting (VAT already collected)",scope:"Yes",
+   note:"✅ In scope — cas spécifiques VAT-on-payment. S'applique quand la TVA est déclenchée et déclarée au moment du paiement (comptabilité de caisse), puis la facture est émise après. Cas concret: flux Média — appels de fonds incluant TVA, TVA déclarée au paiement, facture finale reçue ensuite. ⚠️ Si l'appel de fonds est sans TVA → la facture finale reste S1."},
 ];
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
@@ -2477,7 +2477,7 @@ function App(){
             <div style={{marginBottom:28}}>
               <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.5)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>📋 Cadre de Facturation — BT-23 (question Tradeshift / Edgar Palau)</div>
               <div style={{background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.7}}>
-                Tradeshift demande à Coty France AP de confirmer quels cadres de facturation sont <strong>in scope</strong>. Chaque facture échangée sous le mandat français doit porter un code BT-23 dérivé du cas d'usage métier. Cliquer sur <strong>In Scope / Out</strong> pour confirmer.
+                Positionnement confirmé Coty France AP (mail David → Edgar, 24/04/2026). Chaque facture sous le mandat français porte un code BT-23 dérivé du cas d'usage. Tous les cadres sont <strong>in scope</strong> selon les 3 groupes ci-dessous.
               </div>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
                 <thead><tr style={{background:"rgba(0,0,0,0.3)"}}>
@@ -2512,7 +2512,7 @@ function App(){
                 </tbody>
               </table>
               <div style={{marginTop:10,padding:"8px 12px",background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:7,fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.6}}>
-                💡 <strong>BT-23 dans SAP :</strong> Champ <code style={{fontFamily:"JetBrains Mono,monospace",background:"rgba(255,255,255,0.05)",padding:"1px 6px",borderRadius:3}}>ZEIVTRCAT</code> — à mapper dans l'IDOC avant envoi à Pagero. Valeurs: B=Biens, S=Services, M=Mixte (+ suffixe numérique selon cadre).
+                📊 <strong>3 groupes :</strong> (1) B1/S1/M1 = core AP scope · (2) B2/S2/M2 + B4/S4/M4 = advance payment scenarios · (3) B7/S7 = VAT-on-payment (flux Média avec TVA sur appels de fonds)<br/><br/>💡 <strong>BT-23 dans SAP :</strong> Champ <code style={{fontFamily:"JetBrains Mono,monospace",background:"rgba(255,255,255,0.05)",padding:"1px 6px",borderRadius:3}}>ZEIVTRCAT</code> — à mapper dans l'IDOC avant envoi à Pagero. Valeurs: B=Biens, S=Services, M=Mixte (+ suffixe numérique selon cadre).
               </div>
             </div>
 
