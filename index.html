@@ -3741,6 +3741,100 @@ function App(){
               </div>
             </div>
 
+            {/* VIDA section */}
+            <div style={{marginBottom:28,background:"rgba(6,182,212,0.03)",border:"1px solid rgba(6,182,212,0.18)",borderRadius:14,padding:"18px 20px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
+                <h3 style={{fontFamily:"JetBrains Mono,monospace",fontSize:14,fontWeight:800,margin:0,color:"#67E8F9"}}>🇪🇺 VIDA — VAT in the Digital Age</h3>
+                <span style={{fontSize:10,background:"rgba(6,182,212,0.15)",color:"#67E8F9",borderRadius:5,padding:"2px 10px",fontWeight:700}}>Directive UE 2022/2523 adoptée</span>
+              </div>
+              <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:16,lineHeight:1.6}}>
+                Généralisation de la facturation électronique et du reporting TVA en temps réel dans toute l'UE via le réseau <strong style={{color:"#67E8F9"}}>Peppol</strong>. 
+                Chaque État membre déploie son propre calendrier national — la France est en avance avec sa réforme 2026.
+              </p>
+
+              {/* Trois piliers VIDA */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:20}}>
+                {[
+                  {icon:"📄",t:"e-Invoicing B2B",c:"#3B82F6",d:"Facturation électronique obligatoire pour toutes transactions B2B intra-UE. Format structuré EN 16931. Transmission via réseau Peppol ou plateforme nationale certifiée.",tag:"Pilier 1"},
+                  {icon:"📡",t:"Digital Reporting (DRR)",c:"#8B5CF6",d:"Déclaration TVA en quasi temps réel transaction par transaction. Remplace les états récapitulatifs (EC Sales Lists). Données transmises à l'administration fiscale nationale.",tag:"Pilier 2"},
+                  {icon:"🏛",t:"Réforme TVA plateformes",c:"#10B981",d:"Responsabilité TVA déplacée vers les plateformes numériques (type Uber, Airbnb) pour les services de transport et hébergement.",tag:"Pilier 3"},
+                ].map(p=>(
+                  <div key={p.t} style={{background:"rgba(0,0,0,0.25)",border:`1px solid ${p.c}25`,borderRadius:9,padding:12}}>
+                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
+                      <span style={{fontSize:16}}>{p.icon}</span>
+                      <div>
+                        <div style={{fontSize:7.5,color:p.c,textTransform:"uppercase",letterSpacing:0.8,fontWeight:700}}>{p.tag}</div>
+                        <div style={{fontSize:11,fontWeight:700,color:"#fff"}}>{p.t}</div>
+                      </div>
+                    </div>
+                    <p style={{fontSize:10.5,color:"rgba(255,255,255,0.55)",lineHeight:1.6,margin:0}}>{p.d}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Timeline VIDA pays par pays */}
+              <div style={{marginBottom:16}}>
+                <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.5)",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>Calendrier déploiement pays — e-invoicing B2B via Peppol / plateforme nationale</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  {[
+                    {flag:"🇫🇷",country:"France",date:"Sept 2026",status:"live",detail:"Réforme PA/PPF. Format UBL/CII/Factur-X. Pagero, Tradeshift, Chorus Pro. En avance sur le calendrier VIDA.",c:"#22C55E"},
+                    {flag:"🇩🇪",country:"Allemagne",date:"Jan 2025 réception / Jan 2027 émission",status:"live",detail:"XRechnung / ZUGFeRD obligatoires pour réception depuis jan 2025. Émission B2B via Peppol obligatoire jan 2027.",c:"#22C55E"},
+                    {flag:"🇮🇹",country:"Italie",date:"Depuis 2019",status:"pioneer",detail:"Pionnier EU. SDI (Sistema di Interscambio) obligatoire depuis 2019. Format FatturaPA. Modèle de référence VIDA.",c:"#10B981"},
+                    {flag:"🇧🇪",country:"Belgique",date:"Jan 2026",status:"live",detail:"e-invoicing B2B obligatoire via PEPPOL BIS Billing 3.0 depuis janvier 2026. Réseau Peppol national.",c:"#22C55E"},
+                    {flag:"🇵🇱",country:"Pologne",date:"Fév 2026",status:"live",detail:"KSeF (Krajowy System e-Faktur). Plateforme nationale obligatoire. Après report de 2024.",c:"#22C55E"},
+                    {flag:"🇷🇴",country:"Roumanie",date:"Jan 2024",status:"pioneer",detail:"e-Factura obligatoire depuis jan 2024 pour B2G + B2B. Plateforme ANAF. Un des premiers EU après IT.",c:"#10B981"},
+                    {flag:"🇪🇸",country:"Espagne",date:"2025–2026",status:"deploying",detail:"VeriFactu + TicketBAI (Pays Basque). Déploiement progressif. Format Facturae via réseau Peppol ES.",c:"#F59E0B"},
+                    {flag:"🇵🇹",country:"Portugal",date:"Jan 2024",status:"pioneer",detail:"AT (Autoridade Tributária). Obligation de communication des factures à l'AT depuis 2020, e-invoicing B2B en cours.",c:"#10B981"},
+                    {flag:"🇸🇰",country:"Slovaquie",date:"2025",status:"deploying",detail:"IS EFA (Informačný Systém Elektronickej Fakturácie). Déploiement progressif B2G puis B2B.",c:"#F59E0B"},
+                    {flag:"🇬🇷",country:"Grèce",date:"2025–2026",status:"deploying",detail:"myDATA (plateforme AADE). Déclaration des données comptables en temps réel déjà active. e-invoicing B2B en déploiement.",c:"#F59E0B"},
+                    {flag:"🇳🇱",country:"Pays-Bas",date:"2028 (cible VIDA)",status:"planned",detail:"Pas encore d'obligation B2B nationale. Utilise Peppol pour B2G. Attend transposition VIDA.",c:"#94A3B8"},
+                    {flag:"🇸🇪",country:"Suède",date:"2028 (cible VIDA)",status:"planned",detail:"Peppol BIS Billing 3.0 déjà utilisé pour B2G. Extension B2B selon calendrier VIDA directive EU.",c:"#94A3B8"},
+                    {flag:"🇦🇹",country:"Autriche",date:"2028 (cible VIDA)",status:"planned",detail:"ebInterface format national. B2G actif. Transposition VIDA en cours.",c:"#94A3B8"},
+                    {flag:"🇨🇿",country:"Tchéquie",date:"2028 (cible VIDA)",status:"planned",detail:"Pas de déploiement national imminent. Attend la directive VIDA transposée.",c:"#94A3B8"},
+                    {flag:"🇭🇺",country:"Hongrie",date:"Actif (RTIR)",status:"pioneer",detail:"RTIR (Real-Time Invoice Reporting) actif depuis 2018. Reporting en temps réel mais pas encore e-invoicing B2B structuré.",c:"#10B981"},
+                    {flag:"🇩🇰",country:"Danemark",date:"2028 (cible VIDA)",status:"planned",detail:"NemHandel/Peppol actif pour B2G. Extension B2B attendue via VIDA.",c:"#94A3B8"},
+                  ].map(p=>{
+                    const sc={live:"#22C55E",pioneer:"#10B981",deploying:"#F59E0B",planned:"#94A3B8"}[p.status];
+                    const sl={live:"Actif 2025-26",pioneer:"Pionnier",deploying:"En déploiement",planned:"Planifié VIDA"}[p.status];
+                    return(
+                    <div key={p.country} style={{display:"flex",gap:10,background:"rgba(0,0,0,0.2)",border:`1px solid ${sc}20`,borderRadius:8,padding:"10px 12px",alignItems:"flex-start"}}>
+                      <div style={{flexShrink:0,textAlign:"center",minWidth:42}}>
+                        <div style={{fontSize:22}}>{p.flag}</div>
+                        <div style={{fontSize:7.5,color:sc,fontWeight:700,marginTop:2,background:sc+"15",borderRadius:3,padding:"1px 4px"}}>{sl}</div>
+                      </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3,flexWrap:"wrap"}}>
+                          <span style={{fontSize:12,fontWeight:700,color:"#fff"}}>{p.country}</span>
+                          <span style={{fontSize:9,color:p.c,background:p.c+"15",borderRadius:4,padding:"1px 7px",fontWeight:600,whiteSpace:"pre-line",textAlign:"center"}}>{p.date}</span>
+                        </div>
+                        <div style={{fontSize:10.5,color:"rgba(255,255,255,0.5)",lineHeight:1.5}}>{p.detail}</div>
+                      </div>
+                    </div>
+                  );})}
+                </div>
+              </div>
+
+              {/* Peppol */}
+              <div style={{background:"rgba(0,0,0,0.2)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:9,padding:"12px 16px"}}>
+                <div style={{fontSize:10,fontWeight:700,color:"#67E8F9",marginBottom:8}}>🔗 Réseau Peppol — Infrastructure commune EU</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,fontSize:11}}>
+                  {[
+                    {t:"Format",v:"PEPPOL BIS Billing 3.0 (basé EN 16931 / UBL 2.1)"},
+                    {t:"Réseau",v:"4-corner model — C1→C2→C3→C4"},
+                    {t:"Identifiant",v:"Peppol Participant ID (équiv. BT-49 / Annuaire PPF France)"},
+                    {t:"Pays actifs",v:"42+ pays (EU + Australie, Singapour, Malaisie...)"},
+                    {t:"Relation France",v:"Pagero = Access Point Peppol / Compatible BIS 3.0 + PUF FR"},
+                    {t:"Calendrier VIDA",v:"Transposition directive dans chaque EM avant 2028"},
+                  ].map(i=>(
+                    <div key={i.t} style={{background:"rgba(6,182,212,0.04)",borderRadius:6,padding:"8px 10px"}}>
+                      <div style={{fontSize:9,color:"#67E8F9",fontWeight:700,marginBottom:3,textTransform:"uppercase",letterSpacing:0.7}}>{i.t}</div>
+                      <div style={{fontSize:10.5,color:"rgba(255,255,255,0.65)",lineHeight:1.5,whiteSpace:"pre-line"}}>{i.v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Coty checklist */}
             <div>
               <h3 style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.7)",marginBottom:12}}>✅ Checklist Coty avant Sept 2026</h3>
