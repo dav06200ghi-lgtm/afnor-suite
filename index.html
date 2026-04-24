@@ -87,7 +87,7 @@ const BT=[
   {id:"BT-55",g:"buyer_addr",l:"Code de pays de l'acheteur",fr:"Code de pays de l'acheteur",m:true,s:["ei"],t:"CODE",d:"Code d'identification du pays. Les listes de pays valides sont enregistrées auprès de l'Agence de maintenance de la norme ISO 3166-1 « Codes pour la représentation des noms de pays et de leurs subdivisions ». Il est recommandé d'utiliser la représentation alpha-2. Codelist : ISO 3166.",r:"BR-11",ex:"FR | DE | GB | US | CN | ES | IT | BE | NL | JP (ISO 3166-1 alpha-2)",ubl:"/Invoice /CreditNote",cgi:"1/09/2026",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Pos",tt_er:"TT-36",puf_req:"M",puf_path:"Invoice/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode"},
   {id:"BT-56",g:"buyer_contact",l:"Point de contact de l’acheteur",fr:"Point de contact de l’acheteur",m:false,s:["ei"],t:"TEXTE",d:"Point de contact correspondant à une entité juridique ou à une personne morale. Exemple : nom d'une personne, ou identification d'un contact, d'un service ou d'un bureau",r:"",ex:"Service Comptabilité Fournisseurs",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Def",puf_req:"O",puf_path:"Invoice/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:Name",puf_note:"Such as person name, contact identification, department or office identification"},
   {id:"BT-57",g:"buyer_contact",l:"Numéro de téléphone du contact de l’acheteur",fr:"Numéro de téléphone du contact de l’acheteur",m:false,s:["ei"],t:"TEXTE",d:"Numéro de téléphone du point de contact.",r:"",ex:"+33 1 40 00 00 00",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Def",puf_req:"O",puf_path:"Invoice/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:Telephone"},
-  {id:"BT-58",g:"buyer_contact",l:"Adresse électronique du contact de l’acheteur",fr:"Adresse électronique du contact de l’acheteur",m:false,s:["ei"],t:"TEXTE",d:"Adresse e-mail du point de contact.",r:"",ex:"ap@clientcorp.fr",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Def",puf_req:"O",puf_path:"Invoice/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:ElectronicMail"},
+  {id:"BT-58",g:"buyer_contact",l:"Adresse électronique du contact de l’acheteur",fr:"Adresse électronique du contact de l’acheteur",m:false,s:["ei"],t:"TEXTE",d:"Adresse e-mail du point de contact.",r:"",ex:"ap@clientcorp.fr",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Def",puf_req:"O",puf_path:"Invoice/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:ElectronicMail",coty_note:"Discriminant T&E Coty FR (Edgar Palau 24/04/2026): si BT-58 est renseigné avec l'email de l'employé, la facture est T&E → déduction TVA B2B possible."},
   {id:"BT-59",g:"beneficiary",l:"Nom du bénéficiaire",fr:"Nom du bénéficiaire",m:true,s:["ei"],t:"TEXTE",d:"Nom du Bénéficiaire. Doit être utilisé lorsque le Bénéficiaire est différent du Vendeur. Le nom du bénéficiaire peut cependant être identique au nom du vendeur.",r:"BR-17",ex:"Factor SA (si affacturage)",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:PayeeTradeParty/ram:Na"},
   {id:"BT-60",g:"beneficiary",l:"Identifiant du complémentaire du bénéficiaire",fr:"Identifiant du complémentaire du bénéficiaire",m:false,s:["ei"],t:"IDENTIFIANT",d:"Identification du Bénéficiaire. Si aucun schéma n'est spécifié, il doit être connu de l'acheteur et du vendeur, par exemple un identifiant attribué par l'acheteur ou le vendeur précédemment échangé: Nom BR-FR : BR-FR-CO-10 BR-FR-CO-11 BR-FR-09.",r:"",ex:"0009:33344455500016",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:PayeeTradeParty/ram:Gl"},
   {id:"BT-61",g:"beneficiary",l:"Identifiant d’enregistrement légal du bénéficiaire",fr:"Identifiant d’enregistrement légal du bénéficiaire",m:false,s:["ei"],t:"IDENTIFIANT",d:"Identifiant délivré par un organisme d’enregistrement officiel, qui identifie le Bénéficiaire comme une entité juridique ou une personne morale. Si aucun schéma n'est spécifié, il doit être connu de l'acheteur et du vendeur, par exemple l'identifiant qui est exclusivement utilisé dans l'environnement juridique applicable.",r:"",ex:"0002:333444555",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:PayeeTradeParty/ram:Sp"},
@@ -1748,6 +1748,12 @@ function App(){
                       </div>
                     </div>
                   )}
+                  {selBT.coty_note&&(
+                    <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:8,padding:"9px 13px",marginBottom:10}}>
+                      <div style={{fontSize:9,color:"#FCD34D",textTransform:"uppercase",letterSpacing:1,fontWeight:700,marginBottom:4}}>🏢 Coty FR — Décision projet</div>
+                      <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",lineHeight:1.7}}>{selBT.coty_note}</div>
+                    </div>
+                  )}
                   {(selBT.idoc||selBT.vim_field)&&(
                 <div style={{background:"rgba(52,211,153,0.04)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:9,padding:"10px 14px",marginBottom:10}}>
                   <div style={{fontSize:9,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:1,marginBottom:8,fontWeight:700}}>⚙️ Mapping SAP S/4HANA — Coty FR</div>
@@ -2849,6 +2855,25 @@ function App(){
               </div>
             </div>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:4}}>Entités légales · Annuaire PPF · Flux ICO hors périmètre · Routing code · Source: Tracker 22/04/2026</p>
+            </div>
+
+            {/* Interco + SIREN rules — confirmed Edgar Palau 24/04/2026 */}
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+              <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"8px 14px",flex:"1 1 260px"}}>
+                <div style={{fontSize:10,fontWeight:700,color:"#FCA5A5",marginBottom:4}}>🚫 Interco FR → FR — HORS PÉRIMÈTRE</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",lineHeight:1.7}}>Tradeshift <strong>ignore</strong> toute transaction où vendeur ET acheteur ont un VAT ID Coty France. Ces factures ne sont <strong>pas poussées dans SAP</strong>.</div>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",marginTop:4,fontStyle:"italic"}}>Source: Edgar Palau (e-Invoicing AP Lead) — 24/04/2026</div>
+              </div>
+              <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"8px 14px",flex:"1 1 260px"}}>
+                <div style={{fontSize:10,fontWeight:700,color:"#A5B4FC",marginBottom:6}}>🔑 SIREN — règles par type fournisseur</div>
+                {[["Fournisseurs réguliers","SIREN standard (0002)","#86EFAC"],["Fournisseurs Média","SIREN / MEDIA — process Publicis","#FCD34D"],["T&E (Notes de frais)","BT-58 (email employé) = discriminant","#67E8F9"]].map(([type,rule,c])=>(
+                  <div key={type} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:3}}>
+                    <span style={{fontSize:10,color:"rgba(255,255,255,0.45)",minWidth:170,flexShrink:0}}>{type}</span>
+                    <span style={{fontSize:10,color:c,fontWeight:600}}>{rule}</span>
+                  </div>
+                ))}
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",marginTop:4,fontStyle:"italic"}}>Source: Edgar Palau — 24/04/2026</div>
+              </div>
             </div>
 
             {/* Entities */}
