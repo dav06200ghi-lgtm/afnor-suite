@@ -45,7 +45,7 @@ const BT=[
   {id:"BT-20",g:"header",l:"Conditions de paiement",fr:"Conditions de paiement",m:false,s:["ei"],t:"TEXTE",d:"Description textuelle des conditions de paiement applicables au montant à payer (y compris la description des pénalités éventuelles). Cet élément peut contenir plusieurs lignes et plusieurs termes.",r:"BR-CO-25",ex:"30 jours nets fin de mois",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradePaymentT"},
   {id:"BT-21",g:"header",l:"Code du sujet de la note de facture",fr:"Code du sujet de la note de facture",m:false,s:["ei"],t:"CODE",d:"Sujet de la note en texte suivant. Uniquement en UBL : entre ## en début de Note de ligne Doit être choisi permi les codes disponibles dans la liste UNTDID 4451 [6]. BR-FR : BR-FR-05 BR-FR-06 BR-FR-20.",r:"",ex:"BAR=Périmètre EI (obligatoire BR-FR-20) | AAK=Régime TVA spécial (franchise, agri) | ACC=Affacturage | DCL=Mandat facturation | TXD=Régime TVA | ZZZ=Texte libre (UNTDID 4451)",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:SubjectCode",tt_er:"TT-26"},
   {id:"BT-22",g:"header",l:"Note de facture",fr:"Note de facture",m:true,s:["ei"],t:"TEXTE",d:"Commentaire fournissant des informations non structurées concernant la Facture dans son ensemble. Exemple : raison d'une rectification. BR-FR : BR-FR-05 BR-FR-06 BR-FR-20.",r:"",ex:"Commentaire libre. Ex : raison de rectification",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content",tt_er:"TT-27"},
-  {id:"BT-23",g:"header",l:"Type de processus métier (cadre de facturation)",fr:"Type de processus métier (cadre de facturation)",m:false,s:["ei"],t:"TEXTE",d:"Identifie le contexte de processus métier dans lequel se déroule l'opération. Permet à l'Acheteur de traiter la Facture de manière appropriée. Cadre de facturation à renseigner par le vendeur BR-FR : BR-FR-08 BR-FR-CO-08 BR-FR-CO-09.",r:"",ex:"B1=Facture biens | B2=Facture biens déjà payée | B4=Facture définitive biens (après acompte) | B7=Facture biens e-reporting (TVA déjà collectée) | B8=Facture multi-vendeurs biens | M1=Facture double biens+services | M2=Facture double déjà payée | M4=Facture définitive double | M8=Facture multi-vendeurs double | S1=Facture services | S2=Facture services déjà payée | S3=Sous-traitance paiement direct (B2G) | S4=Facture définitive services (après acompte) | S5=Sous-traitant facture services | S6=Cotraitant facture services | S7=Facture services e-reporting (TVA déjà collectée) | S8=Facture multi-vendeurs services (BR-FR-08 G1.02)",ubl:"/Invoice /CreditNote",cgi:"1/09/2026",cgi_upgrade:true,cii:"/rsm:CrossIndustryInvoice/rsm:ExchangedDocumentContext/ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID",idoc:"E1EDKT1[TDID=100].ZE1EDKT1.ZEIVTRCAT",vim_field:"new — Dictionary field (LB/PS/LBPS)",req_sap:true,sap_note:"Nouveau champ SAP. Valeurs: LB=biens, PS=services, LBPS=mixte. Requis pour distinguer goods vs services → impact TVA et e-reporting.",tt_er:"TT-28"},
+  {id:"BT-23",g:"header",l:"Type de processus métier (cadre de facturation)",fr:"Type de processus métier (cadre de facturation)",m:false,s:["ei"],t:"TEXTE",d:"Identifie le contexte de processus métier dans lequel se déroule l'opération. Permet à l'Acheteur de traiter la Facture de manière appropriée. Cadre de facturation à renseigner par le vendeur BR-FR : BR-FR-08 BR-FR-CO-08 BR-FR-CO-09.",r:"",ex:"B1=Facture biens | B2=Facture biens déjà payée | B4=Facture définitive biens (après acompte) | B7=Facture biens e-reporting (TVA déjà collectée) | B8=Facture multi-vendeurs biens | M1=Facture double biens+services | M2=Facture double déjà payée | M4=Facture définitive double | M8=Facture multi-vendeurs double | S1=Facture services | S2=Facture services déjà payée | S3=Sous-traitance paiement direct (B2G) | S4=Facture définitive services (après acompte) | S5=Sous-traitant facture services | S6=Cotraitant facture services | S7=Facture services e-reporting (TVA déjà collectée) | S8=Facture multi-vendeurs services (BR-FR-08 G1.02)",ubl:"/Invoice /CreditNote",cgi:"1/09/2026",cgi_upgrade:true,cii:"/rsm:CrossIndustryInvoice/rsm:ExchangedDocumentContext/ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID",idoc:"E1EDKT1[TDID=100].ZE1EDKT1.ZEIVTRCAT",vim_field:"new — Dictionary field (LB/PS/LBPS)",req_sap:true,sap_note:"Nouveau champ SAP. Valeurs: LB=biens, PS=services, LBPS=mixte. Requis pour distinguer goods vs services → impact TVA et e-reporting.",tt_er:"TT-28",cadre:true},
   {id:"BT-24",g:"header",l:"Type de profil (e-invoicing, e-reporting, facture etc..)",fr:"Type de profil (e-invoicing, e-reporting, facture etc..)",m:true,s:["ei"],t:"IDENTIFIANT",d:"Identification de la spécification contenant la totalité des règles concernant le contenu sémantique, les cardinalités et les règles opérationnelles auxquelles se conforment les données contenues dans l’instance de document. Elle identifie la norme de facturation européenne ainsi que les éventuelles extensions appliquées. L'identification peut inclure la version de la spécification.",r:"BR-1",ex:"urn:cen.eu:en16931:2017 | urn:cen.eu:en16931:2017#conformant#urn:fnfe-mpe.org:fr:extended-ctc:1.0",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:ExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID",tt_er:"TT-29"},
   {id:"BT-25",g:"header",l:"Référence à une facture antérieure",fr:"Référence à une facture antérieure",m:true,s:["ei"],t:"REFERENCE DU DOCUMEN",d:"Identification d'une Facture précédemment envoyée par le Vendeur. BR-FR : BR-FR-01 BR-FR-02 BR-FR-CO-03 BR-FR-CO-04 BR-FR-CO-05.",r:"BR-55",ex:"FA-2026-00100 (numéro de la facture originale)",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:InvoiceReferencedDocum",idoc:"E1EDKT1[TDID=100].ZE1EDKT1.ZEIVCORINV",vim_field:"new field — à créer pour factures rectificatives et avoirs",req_sap:true,sap_note:"Nouveau champ VIM. Référence à la facture originale en cas de rectification ou avoir. Obligatoire pour credit note handling SAP.",tt_er:"TT-30"},
   {id:"BT-26",g:"header",l:"Date d'émission de facture antérieure",fr:"Date d'émission de facture antérieure",m:false,s:["ei"],t:"DATE",d:"Date à laquelle la Facture antérieure a été émise. La Date d'émission de facture antérieure doit être fournie si l'identifiant de facture antérieure n'est pas unique. Codelist : AAAA-MM-JJ (format UBL) AAAAMMJJ (format CII). BR-FR : BR-FR-03 BR-FR-CO-03 BR-FR-CO-04 BR-FR-CO-05.",r:"",ex:"2026-08-15",ubl:"/Invoice /CreditNote",cii:"/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:InvoiceReferencedDocum",tt_er:"TT-31"},
@@ -1270,6 +1270,20 @@ const PAGERO_LC_FIELDS=[
   {field:"Currency",desc:"The currency used for the amounts.",oblig:"M",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Must be EUR in France."},
   {field:"Date",desc:"A date associated with the amount entry, such as the payment collection date.",oblig:"O",mdt:"B2B/B2G",puf:"ApplicationResponse/cac:DocumentResponse/cac:Response/cac:Status/ext:UBLExtensions/ext:UBLExtension[ext:ExtensionURI = 'urn:pagero:ExtensionComponent:",comment:"Used for amount types MEN and MPA to signify the date of payment collection."}
 ];
+const CADRE_FACTURATION=[
+  {code:"B1",perim:"B2B",fr:"Dépôt d'une facture de bien",en:"Submission of a goods invoice",scope:"TBD",
+   note:"Facture standard de biens. Le plus courant côté AP Coty (achats de marchandises, matières premières)."},
+  {code:"S1",perim:"B2B",fr:"Dépôt d'une facture de prestation de service",en:"Submission of a services invoice",scope:"TBD",
+   note:"Facture de services (honoraires, prestations intellectuelles, maintenance). Très courant côté AP Coty."},
+  {code:"M1",perim:"B2B",fr:"Dépôt d'une facture mixte (biens + services non accessoires)",en:"Submission of a mixed invoice",scope:"TBD",
+   note:"Facture mixte biens + services non accessoires. Cas fréquent pour fournisseurs avec livraison + installation."},
+  {code:"B2/S2/M2",perim:"B2B",fr:"Facture prepayment de bien/service/mixte",en:"Prepayment invoice",scope:"TBD",
+   note:"Facture d'acompte. Applicable si Coty verse des acomptes fournisseurs (F-47/F-48 SAP). Vérifier usage Coty."},
+  {code:"B4/S4/M4",perim:"B2B",fr:"Facture définitive (après acompte)",en:"Final invoice (after advance payment)",scope:"TBD",
+   note:"Facture solde après acompte. Lié à B2/S2/M2. Applicable si les acomptes sont utilisés chez Coty AP."},
+  {code:"B7/S7",perim:"B2B",fr:"Facture soumise à e-reporting (TVA déjà collectée)",en:"Invoice subject to e-reporting (VAT already collected)",scope:"TBD",
+   note:"Facture sous e-reporting — TVA déjà collectée via encaissements (régime option). Cas spécifique à vérifier."},
+];
 const TABS=[{id:"bt",i:"📚",l:"BT Fields"},{id:"er",i:"📊",l:"E-Reporting"},{id:"ilc",i:"🔄",l:"ILC"},{id:"uc",i:"🗂️",l:"Use Cases"},{id:"val",i:"🔬",l:"Validator"},{id:"rules",i:"⚖️",l:"Rules"},{id:"motif",i:"🚫",l:"Codes Motif"},{id:"coty",i:"🏢",l:"Coty FR"},{id:"bfr",i:"🔒",l:"BFR Rules"},{id:"puf",i:"📄",l:"PUF Pagero"},{id:"flux",i:"🌐",l:"Flux"},{id:"ai",i:"🤖",l:"Expert IA"}];
 
 // ── VALIDATOR ─────────────────────────────────────────────────────────────────
@@ -1356,6 +1370,7 @@ function App(){
   const [motifSt,setMotifSt]=useState('all');
   const [selMotif,setSelMotif]=useState(CODES_MOTIF[0]);
   const [selEntity,setSelEntity]=useState(COTY_ENTITIES[0]);
+  const [cadreScope,setCadreScope]=useState({});
   const [bfrDoc,setBfrDoc]=useState('all');
   const [bfrCat,setBfrCat]=useState('all');
   const [bfrQ,setBfrQ]=useState('');
@@ -2457,7 +2472,51 @@ function App(){
 
             {/* ICO flows */}
             <div style={{marginBottom:28}}>
-              <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.5)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>🔄 Flux ICO hors périmètre e-invoicing</div>
+              
+            {/* Cadre de Facturation — Tradeshift question */}
+            <div style={{marginBottom:28}}>
+              <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.5)",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>📋 Cadre de Facturation — BT-23 (question Tradeshift / Edgar Palau)</div>
+              <div style={{background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.7}}>
+                Tradeshift demande à Coty France AP de confirmer quels cadres de facturation sont <strong>in scope</strong>. Chaque facture échangée sous le mandat français doit porter un code BT-23 dérivé du cas d'usage métier. Cliquer sur <strong>In Scope / Out</strong> pour confirmer.
+              </div>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                <thead><tr style={{background:"rgba(0,0,0,0.3)"}}>
+                  {["PÉRIMÈTRE","CADRE","DESCRIPTION FR","DESCRIPTION EN","IN SCOPE ?","NOTE"].map(h=>(
+                    <th key={h} style={{padding:"7px 10px",textAlign:"left",fontSize:9,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:0.7,borderBottom:"1px solid rgba(255,255,255,0.1)",whiteSpace:"nowrap"}}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {CADRE_FACTURATION.map((c,i)=>{
+                    const scope = cadreScope[c.code]||c.scope;
+                    const bc = scope==="Yes"?"#22C55E":scope==="No"?"#EF4444":"#F59E0B";
+                    return(
+                    <tr key={c.code} style={{borderBottom:"1px solid rgba(255,255,255,0.05)",background:i%2===0?"transparent":"rgba(255,255,255,0.01)"}}>
+                      <td style={{padding:"7px 10px"}}><span style={{fontSize:9,background:"rgba(99,102,241,0.12)",color:"#A5B4FC",borderRadius:3,padding:"2px 6px",fontWeight:600}}>{c.perim}</span></td>
+                      <td style={{padding:"7px 10px"}}><code style={{fontFamily:"JetBrains Mono,monospace",fontSize:13,color:"#FCD34D",fontWeight:700}}>{c.code}</code></td>
+                      <td style={{padding:"7px 10px",color:"rgba(255,255,255,0.85)",fontSize:12}}>{c.fr}</td>
+                      <td style={{padding:"7px 10px",color:"rgba(255,255,255,0.5)",fontSize:11,fontStyle:"italic"}}>{c.en}</td>
+                      <td style={{padding:"7px 10px",whiteSpace:"nowrap"}}>
+                        <div style={{display:"flex",gap:4}}>
+                          {["Yes","No","TBD"].map(v=>(
+                            <button key={v} onClick={()=>setCadreScope(prev=>({...prev,[c.code]:v}))}
+                              style={{fontSize:10,padding:"2px 9px",borderRadius:5,cursor:"pointer",fontWeight:scope===v?700:400,
+                                border:"1px solid "+(scope===v?bc:"rgba(255,255,255,0.1)"),
+                                background:scope===v?bc+"20":"transparent",
+                                color:scope===v?bc:"rgba(255,255,255,0.35)"}}>{v}</button>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{padding:"7px 10px",fontSize:11,color:"rgba(255,255,255,0.5)",lineHeight:1.5}}>{c.note}</td>
+                    </tr>);
+                  })}
+                </tbody>
+              </table>
+              <div style={{marginTop:10,padding:"8px 12px",background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:7,fontSize:11,color:"rgba(255,255,255,0.6)",lineHeight:1.6}}>
+                💡 <strong>BT-23 dans SAP :</strong> Champ <code style={{fontFamily:"JetBrains Mono,monospace",background:"rgba(255,255,255,0.05)",padding:"1px 6px",borderRadius:3}}>ZEIVTRCAT</code> — à mapper dans l'IDOC avant envoi à Pagero. Valeurs: B=Biens, S=Services, M=Mixte (+ suffixe numérique selon cadre).
+              </div>
+            </div>
+
+            <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.5)",textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>🔄 Flux ICO hors périmètre e-invoicing</div>
               <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#FCD34D",lineHeight:1.7}}>
                 ⚠️ Ces 12 flux intercompany FR↔FR sont <strong>hors périmètre e-invoicing</strong> au sens réglementaire (pas d'envoi via PA/PPF). Ils restent en flux EDI/IDOC direct entre entités Coty. Source: Coty FR Tracker, onglet "ICO flows out of scope".
               </div>
