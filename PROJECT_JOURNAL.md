@@ -17,7 +17,7 @@
 - **Interlocuteurs** : Edgar Palau (e-Invoicing AP Lead), Laurent Malzac (Pagero FR), Valérie Charpentier
 
 ## Architecture app (onglets)
-`📚 BT Fields` | `📊 E-Reporting` | `🔄 ILC` (Statuts + Codes Motif) | `🗂️ Use Cases` | `🔬 Validator` | `⚖️ Rules` | `🏢 Coty FR` | `🔒 BFR Rules` | `📄 PUF Pagero` | `🌐 Flux` | `🤖 Expert IA`
+`📚 BT Fields` | `📊 E-Reporting` | `🔄 ILC` | `🗂️ Use Cases` | `🔬 Validator` | `⚖️ Rules` | `🏢 Coty FR` | `🔒 BFR Rules` | `📄 PUF Pagero` | `🌐 Flux` | `📅 Calendrier` | `🔍 Recherche` | `🤖 Expert IA`
 
 ## Sources intégrées
 - XP_Z12-012_Annexe_A_2026_V1_3.xlsx — norme AFNOR
@@ -135,4 +135,13 @@ Filtres section: all/header/seller/buyer/delivery/payment/allowcharges/amounts/v
 - Représentation fiscale: fournisseur étranger avec TVA FR → autoliquidation quand même
 
 ## Dernier commit
-`68d3972` — feat: Coty FR — Interco FR→FR hors périmètre + règles SIREN (régulier/Média/T&E BT-58), BT-58 badge décision projet dans BT Fields
+`ff651d9` — feat: Fix C (UC/PUF bug) + A (SYS enrichi + Y-Model SVG) + B (Calendrier + Recherche globale)
+
+## Historique des commits récents
+| Hash | Description |
+|------|-------------|
+| `ff651d9` | Fix C+A+B : UC bug, SYS enrichi, Y-Model SVG, Calendrier, Recherche globale |
+| `3f2b5db` | docs: PROJECT_JOURNAL.md résumé complet |
+| `68d3972` | feat: Coty FR — Interco FR→FR + règles SIREN |
+| `8a7cb02` | feat: BFR Rules — légende colonnes |
+| `4a0a2f`  | feat: BFR Rules — 100 règles mapping BT |
